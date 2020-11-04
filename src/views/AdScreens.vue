@@ -1,6 +1,6 @@
 <template>
-  <div class="home">
-    Inicio
+  <div class="ad-screens">
+    Publicidades
   </div>
 </template>
 
@@ -8,7 +8,7 @@
 // @ is an alias to /src
 
 export default {
-  name: "Home",
+  name: "AdScreens",
   components: {}
 };
 </script>

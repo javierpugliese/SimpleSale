@@ -38,6 +38,7 @@
           </v-list-item-content>
         </v-list-item>
       </v-list>
+
       <template v-slot:append>
         <div class="pa-2" v-show="!mini">
           <v-btn block>
@@ -102,6 +103,7 @@ export default {
 
   data: () => ({
     drawer: true,
+    mini: true,
     items: [
       { title: "Galería", icon: "fas fa-image", link: "/" },
       { title: "Productos", icon: "fas fa-tag", link: "/productos" },
@@ -111,8 +113,7 @@ export default {
         icon: "fas fa-tools",
         link: "/mantenimiento-de-tablas"
       }
-    ],
-    mini: true
+    ]
   })
 };
 </script>

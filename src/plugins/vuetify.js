@@ -7,7 +7,8 @@ Vue.use(Vuetify);
 
 export default new Vuetify({
   theme: {
-    options: {
+    dark: true
+    /* options: {
       customProperties: true
     },
     themes: {
@@ -20,7 +21,7 @@ export default new Vuetify({
         success: "#4CAF50",
         warning: "#FFC107"
       }
-    }
+    } */
   },
   lang: {
     locales: { es },

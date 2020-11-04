@@ -7,5 +7,7 @@ export default new Vuex.Store({
   state: {},
   mutations: {},
   actions: {},
-  modules: {}
+  modules: {},
+  // strict mode in the dev environment.
+  strict: process.env.NODE_ENV !== "production",
 });

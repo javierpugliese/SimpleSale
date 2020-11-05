@@ -6,6 +6,7 @@ node_modules
 www
 package-lock.json
 axios.config.js
+debug.log
 
 # local env files
 .env.local

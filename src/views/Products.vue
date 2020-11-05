@@ -1,6 +1,8 @@
 <template>
   <div class="products">
-    Productos
+    <v-btn color="secondary" to="/agregar-producto">
+      Agregar
+    </v-btn>
   </div>
 </template>
 

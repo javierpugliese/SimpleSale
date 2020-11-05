@@ -1,3 +1,4 @@
+/* eslint-disable */
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Gallery from "../views/Gallery.vue";
@@ -15,6 +16,13 @@ const routes = [
     name: "Products",
     component: function () {
       return import(/* webpackChunkName: "products" */ "../views/Products.vue");
+    }
+  },
+  {
+    path: "/agregar-producto",
+    name: "ProductsAddOne",
+    component: function () {
+      return import(/* webpackChunkName: "products-add-one" */ "../views/ProductsAddOne.vue");
     }
   },
   {

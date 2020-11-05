@@ -4,7 +4,6 @@
       v-model="drawer"
       :mini-variant.sync="mini"
       permanent
-      expand-on-hover
       app
     >
       <v-list-item class="px-2 py-1">
@@ -19,6 +18,10 @@
         <v-list-item-title v-show="!mini" class="ml-2"
           >Usuario</v-list-item-title
         >
+
+        <v-btn icon @click.stop="mini = !mini">
+          <v-icon>fas fa-angle-left</v-icon>
+        </v-btn>
       </v-list-item>
 
       <v-divider></v-divider>
@@ -41,44 +44,35 @@
 
       <template v-slot:append>
         <div class="pa-2" v-show="!mini">
-          <v-btn block>
+          <v-btn color="red" large block>
             Cerrar sesión
           </v-btn>
         </div>
       </template>
     </v-navigation-drawer>
 
-    <v-app-bar app color="secondary" dark>
+    <v-app-bar app dark>
       <div class="d-flex align-center">
-        <v-img
-          alt="Logo de SimpleSale"
+        <!-- <v-img
+          alt="Isologo de SimpliSales"
           class="shrink mr-2"
           contain
           src="https://cdn.vuetifyjs.com/images/logos/vuetify-logo-dark.png"
           transition="scale-transition"
           width="40"
-        />
+        /> -->
 
         <v-img
-          alt="Nombre del producto SimpleSale"
-          class="shrink mt-1 hidden-sm-and-down"
+          alt="Logotipo de SimpliSales"
+          class="shrink"
           contain
           min-width="100"
-          src="https://cdn.vuetifyjs.com/images/logos/vuetify-name-dark.png"
+          src="@/assets/SimpliSales_mail_firma-01.png"
           width="100"
         />
       </div>
 
       <v-spacer></v-spacer>
-
-      <v-btn
-        href="https://github.com/vuetifyjs/vuetify/releases/latest"
-        target="_blank"
-        text
-      >
-        <span class="mr-2">Latest Release</span>
-        <v-icon>fas fa-external-link-alt</v-icon>
-      </v-btn>
     </v-app-bar>
 
     <v-main>
@@ -89,9 +83,8 @@
       </v-container>
     </v-main>
 
-    <v-footer app>
-      <!-- -->
-    </v-footer>
+    <!-- <v-footer app>
+    </v-footer> -->
   </v-app>
 </template>
 

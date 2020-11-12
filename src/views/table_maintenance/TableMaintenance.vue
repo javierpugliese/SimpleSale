@@ -32,8 +32,11 @@ export default {
       { title: "Barrios", link: "/barrios" },
       { title: "Localidades", link: "/localidades" },
       { title: "Provincias", link: "/provincias" },
-      { title: "Fabricantes", link: "/fabricantes" },
-      { title: "Tipos de Pantalla", link: "/tipos-de-pantalla" },
+      { title: "Fabricantes", link: "/mantenimiento-de-tablas/fabricantes" },
+      {
+        title: "Tipos de Pantalla",
+        link: "/mantenimiento-de-tablas/tipos-de-pantalla"
+      },
       { title: "Tipos de Archivo", link: "/tipos-de-archivo" },
       { title: "Tipos de Producto", link: "/tipos-de-producto" },
       { title: "Tipos de Atributo", link: "/tipos-de-atributo" },

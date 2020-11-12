@@ -54,10 +54,17 @@ const routes = [
     }
   },
   {
-    path: "/fabricantes",
+    path: "/mantenimiento-de-tablas/fabricantes",
     name: "Manufacturers",
     component: function () {
       return import(/* webpackChunkName: "manufacturers" */ "../views/table_maintenance/Manufacturers.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/tipos-de-pantalla",
+    name: "ScreenTypes",
+    component: function () {
+      return import(/* webpackChunkName: "screen-types" */ "../views/table_maintenance/ScreenTypes.vue");
     }
   }
   //{

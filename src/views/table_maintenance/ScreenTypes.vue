@@ -1,5 +1,5 @@
 <template>
-  <div class="manufacturers">
+  <div class="screen-types">
     <v-container>
       <v-row>
         <v-col cols="12">
@@ -21,7 +21,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="manufacturers"
+        :items="screenTypes"
         :loading="loading"
         :items-per-page="-1"
         loading-text="Cargando..."
@@ -30,7 +30,7 @@
       >
         <template v-slot:top>
           <v-toolbar flat>
-            <v-toolbar-title>Lista de Fabricantes</v-toolbar-title>
+            <v-toolbar-title>Lista de Tipos de Pantalla</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog" max-width="500px">
@@ -42,7 +42,7 @@
                   v-bind="attrs"
                   v-on="on"
                 >
-                  Nuevo Fabricante
+                  Nuevo Tipo de Pantalla
                 </v-btn>
               </template>
               <v-card>
@@ -56,7 +56,7 @@
                       <v-col cols="12">
                         <v-text-field
                           v-model="editedItem.nombre"
-                          label="Nombre del Fabricante"
+                          label="Nombre del Tipo de Pantalla"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -77,8 +77,8 @@
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
                 <v-card-title class="headline"
-                  >¿Está seguro de que quiere eliminar este
-                  fabricante?</v-card-title
+                  >¿Está seguro de que quiere eliminar este tipo de
+                  pantalla?</v-card-title
                 >
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -115,7 +115,7 @@
 <script>
 // @ is an alias to /src
 export default {
-  name: "Manufacturers",
+  name: "ScreenTypes",
   components: {},
   data: () => ({
     breadcrumbs: [
@@ -124,7 +124,7 @@ export default {
         disabled: false,
         href: "/mantenimiento-de-tablas"
       },
-      { text: "Fabricantes", disabled: true }
+      { text: "Tipos de Pantalla", disabled: true }
     ],
     headers: [
       {
@@ -136,7 +136,7 @@ export default {
       { text: "Acciones", value: "actions", align: "end", sortable: false }
     ],
     loading: false,
-    manufacturers: [],
+    screenTypes: [],
 
     dialog: false,
     dialogDelete: false,
@@ -155,7 +155,9 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "Nuevo Fabricante" : "Editar Fabricante";
+      return this.editedIndex === -1
+        ? "Nuevo Tipo de Pantalla"
+        : "Editar Tipo de Pantalla";
     }
   },
 
@@ -174,12 +176,12 @@ export default {
 
   methods: {
     async initialize() {
-      this.manufacturers = [];
+      this.screenTypes = [];
       this.loading = true;
       await this.$http
-        .get("fabricantes")
+        .get("TiposObjetoPublicitar")
         .then(res => {
-          if (res && res.data) this.manufacturers = res.data;
+          if (res && res.data) this.screenTypes = res.data;
         })
         .catch(err => console.log(err))
         .then(() => {
@@ -188,14 +190,14 @@ export default {
     },
 
     editItem(item) {
-      this.editedIndex = this.manufacturers.indexOf(item);
+      this.editedIndex = this.screenTypes.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.manufacturers.indexOf(item);
+      this.editedIndex = this.screenTypes.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialogDelete = true;
@@ -204,10 +206,10 @@ export default {
     async deleteItemConfirm() {
       this.loading = true;
       await this.$http
-        .delete(`fabricantes/${this.editedId}`, this.editedItem)
+        .delete(`TiposObjetoPublicitar/${this.editedId}`, this.editedItem)
         .then(res => {
           if (res) {
-            this.snackbarText = "Se eliminó el fabricante exitosamente.";
+            this.snackbarText = "Se eliminó el tipo de pantalla exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
@@ -215,7 +217,8 @@ export default {
         .catch(err => {
           if (err) {
             console.log(err);
-            this.snackbarText = "¡ERROR! No se pudo eliminar al fabricante.";
+            this.snackbarText =
+              "¡ERROR! No se pudo eliminar al tipo de pantalla.";
             this.snackbarColor = "danger";
             this.snackbar = true;
           }
@@ -248,19 +251,21 @@ export default {
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        Object.assign(this.manufacturers[this.editedIndex], this.editedItem);
+        Object.assign(this.screenTypes[this.editedIndex], this.editedItem);
         await this.$http
-          .put(`fabricantes/${this.editedId}`, this.editedItem)
+          .put(`TiposObjetoPublicitar/${this.editedId}`, this.editedItem)
           .then(res => {
             if (res) {
-              this.snackbarText = "Se actualizó el fabricante exitosamente.";
+              this.snackbarText =
+                "Se actualizó el tipo de pantalla exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
           .catch(err => {
             if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar el fabricante.";
+              this.snackbarText =
+                "¡ERROR! No se pudo guardar el tipo de pantalla.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
@@ -270,10 +275,10 @@ export default {
           });
       } else {
         await this.$http
-          .post("fabricantes", this.editedItem)
+          .post("TiposObjetoPublicitar", this.editedItem)
           .then(res => {
             if (res) {
-              this.snackbarText = "Se agregó el fabricante exitosamente.";
+              this.snackbarText = "Se agregó el tipo de pantalla exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
@@ -281,7 +286,8 @@ export default {
           .catch(err => {
             console.log(err);
             if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar el fabricante.";
+              this.snackbarText =
+                "¡ERROR! No se pudo guardar el tipo de pantalla.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }

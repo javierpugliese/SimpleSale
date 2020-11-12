@@ -15,42 +15,49 @@ const routes = [
     path: "/productos",
     name: "Products",
     component: function () {
-      return import(/* webpackChunkName: "products" */ "../views/Products.vue");
+      return import(/* webpackChunkName: "products" */ "../views/products/Products.vue");
     }
   },
   {
     path: "/agregar-producto",
     name: "ProductsAddOne",
     component: function () {
-      return import(/* webpackChunkName: "products-add-one" */ "../views/ProductsAddOne.vue");
+      return import(/* webpackChunkName: "products-add-one" */ "../views/products/ProductsAddOne.vue");
     }
   },
   {
     path: "/pantallas",
     name: "Screens",
     component: function () {
-      return import(/* webpackChunkName: "screens" */ "../views/Screens.vue");
+      return import(/* webpackChunkName: "screens" */ "../views/screens/Screens.vue");
     }
   },
   {
     path: "/pantallas/gondolas",
     name: "AdScreens",
     component: function () {
-      return import(/* webpackChunkName: "ad-screens" */ "../views/AdScreens.vue");
+      return import(/* webpackChunkName: "ads" */ "../views/screens/Ads.vue");
     }
   },
   {
     path: "/pantallas/gondolas",
-    name: "ShelveScreens",
+    name: "Virtuals",
     component: function () {
-      return import(/* webpackChunkName: "shelve-screens" */ "../views/ShelveScreens.vue");
+      return import(/* webpackChunkName: "virtuals" */ "../views/screens/Virtuals.vue");
     }
   },
   {
     path: "/mantenimiento-de-tablas",
     name: "TableMaintenance",
     component: function () {
-      return import(/* webpackChunkName: "table-maintenance" */ "../views/TableMaintenance.vue");
+      return import(/* webpackChunkName: "table-maintenance" */ "../views/table_maintenance/TableMaintenance.vue");
+    }
+  },
+  {
+    path: "/fabricantes",
+    name: "Manufacturers",
+    component: function () {
+      return import(/* webpackChunkName: "manufacturers" */ "../views/table_maintenance/Manufacturers.vue");
     }
   }
   //{

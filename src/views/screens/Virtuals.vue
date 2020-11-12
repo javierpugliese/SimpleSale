@@ -1,5 +1,5 @@
 <template>
-  <div class="shelve-screens">
+  <div class="virtuals">
     Gondolas
   </div>
 </template>
@@ -8,7 +8,7 @@
 // @ is an alias to /src
 
 export default {
-  name: "ShelveScreens",
+  name: "Virtuals",
   components: {}
 };
 </script>

@@ -73,6 +73,13 @@ const routes = [
     component: function () {
       return import(/* webpackChunkName: "file-types" */ "../views/table_maintenance/FileTypes.vue");
     }
+  },
+  {
+    path: "/mantenimiento-de-tablas/tipos-de-producto",
+    name: "ProductTypes",
+    component: function () {
+      return import(/* webpackChunkName: "product-types" */ "../views/table_maintenance/ProductTypes.vue");
+    }
   }
   //{
   //path: "/about",

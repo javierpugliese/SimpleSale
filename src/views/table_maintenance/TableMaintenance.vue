@@ -26,12 +26,12 @@ export default {
 
   data: () => ({
     items: [
-      { title: "Sectores", link: "/sectores" },
-      { title: "Zonas", link: "/zonas" },
-      { title: "Regiones", link: "/regiones" },
-      { title: "Barrios", link: "/barrios" },
-      { title: "Localidades", link: "/localidades" },
-      { title: "Provincias", link: "/provincias" },
+      { title: "Sectores", link: "/mantenimiento-de-tablas/sectores" },
+      { title: "Zonas", link: "/mantenimiento-de-tablas/zonas" },
+      { title: "Regiones", link: "/mantenimiento-de-tablas/regiones" },
+      { title: "Barrios", link: "/mantenimiento-de-tablas/barrios" },
+      { title: "Localidades", link: "/mantenimiento-de-tablas/localidades" },
+      { title: "Provincias", link: "/mantenimiento-de-tablas/provincias" },
       { title: "Fabricantes", link: "/mantenimiento-de-tablas/fabricantes" },
       {
         title: "Tipos de Pantalla",
@@ -41,10 +41,16 @@ export default {
         title: "Tipos de Archivo",
         link: "/mantenimiento-de-tablas/tipos-de-archivo"
       },
-      { title: "Tipos de Producto", link: "/tipos-de-producto" },
-      { title: "Tipos de Atributo", link: "/tipos-de-atributo" },
-      { title: "Atributos", link: "/atributos" },
-      { title: "Categorías", link: "/categorias" }
+      {
+        title: "Tipos de Producto",
+        link: "/mantenimiento-de-tablas/tipos-de-producto"
+      },
+      {
+        title: "Tipos de Atributo",
+        link: "/mantenimiento-de-tablas/tipos-de-atributo"
+      },
+      { title: "Atributos", link: "/mantenimiento-de-tablas/atributos" },
+      { title: "Categorías", link: "/mantenimiento-de-tablas/categorias" }
     ]
   })
 };

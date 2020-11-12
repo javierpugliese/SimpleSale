@@ -37,7 +37,10 @@ export default {
         title: "Tipos de Pantalla",
         link: "/mantenimiento-de-tablas/tipos-de-pantalla"
       },
-      { title: "Tipos de Archivo", link: "/tipos-de-archivo" },
+      {
+        title: "Tipos de Archivo",
+        link: "/mantenimiento-de-tablas/tipos-de-archivo"
+      },
       { title: "Tipos de Producto", link: "/tipos-de-producto" },
       { title: "Tipos de Atributo", link: "/tipos-de-atributo" },
       { title: "Atributos", link: "/atributos" },

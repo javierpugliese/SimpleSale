@@ -66,6 +66,13 @@ const routes = [
     component: function () {
       return import(/* webpackChunkName: "screen-types" */ "../views/table_maintenance/ScreenTypes.vue");
     }
+  },
+  {
+    path: "/mantenimiento-de-tablas/tipos-de-archivo",
+    name: "FileTypes",
+    component: function () {
+      return import(/* webpackChunkName: "file-types" */ "../views/table_maintenance/FileTypes.vue");
+    }
   }
   //{
   //path: "/about",

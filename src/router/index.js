@@ -80,6 +80,13 @@ const routes = [
     component: function () {
       return import(/* webpackChunkName: "product-types" */ "../views/table_maintenance/ProductTypes.vue");
     }
+  },
+  {
+    path: "/mantenimiento-de-tablas/tipos-de-atributo",
+    name: "AttributeTypes",
+    component: function () {
+      return import(/* webpackChunkName: "attribute-types" */ "../views/table_maintenance/AttributeTypes.vue");
+    }
   }
   //{
   //path: "/about",

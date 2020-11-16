@@ -1,5 +1,5 @@
 <template>
-  <div class="product-types">
+  <div class="zones">
     <v-container>
       <v-row>
         <v-col cols="12">
@@ -21,7 +21,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="productTypes"
+        :items="zones"
         :loading="loading"
         :items-per-page="-1"
         loading-text="Cargando..."
@@ -30,7 +30,7 @@
       >
         <template v-slot:top>
           <v-toolbar flat>
-            <v-toolbar-title>Lista de Tipos de Producto</v-toolbar-title>
+            <v-toolbar-title>Lista de Zonas</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog" max-width="500px">
@@ -42,7 +42,7 @@
                   v-bind="attrs"
                   v-on="on"
                 >
-                  Nuevo Tipo de Producto
+                  Nueva Zona
                 </v-btn>
               </template>
               <v-card>
@@ -56,7 +56,7 @@
                       <v-col cols="12">
                         <v-text-field
                           v-model="editedItem.nombre"
-                          label="Nombre del Tipo de Producto"
+                          label="Nombre del Zona"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -74,9 +74,9 @@
             </v-dialog>
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
-                <v-card-title class="headline">
-                  ¿Está seguro de que quiere eliminar este tipo de producto?
-                </v-card-title>
+                <v-card-title class="headline"
+                  >¿Está seguro de que quiere eliminar esta zona?</v-card-title
+                >
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn color="blue darken-1" text @click="closeDelete"
@@ -110,7 +110,7 @@
 <script>
 // @ is an alias to /src
 export default {
-  name: "ProductTypes",
+  name: "Zones",
   components: {},
   data: () => ({
     breadcrumbs: [
@@ -119,7 +119,7 @@ export default {
         disabled: false,
         href: "/mantenimiento-de-tablas",
       },
-      { text: "Tipos de Producto", disabled: true },
+      { text: "Zonas", disabled: true },
     ],
     headers: [
       {
@@ -131,7 +131,7 @@ export default {
       { text: "Acciones", value: "actions", align: "end", sortable: false },
     ],
     loading: false,
-    productTypes: [],
+    zones: [],
 
     dialog: false,
     dialogDelete: false,
@@ -150,9 +150,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1
-        ? "Nuevo Tipo de Producto"
-        : "Editar Tipo de Producto";
+      return this.editedIndex === -1 ? "Nueva Zona" : "Editar Zona";
     },
   },
 
@@ -171,12 +169,12 @@ export default {
 
   methods: {
     async initialize() {
-      this.productTypes = [];
+      this.zones = [];
       this.loading = true;
       await this.$http
-        .get("TiposArticulo")
+        .get("Zonas")
         .then((res) => {
-          if (res && res.data) this.productTypes = res.data;
+          if (res && res.data) this.zones = res.data;
         })
         .catch((err) => console.log(err))
         .then(() => {
@@ -185,14 +183,14 @@ export default {
     },
 
     editItem(item) {
-      this.editedIndex = this.productTypes.indexOf(item);
+      this.editedIndex = this.zones.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.productTypes.indexOf(item);
+      this.editedIndex = this.zones.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialogDelete = true;
@@ -201,10 +199,10 @@ export default {
     async deleteItemConfirm() {
       this.loading = true;
       await this.$http
-        .delete(`TiposArticulo/${this.editedId}`, this.editedItem)
+        .delete(`Zonas/${this.editedId}`, this.editedItem)
         .then((res) => {
           if (res) {
-            this.snackbarText = "Se eliminó el tipo de producto exitosamente.";
+            this.snackbarText = "Se eliminó la zona exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
@@ -212,8 +210,7 @@ export default {
         .catch((err) => {
           if (err) {
             console.log(err);
-            this.snackbarText =
-              "¡ERROR! No se pudo eliminar al tipo de producto.";
+            this.snackbarText = "¡ERROR! No se pudo eliminar la zona.";
             this.snackbarColor = "danger";
             this.snackbar = true;
           }
@@ -246,21 +243,19 @@ export default {
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        Object.assign(this.productTypes[this.editedIndex], this.editedItem);
+        Object.assign(this.zones[this.editedIndex], this.editedItem);
         await this.$http
-          .put(`TiposArticulo/${this.editedId}`, this.editedItem)
+          .put(`Zonas/${this.editedId}`, this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText =
-                "Se actualizó el tipo de producto exitosamente.";
+              this.snackbarText = "Se actualizó la zona exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
           .catch((err) => {
             if (err) {
-              this.snackbarText =
-                "¡ERROR! No se pudo guardar el tipo de producto.";
+              this.snackbarText = "¡ERROR! No se pudo guardar la zona.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
@@ -270,10 +265,10 @@ export default {
           });
       } else {
         await this.$http
-          .post("TiposArticulo", this.editedItem)
+          .post("Zonas", this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText = "Se agregó el tipo de producto exitosamente.";
+              this.snackbarText = "Se agregó la zona exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
@@ -281,8 +276,7 @@ export default {
           .catch((err) => {
             console.log(err);
             if (err) {
-              this.snackbarText =
-                "¡ERROR! No se pudo guardar el tipo de producto.";
+              this.snackbarText = "¡ERROR! No se pudo guardar la zona.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }

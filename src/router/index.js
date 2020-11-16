@@ -87,6 +87,55 @@ const routes = [
     component: function () {
       return import(/* webpackChunkName: "attribute-types" */ "../views/table_maintenance/AttributeTypes.vue");
     }
+  },
+  {
+    path: "/mantenimiento-de-tablas/zonas",
+    name: "Zones",
+    component: function () {
+      return import(/* webpackChunkName: "zones" */ "../views/table_maintenance/Zones.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/sectores",
+    name: "Sectors",
+    component: function () {
+      return import(/* webpackChunkName: "sectors" */ "../views/table_maintenance/Sectors.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/provincias",
+    name: "Provinces",
+    component: function () {
+      return import(/* webpackChunkName: "provinces" */ "../views/table_maintenance/Provinces.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/categorias",
+    name: "Categories",
+    component: function () {
+      return import(/* webpackChunkName: "categories" */ "../views/table_maintenance/Categories.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/localidades",
+    name: "Locations",
+    component: function () {
+      return import(/* webpackChunkName: "locations" */ "../views/table_maintenance/Locations.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/barrios",
+    name: "Neighborhoods",
+    component: function () {
+      return import(/* webpackChunkName: "neighborhoods" */ "../views/table_maintenance/Neighborhoods.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/atributos",
+    name: "Attributes",
+    component: function () {
+      return import(/* webpackChunkName: "attributes" */ "../views/table_maintenance/Attributes.vue");
+    }
   }
   //{
   //path: "/about",

@@ -68,18 +68,15 @@
                   <v-btn color="blue darken-1" text @click="close">
                     Cancelar
                   </v-btn>
-                  <v-btn color="success" @click="save">
-                    Guardar
-                  </v-btn>
+                  <v-btn color="success" @click="save"> Guardar </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
-                <v-card-title class="headline"
-                  >¿Está seguro de que quiere eliminar este tipo de
-                  pantalla?</v-card-title
-                >
+                <v-card-title class="headline">
+                  ¿Está seguro de que quiere eliminar este tipo de archivo?
+                </v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn color="blue darken-1" text @click="closeDelete"
@@ -103,9 +100,7 @@
           </v-icon>
         </template>
         <template v-slot:no-data>
-          <v-btn color="primary" @click="initialize">
-            Recargar
-          </v-btn>
+          <v-btn color="primary" @click="initialize"> Recargar </v-btn>
         </template>
       </v-data-table>
     </v-container>
@@ -122,18 +117,18 @@ export default {
       {
         text: "Mantenimiento de Tablas",
         disabled: false,
-        href: "/mantenimiento-de-tablas"
+        href: "/mantenimiento-de-tablas",
       },
-      { text: "Tipos de Archivo", disabled: true }
+      { text: "Tipos de Archivo", disabled: true },
     ],
     headers: [
       {
         text: "Nombre",
         align: "start",
         sortable: true,
-        value: "nombre"
+        value: "nombre",
       },
-      { text: "Acciones", value: "actions", align: "end", sortable: false }
+      { text: "Acciones", value: "actions", align: "end", sortable: false },
     ],
     loading: false,
     fileTypes: [],
@@ -142,15 +137,15 @@ export default {
     dialogDelete: false,
     editedIndex: -1,
     editedItem: {
-      nombre: ""
+      nombre: "",
     },
     editedId: -1,
     defaultItem: {
-      nombre: ""
+      nombre: "",
     },
     snackbar: false,
     snackbarText: "",
-    snackbarColor: "black"
+    snackbarColor: "black",
   }),
 
   computed: {
@@ -158,7 +153,7 @@ export default {
       return this.editedIndex === -1
         ? "Nuevo Tipo de Archivo"
         : "Editar Tipo de Archivo";
-    }
+    },
   },
 
   watch: {
@@ -167,7 +162,7 @@ export default {
     },
     dialogDelete(val) {
       val || this.closeDelete();
-    }
+    },
   },
 
   created() {
@@ -180,10 +175,10 @@ export default {
       this.loading = true;
       await this.$http
         .get("TipoArchivos")
-        .then(res => {
+        .then((res) => {
           if (res && res.data) this.fileTypes = res.data;
         })
-        .catch(err => console.log(err))
+        .catch((err) => console.log(err))
         .then(() => {
           this.loading = false;
         });
@@ -207,14 +202,14 @@ export default {
       this.loading = true;
       await this.$http
         .delete(`TipoArchivos/${this.editedId}`, this.editedItem)
-        .then(res => {
+        .then((res) => {
           if (res) {
             this.snackbarText = "Se eliminó el tipo de archivo exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
         })
-        .catch(err => {
+        .catch((err) => {
           if (err) {
             console.log(err);
             this.snackbarText =
@@ -254,7 +249,7 @@ export default {
         Object.assign(this.fileTypes[this.editedIndex], this.editedItem);
         await this.$http
           .put(`TipoArchivos/${this.editedId}`, this.editedItem)
-          .then(res => {
+          .then((res) => {
             if (res) {
               this.snackbarText =
                 "Se actualizó el tipo de archivo exitosamente.";
@@ -262,7 +257,7 @@ export default {
               this.snackbar = true;
             }
           })
-          .catch(err => {
+          .catch((err) => {
             if (err) {
               this.snackbarText =
                 "¡ERROR! No se pudo guardar el tipo de archivo.";
@@ -276,14 +271,14 @@ export default {
       } else {
         await this.$http
           .post("TipoArchivos", this.editedItem)
-          .then(res => {
+          .then((res) => {
             if (res) {
               this.snackbarText = "Se agregó el tipo de archivo exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.log(err);
             if (err) {
               this.snackbarText =
@@ -298,7 +293,7 @@ export default {
       }
       this.close();
       this.initialize();
-    }
-  }
+    },
+  },
 };
 </script>

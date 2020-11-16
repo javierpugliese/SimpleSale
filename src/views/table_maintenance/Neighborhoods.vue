@@ -1,5 +1,5 @@
 <template>
-  <div class="product-types">
+  <div class="neighborhoods">
     <v-container>
       <v-row>
         <v-col cols="12">
@@ -21,7 +21,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="productTypes"
+        :items="neighborhoods"
         :loading="loading"
         :items-per-page="-1"
         loading-text="Cargando..."
@@ -30,7 +30,7 @@
       >
         <template v-slot:top>
           <v-toolbar flat>
-            <v-toolbar-title>Lista de Tipos de Producto</v-toolbar-title>
+            <v-toolbar-title>Lista de Barrios</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog" max-width="500px">
@@ -42,7 +42,7 @@
                   v-bind="attrs"
                   v-on="on"
                 >
-                  Nuevo Tipo de Producto
+                  Nuevo Barrio
                 </v-btn>
               </template>
               <v-card>
@@ -56,8 +56,19 @@
                       <v-col cols="12">
                         <v-text-field
                           v-model="editedItem.nombre"
-                          label="Nombre del Tipo de Producto"
+                          label="Nombre del Barrio"
                         ></v-text-field>
+                      </v-col>
+                      <v-col cols="12">
+                        <v-autocomplete
+                          v-model="editedItem.idLocalidad"
+                          :items="locations"
+                          label="Localidad"
+                          maxlength="50"
+                          clearable
+                          outlined
+                          small-chips
+                        ></v-autocomplete>
                       </v-col>
                     </v-row>
                   </v-container>
@@ -74,9 +85,10 @@
             </v-dialog>
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
-                <v-card-title class="headline">
-                  ¿Está seguro de que quiere eliminar este tipo de producto?
-                </v-card-title>
+                <v-card-title class="headline"
+                  >¿Está seguro de que quiere eliminar este
+                  barrio?</v-card-title
+                >
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn color="blue darken-1" text @click="closeDelete"
@@ -110,7 +122,7 @@
 <script>
 // @ is an alias to /src
 export default {
-  name: "ProductTypes",
+  name: "Neighborhoods",
   components: {},
   data: () => ({
     breadcrumbs: [
@@ -119,7 +131,7 @@ export default {
         disabled: false,
         href: "/mantenimiento-de-tablas",
       },
-      { text: "Tipos de Producto", disabled: true },
+      { text: "Barrios", disabled: true },
     ],
     headers: [
       {
@@ -128,20 +140,29 @@ export default {
         sortable: true,
         value: "nombre",
       },
+      {
+        text: "Localidad",
+        align: "start",
+        sortable: true,
+        value: "idLocalidad",
+      },
       { text: "Acciones", value: "actions", align: "end", sortable: false },
     ],
     loading: false,
-    productTypes: [],
+    neighborhoods: [],
+    locations: [],
 
     dialog: false,
     dialogDelete: false,
     editedIndex: -1,
     editedItem: {
       nombre: "",
+      idLocalidad: -1,
     },
     editedId: -1,
     defaultItem: {
       nombre: "",
+      idLocalidad: -1,
     },
     snackbar: false,
     snackbarText: "",
@@ -150,9 +171,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1
-        ? "Nuevo Tipo de Producto"
-        : "Editar Tipo de Producto";
+      return this.editedIndex === -1 ? "Nuevo Barrio" : "Editar Barrio";
     },
   },
 
@@ -171,40 +190,56 @@ export default {
 
   methods: {
     async initialize() {
-      this.productTypes = [];
+      this.neighborhoods = [];
       this.loading = true;
-      await this.$http
-        .get("TiposArticulo")
-        .then((res) => {
-          if (res && res.data) this.productTypes = res.data;
+
+      const neighborhoods = this.$http.get("Barrios");
+      const locations = this.$http.get("Localidades");
+      await Promise.all([neighborhoods, locations])
+        .then((responses) => {
+          const neighborhoodsRes = responses[0];
+          const locationsRes = responses[1];
+
+          if (neighborhoodsRes && neighborhoodsRes.data)
+            this.neighborhoods = neighborhoodsRes.data;
+          if (locationsRes && locationsRes.data) {
+            this.locations = locationsRes.data.map((pc) => ({
+              text: pc.nombre,
+              value: pc.id,
+            }));
+          }
         })
-        .catch((err) => console.log(err))
-        .then(() => {
+        .catch((errors) => {
+          console.error(errors);
+        })
+        .finally(() => {
           this.loading = false;
         });
     },
 
     editItem(item) {
-      this.editedIndex = this.productTypes.indexOf(item);
+      this.editedIndex = this.neighborhoods.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
+      this.editedItem.idLocalidad = item.idLocalidad || -1;
       this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.productTypes.indexOf(item);
+      this.editedIndex = this.neighborhoods.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
+      this.editedItem.idLocalidad = item.idLocalidad || -1;
       this.dialogDelete = true;
     },
 
     async deleteItemConfirm() {
       this.loading = true;
       await this.$http
-        .delete(`TiposArticulo/${this.editedId}`, this.editedItem)
+        .delete(`Barrios/${this.editedId}`, this.editedItem)
         .then((res) => {
           if (res) {
-            this.snackbarText = "Se eliminó el tipo de producto exitosamente.";
+            this.snackbarText = "Se eliminó el barrio exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
@@ -212,8 +247,7 @@ export default {
         .catch((err) => {
           if (err) {
             console.log(err);
-            this.snackbarText =
-              "¡ERROR! No se pudo eliminar al tipo de producto.";
+            this.snackbarText = "¡ERROR! No se pudo eliminar el barrio.";
             this.snackbarColor = "danger";
             this.snackbar = true;
           }
@@ -231,6 +265,7 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.editedItem.idLocalidad = -1;
       });
     },
 
@@ -240,27 +275,26 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.editedItem.idLocalidad = -1;
       });
     },
 
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        Object.assign(this.productTypes[this.editedIndex], this.editedItem);
+        Object.assign(this.neighborhoods[this.editedIndex], this.editedItem);
         await this.$http
-          .put(`TiposArticulo/${this.editedId}`, this.editedItem)
+          .put(`Barrios/${this.editedId}`, this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText =
-                "Se actualizó el tipo de producto exitosamente.";
+              this.snackbarText = "Se actualizó el barrio exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
           .catch((err) => {
             if (err) {
-              this.snackbarText =
-                "¡ERROR! No se pudo guardar el tipo de producto.";
+              this.snackbarText = "¡ERROR! No se pudo guardar el barrio.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
@@ -270,10 +304,10 @@ export default {
           });
       } else {
         await this.$http
-          .post("TiposArticulo", this.editedItem)
+          .post("Barrios", this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText = "Se agregó el tipo de producto exitosamente.";
+              this.snackbarText = "Se agregó el barrio exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
@@ -281,8 +315,7 @@ export default {
           .catch((err) => {
             console.log(err);
             if (err) {
-              this.snackbarText =
-                "¡ERROR! No se pudo guardar el tipo de producto.";
+              this.snackbarText = "¡ERROR! No se pudo guardar el barrio.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }

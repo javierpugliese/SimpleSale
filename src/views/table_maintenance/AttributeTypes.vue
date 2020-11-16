@@ -21,7 +21,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="fileTypes"
+        :items="attributeTypes"
         :loading="loading"
         :items-per-page="-1"
         loading-text="Cargando..."
@@ -135,7 +135,7 @@ export default {
       { text: "Acciones", value: "actions", align: "end", sortable: false }
     ],
     loading: false,
-    fileTypes: [],
+    attributeTypes: [],
 
     dialog: false,
     dialogDelete: false,
@@ -175,12 +175,12 @@ export default {
 
   methods: {
     async initialize() {
-      this.fileTypes = [];
+      this.attributeTypes = [];
       this.loading = true;
       await this.$http
         .get("TiposDeAtributo")
         .then(res => {
-          if (res && res.data) this.fileTypes = res.data;
+          if (res && res.data) this.attributeTypes = res.data;
         })
         .catch(err => console.log(err))
         .then(() => {
@@ -189,14 +189,14 @@ export default {
     },
 
     editItem(item) {
-      this.editedIndex = this.fileTypes.indexOf(item);
+      this.editedIndex = this.attributeTypes.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.fileTypes.indexOf(item);
+      this.editedIndex = this.attributeTypes.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialogDelete = true;
@@ -250,7 +250,7 @@ export default {
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        Object.assign(this.fileTypes[this.editedIndex], this.editedItem);
+        Object.assign(this.attributeTypes[this.editedIndex], this.editedItem);
         await this.$http
           .put(`TiposDeAtributo/${this.editedId}`, this.editedItem)
           .then(res => {

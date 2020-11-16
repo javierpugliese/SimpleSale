@@ -1,6 +1,12 @@
 <template>
   <div class="table-maintenance">
-    <!-- Make a Component TODO-->
+    <v-row>
+      <v-col cols="12">
+        <v-sheet color="secondary" class="text-h6 text-left pa-5">
+          Mantenimiento de Tablas
+        </v-sheet>
+      </v-col>
+    </v-row>
     <v-row dense>
       <v-col v-for="(item, i) in items" :key="i" cols="auto">
         <v-card class="px-5 py-3" color="blue-grey darken-4" dark>
@@ -35,23 +41,23 @@ export default {
       { title: "Fabricantes", link: "/mantenimiento-de-tablas/fabricantes" },
       {
         title: "Tipos de Pantalla",
-        link: "/mantenimiento-de-tablas/tipos-de-pantalla"
+        link: "/mantenimiento-de-tablas/tipos-de-pantalla",
       },
       {
         title: "Tipos de Archivo",
-        link: "/mantenimiento-de-tablas/tipos-de-archivo"
+        link: "/mantenimiento-de-tablas/tipos-de-archivo",
       },
       {
         title: "Tipos de Producto",
-        link: "/mantenimiento-de-tablas/tipos-de-producto"
+        link: "/mantenimiento-de-tablas/tipos-de-producto",
       },
       {
         title: "Tipos de Atributo",
-        link: "/mantenimiento-de-tablas/tipos-de-atributo"
+        link: "/mantenimiento-de-tablas/tipos-de-atributo",
       },
       { title: "Atributos", link: "/mantenimiento-de-tablas/atributos" },
-      { title: "Categorías", link: "/mantenimiento-de-tablas/categorias" }
-    ]
-  })
+      { title: "Categorías", link: "/mantenimiento-de-tablas/categorias" },
+    ],
+  }),
 };
 </script>

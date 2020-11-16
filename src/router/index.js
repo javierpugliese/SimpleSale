@@ -19,13 +19,6 @@ const routes = [
     }
   },
   {
-    path: "/agregar-producto",
-    name: "ProductsAddOne",
-    component: function () {
-      return import(/* webpackChunkName: "products-add-one" */ "../views/products/ProductsAddOne.vue");
-    }
-  },
-  {
     path: "/pantallas",
     name: "Screens",
     component: function () {

@@ -26,7 +26,7 @@ const routes = [
     }
   },
   {
-    path: "/pantallas/gondolas",
+    path: "/pantallas/publicaciones",
     name: "AdScreens",
     component: function () {
       return import(/* webpackChunkName: "ads" */ "../views/screens/Ads.vue");

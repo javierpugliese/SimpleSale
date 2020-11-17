@@ -61,7 +61,7 @@
 
                 <v-card-text>
                   <v-container>
-                    <v-sheet class="pa-5">
+                    <v-sheet class="pa-5" color="blue-grey darken-4">
                       <v-row>
                         <v-col cols="12" sm="6" md="3">
                           <div class="d-flex justify-center justify-sm-start">
@@ -87,6 +87,7 @@
                         <v-col cols="12" sm="4">
                           <v-text-field
                             v-model="editedItem.sku"
+                            :disabled="editedId > -1"
                             label="SKU"
                             counter="50"
                             maxlength="50"
@@ -154,12 +155,16 @@
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="6">
-                          <v-text-field
-                            v-model="editedItem.etiquetas"
-                            label="Etiquetas"
-                            outlined
+                          <v-autocomplete
+                            v-model="editedItem.atributos"
+                            :items="attributes"
+                            label="Atributos"
+                            maxlength="50"
+                            multiple
                             clearable
-                          ></v-text-field>
+                            outlined
+                            small-chips
+                          ></v-autocomplete>
                         </v-col>
                       </v-row>
                       <v-row>
@@ -180,6 +185,114 @@
                             outlined
                             clearable
                           ></v-textarea>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12">
+                          <v-combobox
+                            v-model="editedItem.etiquetas"
+                            :delimiters="delimiters"
+                            label="Etiquetas"
+                            prepend-icon="fas fa-tags"
+                            chips
+                            small-chips
+                            deletable-chips
+                            clearable
+                            outlined
+                            multiple
+                            append-icon=""
+                          >
+                          </v-combobox>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12">
+                          <v-combobox
+                            v-model="editedItem.codigosDeBarra"
+                            label="Códigos de Barra"
+                            :delimiters="delimiters"
+                            prepend-icon="fas fa-barcode"
+                            chips
+                            small-chips
+                            deletable-chips
+                            clearable
+                            outlined
+                            multiple
+                            append-icon=""
+                          >
+                          </v-combobox>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12">
+                          <v-file-input
+                            v-model="files"
+                            counter
+                            label="Archivos (imagenes o videos)"
+                            accept=".jpg, .mp4"
+                            multiple
+                            placeholder="Seleccione archivos..."
+                            prepend-icon="fas fa-paperclip"
+                            outlined
+                            :show-size="1000"
+                          >
+                            <template v-slot:selection="{ index, text }">
+                              <v-chip
+                                v-if="index < 2"
+                                color="info"
+                                dark
+                                label
+                                small
+                              >
+                                {{ text }}
+                              </v-chip>
+
+                              <span
+                                v-else-if="index === 2"
+                                class="overline grey--text text--darken-3 mx-2"
+                              >
+                                +{{ files.length - 2 }} Archivo(s)
+                              </span>
+                            </template>
+                          </v-file-input>
+
+                          <!-- <v-row v-else dense>
+                            <v-col
+                              v-for="card in cards"
+                              :key="card.title"
+                              :cols="card.flex"
+                            >
+                            <v-col cols="4">
+                              <v-card>
+                                <v-img
+                                  :src="require('@/assets/no-disponible.png')"
+                                  alt=" "
+                                  :contain="true"
+                                  class="white--text align-end"
+                                  gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                                  max-height="240"
+                                  max-width="240"
+                                >
+                                </v-img>
+
+                                <v-card-actions>
+                                  <v-spacer></v-spacer>
+
+                                  <v-btn icon>
+                                    <v-icon color="success"
+                                      >fas fa-upload</v-icon
+                                    >
+                                  </v-btn>
+
+                                  <v-btn icon>
+                                    <v-icon color="red"
+                                      >fas fa-trash-alt</v-icon
+                                    >
+                                  </v-btn>
+                                </v-card-actions>
+                              </v-card>
+                            </v-col>
+                          </v-row> -->
                         </v-col>
                       </v-row>
                     </v-sheet>
@@ -203,7 +316,7 @@
               <v-card>
                 <v-card-title class="headline"
                   >¿Está seguro de que quiere eliminar este
-                  atributo?</v-card-title
+                  producto?</v-card-title
                 >
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -282,9 +395,11 @@ export default {
     manufacturers: [],
     productTypes: [],
     categories: [],
+    attributes: [],
+    files: [],
 
     attributeTypes: [],
-
+    delimiters: [",", ".", "-", "/", " "],
     dialog: false,
     dialogDelete: false,
     editedIndex: -1,
@@ -293,13 +408,15 @@ export default {
       sku: "",
       precio: 0.0,
       activo: true,
-      etiquetas: "",
+      etiquetas: [],
       descripcion: "",
       descripcionLarga: "",
       prospecto: "",
       idCategoria: -1,
       idFabricante: -1,
       idTipo: -1,
+      atributos: [],
+      codigosDeBarra: [],
     },
     editedId: -1,
     defaultItem: {
@@ -307,13 +424,15 @@ export default {
       sku: "",
       precio: 0.0,
       activo: true,
-      etiquetas: "",
+      etiquetas: [],
       descripcion: "",
       descripcionLarga: "",
       prospecto: "",
       idCategoria: -1,
       idFabricante: -1,
       idTipo: -1,
+      atributos: [],
+      codigosDeBarra: [],
     },
     snackbar: false,
     snackbarText: "",
@@ -438,9 +557,6 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
-        this.editedItem.idTipo = -1;
-        this.editedItem.idFabricante = -1;
-        this.editedItem.idCategoria = -1;
       });
     },
 
@@ -450,9 +566,6 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
-        this.editedItem.idTipo = -1;
-        this.editedItem.idFabricante = -1;
-        this.editedItem.idCategoria = -1;
       });
     },
 

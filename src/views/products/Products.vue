@@ -137,6 +137,7 @@
                             :items="categories"
                             label="Categoría"
                             maxlength="50"
+                            multiple
                             clearable
                             outlined
                             small-chips

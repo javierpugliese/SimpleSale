@@ -102,7 +102,7 @@ export default {
       return this.mini ? "108" : "216";
     },
     fileHeight() {
-      return this.mini ? "167" : "384";
+      return this.mini ? "192" : "384";
     },
   },
 

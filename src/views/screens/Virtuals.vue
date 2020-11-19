@@ -4,7 +4,7 @@
       <v-col cols="12"> Configurar Planograma </v-col>
     </v-row>
     <v-row>
-      <v-col cols="6" sm="4" lg="2">
+      <v-col cols="12" sm="4">
         <v-text-field
           v-model="planogram.width"
           label="Ancho (pixeles)"
@@ -13,7 +13,7 @@
           required
         ></v-text-field>
       </v-col>
-      <v-col cols="6" sm="4" lg="2">
+      <v-col cols="12" sm="4">
         <v-text-field
           v-model="planogram.height"
           label="Alto (pixeles)"
@@ -24,44 +24,63 @@
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="6" sm="4" lg="2">
+      <v-col cols="12" sm="4">
         <v-text-field
-          v-model="planogram.padding_x"
-          label="Separación horizontal (pixeles)"
+          v-model="grid.planogram.x"
+          label="Grilla horizontal general"
           outlined
           clearable
           required
         ></v-text-field>
       </v-col>
-      <v-col cols="6" sm="4" lg="2">
+      <v-col cols="12" sm="4">
         <v-text-field
-          v-model="planogram.padding_y"
-          label="Separación vertical (pixeles)"
+          v-model="grid.planogram.y"
+          label="Grilla vertical general"
           outlined
           clearable
           required
         ></v-text-field>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <v-switch
+          v-model="grid.planogram.show"
+          label="Mostrar grilla general"
+          outlined
+          clearable
+          required
+        ></v-switch>
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="6" sm="4" lg="2">
+      <v-col cols="12" sm="4">
+        <v-color-picker
+          v-model="shelf_item.baseColor"
+          label="Color de la base"
+          dot-size="25"
+          hide-mode-switch
+          mode="rgba"
+        ></v-color-picker>
+      </v-col>
+      <v-col cols="12" sm="4">
         <v-text-field
-          v-model="planogram.padding_x"
-          label="Separación inicial (pixeles)"
+          v-model="shelf_item.baseHeight"
+          label="Tamaño de la base (px)"
           outlined
           clearable
           required
         ></v-text-field>
       </v-col>
-      <v-col cols="6" sm="4" lg="2">
+      <v-col cols="12" sm="4">
         <v-text-field
-          v-model="planogram.padding_y"
-          label="Separación vertical (pixeles)"
+          v-model="shelf_item.maxHeight"
+          label="Tamaño máximo manipulable (px)"
           outlined
           clearable
           required
         ></v-text-field>
       </v-col>
+      <v-btn @click="addShelf" color="success">Agregar estante</v-btn>
     </v-row>
     <!-- <div>
         <vue-draggable-resizable
@@ -84,23 +103,51 @@
           <div slot="ml">😀</div>
         </vue-draggable-resizable>
       </div> -->
+
+    <!-- Planograma -->
     <div
-      style="border: 1px solid red; background-color: gray; position: relative"
-      :style="{ width: getPlanogramWidth, height: getPlanogramHeight }"
+      :style="{
+        position: 'relative',
+        width: getPlanogramWidth,
+        height: getPlanogramHeight,
+        background: grid.planogram.show
+          ? `linear-gradient(-90deg, #000 0.1px, transparent 0.6px)
+              repeat scroll 0% 0% / ${grid.planogram.x}px ${grid.planogram.x}px, 
+              white linear-gradient(#000 0.1px, transparent 0.6px)
+              repeat scroll 0% 0% / ${grid.planogram.y}px ${grid.planogram.y}px`
+          : 'none',
+      }"
     >
+      <!-- Aca va un for de los estantes -->
       <vue-draggable-resizable
-        :w="44"
-        :h="44"
+        v-for="(shelf, index) in shelves"
+        v-bind:key="index"
+        :w="planogram.width"
+        :h="shelf.maxHeight"
+        axis="y"
         :resizable="false"
         @dragging="onDrag"
         :lock-aspect-ratio="true"
-        :grid="[10, 10]"
+        :grid="[grid.planogram.x, grid.planogram.y]"
         :parent="true"
+        class-name-dragging="shelf__dragging"
       >
-        <p>
+        <div
+          class="d-flex justify-content-center"
+          :style="{ height: `${shelf.maxHeight}px` }"
+        >
+          <v-sheet
+            class="align-self-end"
+            :width="planogram.width"
+            :height="shelf.baseHeight"
+            :color="shelf.baseColor"
+            >{{ index + 1 }}</v-sheet
+          >
+        </div>
+        <!-- <p>
           Estante<br />
           X: {{ x }} / Y: {{ y }} - Width: {{ width }} / Height: {{ height }}
-        </p>
+        </p> -->
         <!-- <v-img
           :src="require('@/assets/no-disponible.png')"
           :contain="true"
@@ -123,44 +170,63 @@ export default {
   name: "Virtuals",
   components: { VueDraggableResizable },
   data: () => ({
-    width: 44,
-    height: 44,
+    width: 0,
+    height: 0,
     x: 0,
     y: 0,
-    planogram: {
-      width: 432,
-      height: 768,
-      padding_x: 0,
-      padding_y: 0,
-      grid: {
-        main_x: 0,
-        main_y: 0,
-        shelves_x: 0,
-        shelves_y: 0,
-        piles_x: 0,
-        piles_y: 0,
-        products_x: 0,
-        products_y: 0,
+    grid: {
+      planogram: {
+        show: true,
+        x: 10,
+        y: 10,
       },
-      shelves: [
-        {
-          maxHeight: 155,
-          piles: [
-            {
-              products: [
-                {
-                  total_x: 0,
-                  total_y: 0,
-                  data: [],
-                },
-              ],
-            },
-          ],
-        },
-      ],
+      shelf: {
+        show: true,
+        x: 5,
+        y: 5,
+      },
+      pile: {
+        show: true,
+        x: 1,
+        y: 1,
+      },
     },
+    planogram: {
+      width: 400,
+      height: 700,
+    },
+    shelf_item: {
+      baseHeight: 10,
+      baseColor: { r: 0, g: 0, b: 0, a: 1 },
+      maxHeight: 100,
+    },
+    shelves: [
+      {
+        baseHeight: 20,
+        baseColor: "rgba(190,40,0, 0.9)",
+        maxHeight: 100,
+      },
+      {
+        baseHeight: 20,
+        baseColor: "rgba(0,128,0, 1)",
+        maxHeight: 80,
+      },
+      {
+        baseHeight: 30,
+        baseColor: "rgba(0,0,255, 0.6)",
+        maxHeight: 100,
+      },
+    ],
   }),
   computed: {
+    /* handleShelfColor: {
+      get() {
+        return this[this.shelf_item.baseColor];
+      },
+      set(v) {
+        this[this.shelf_item.baseColor] = v;
+      },
+    }, */
     getPlanogramWidth() {
       return `${this.planogram.width}px`;
     },
@@ -190,6 +256,9 @@ export default {
       this.x = x;
       this.y = y;
     },
+    addShelf: function () {
+      this.shelves.push(this.shelf_item);
+    },
   },
   mounted: function () {
     this.handleImage();
@@ -203,6 +272,14 @@ export default {
   -webkit-transition: background-color 200ms linear;
   -ms-transition: background-color 200ms linear;
   transition: background-color 200ms linear;
+}
+
+.shelf__dragging {
+  cursor: move;
+}
+/* Fixes class dragging*/
+.shelf__dragging:hover {
+  cursor: move;
 }
 
 .my-dragging-class {

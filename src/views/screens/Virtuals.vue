@@ -1,100 +1,162 @@
 <template>
   <div class="virtuals">
     <v-row>
-      <v-col cols="12" md="2">
-        <div class="d-flex flex-column px-5" style="height: 100%">
-          <v-img
-            :src="require('@/assets/no-disponible.png')"
-            :contain="true"
-            class="my-2"
-            height="128"
-            max-height="128"
-            width="128"
-            max-width="128"
-          ></v-img>
+      <v-col cols="12" md="3">
+        <v-row>
+          <v-col cols="12">
+            <v-sheet color="secondary" class="text-h6 text-left pa-5">
+              Productos
+            </v-sheet>
+          </v-col>
+        </v-row>
+        <div class="products__column">
+          <v-autocomplete
+            v-model="productId"
+            :items="products"
+            label="Seleccione"
+            maxlength="50"
+            clearable
+            outlined
+            small-chips
+            style="position: sticky; top: 0"
+          ></v-autocomplete>
+          <div>
+            <v-card
+              v-for="product in products"
+              :key="product.id"
+              :ripple="false"
+              class="portrait"
+              @contextmenu="
+                shelves.length > 0
+                  ? showMenu($event, Object.assign({}, product))
+                  : ''
+              "
+            >
+              <v-img
+                :src="require('@/assets/no-disponible.png')"
+                :contain="true"
+                class="mx-auto my-2"
+                style="z-index: 0 !important"
+                height="128"
+                max-height="128"
+                width="128"
+                max-width="128"
+              ></v-img
+            ></v-card>
+            <v-menu
+              v-model="menu"
+              :position-x="menu_x"
+              :position-y="menu_y"
+              absolute
+              offset-y
+            >
+              <v-sheet color="secondary" class="text-h6 text-left pa-2">
+                Enviar a estante:
+              </v-sheet>
+              <v-list>
+                <v-list-item
+                  v-for="(n, index) in shelves"
+                  :key="index"
+                  @click="sendToShelf(index)"
+                  mandatory
+                >
+                  <v-list-item-title>Estante {{ index }}</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </div>
         </div>
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" lg="3" class="d-flex justify-center">
         <!-- Planograma -->
-        <div
-          :style="{
-            position: 'relative',
-            width: getPlanogramWidth,
-            height: getPlanogramHeight,
-            background: grid.planogram.show
-              ? `linear-gradient(-90deg, #000 0.1px, transparent 0.6px)
+        <v-row>
+          <v-col cols="12">
+            <v-sheet color="secondary" class="text-h6 text-center pa-5">
+              Vista Previa
+            </v-sheet>
+          </v-col>
+          <v-col cols="12"></v-col>
+          <v-col cols="12" class="d-flex justify-center">
+            <div
+              :style="{
+                position: 'relative',
+                width: getPlanogramWidth,
+                height: getPlanogramHeight,
+                background: grid.planogram.show
+                  ? `linear-gradient(-90deg, #000 0.1px, transparent 0.6px)
               repeat scroll 0% 0% / ${grid.planogram.x}px ${grid.planogram.x}px, 
               white linear-gradient(#000 0.1px, transparent 0.6px)
               repeat scroll 0% 0% / ${grid.planogram.y}px ${grid.planogram.y}px`
-              : 'none',
-            'z-index': 100,
-          }"
-        >
-          <!-- Aca va un for de los estantes -->
-          <vue-draggable-resizable
-            v-for="(shelf, index) in shelves"
-            v-bind:key="`shelf-${index}`"
-            :w="planogram.width"
-            :h="+shelf.max_height"
-            axis="y"
-            :resizable="false"
-            :draggable="shelf_active"
-            :lock-aspect-ratio="true"
-            :grid="[grid.planogram.x, grid.planogram.y]"
-            :z="101"
-            :parent="true"
-            :active="shelf_active"
-            class-name-dragging="shelf__dragging"
-          >
-            <div
-              class="d-flex justify-content-center"
-              :style="{ height: `${shelf.max_height}px` }"
+                  : `url('${require(`@/assets/fondo.jpg`)}') no-repeat center center fixed`,
+                'z-index': 100,
+              }"
             >
-              <!-- Aca va un for de los estantes -->
+              <!-- Planogram shelves -->
               <vue-draggable-resizable
-                v-for="(product, index) in 4"
-                v-bind:key="`product-${index}`"
-                :w="40"
-                :h="40"
-                :resizable="true"
-                :draggable="true"
+                v-for="(shelf, index) in shelves"
+                v-bind:key="`shelf-${index}`"
+                :w="planogram.width"
+                :h="+shelf.max_height"
+                axis="y"
+                :resizable="false"
+                :draggable="shelf_active"
                 :lock-aspect-ratio="true"
-                :grid="[grid.shelf.x, grid.shelf.y]"
-                :z="102"
+                :grid="[grid.planogram.x, grid.planogram.y]"
+                :z="101"
                 :parent="true"
-                @activated="shelf_active = false"
-                @deactivated="shelf_active = true"
+                :active="shelf_active"
                 class-name-dragging="shelf__dragging"
               >
                 <div
                   class="d-flex justify-content-center"
-                  :style="{ height: `40px` }"
+                  :style="{ height: `${shelf.max_height}px` }"
                 >
-                  <v-img
-                    :src="require('@/assets/no-disponible.png')"
-                    :contain="true"
-                    height="40"
-                    max-height="40"
-                    width="40"
-                    max-width="40"
-                  ></v-img>
-                </div>
-              </vue-draggable-resizable>
+                  <!-- Shelf products -->
+                  <vue-draggable-resizable
+                    v-for="(product, index) in 4"
+                    v-bind:key="`product-${index}`"
+                    :w="40"
+                    :h="40"
+                    :min-width="40"
+                    :min-height="40"
+                    :resizable="true"
+                    :draggable="true"
+                    :lock-aspect-ratio="true"
+                    :grid="[grid.shelf.x, grid.shelf.y]"
+                    :z="102"
+                    :parent="true"
+                    @activated="shelf_active = false"
+                    @deactivated="shelf_active = true"
+                    class-name-dragging="shelf__dragging"
+                  >
+                    <div
+                      class="d-flex justify-content-center"
+                      :style="{ height: `40px` }"
+                    >
+                      <v-img
+                        :src="require('@/assets/no-disponible.png')"
+                        :contain="true"
+                        height="40"
+                        max-height="40"
+                        width="40"
+                        max-width="40"
+                      ></v-img>
+                    </div>
+                  </vue-draggable-resizable>
 
-              <!-- Shelf base -->
-              <v-sheet
-                class="align-self-end"
-                :width="planogram.width"
-                :height="defaultShelfHeight"
-                :color="getRGBA(shelf.color)"
-                >{{ index + 1 }}</v-sheet
-              >
-            </div>
-            <!-- <p>
+                  <!-- Shelf base -->
+                  <v-sheet
+                    class="align-self-end"
+                    :width="planogram.width"
+                    :height="defaultShelfHeight"
+                    :color="getRGBA(shelf.color)"
+                  ></v-sheet>
+                </div>
+                <!-- <p>
           Estante<br />
           X: {{ x }} / Y: {{ y }} - Width: {{ width }} / Height: {{ height }}
         </p> -->
-            <!-- <v-img
+                <!-- <v-img
           :src="require('@/assets/no-disponible.png')"
           :contain="true"
           height="44"
@@ -102,23 +164,27 @@
           width="44"
           max-width="44"
         ></v-img> -->
-          </vue-draggable-resizable>
-        </div>
+              </vue-draggable-resizable>
+            </div>
+          </v-col>
+        </v-row>
       </v-col>
-      <v-col cols="12" md="4">
+      <v-col cols="12" lg="6">
         <v-row>
-          <v-col cols="12" sm="4">
-            <v-switch
-              v-model="grid.planogram.show"
-              label="Mostrar grilla general"
-              outlined
-              clearable
-              required
-            ></v-switch>
+          <v-col cols="12">
+            <v-sheet color="secondary" class="text-h6 text-center pa-5">
+              Ajustes del Planograma
+            </v-sheet>
           </v-col>
         </v-row>
         <v-row>
-          <v-col cols="12" sm="4">
+          <v-col cols="12">
+            <v-switch
+              v-model="grid.planogram.show"
+              label="Mostrar grilla"
+            ></v-switch>
+          </v-col>
+          <v-col cols="12">
             <v-color-picker
               v-model="shelf_item.baseColor"
               label="Color de la base"
@@ -184,6 +250,15 @@ export default {
       maxHeight: 100,
     },
     shelf_active: true,
+    productId: -1,
+    loading: false,
+
+    menu: false,
+    menu_x: 0,
+    menu_y: 0,
+
+    products: [],
+
     shelves: [],
   }),
   computed: {
@@ -198,6 +273,20 @@ export default {
     },
   },
   methods: {
+    sendToShelf(index) {
+      let i = index;
+      console.log("sendToShelf", index, this.shelves[i]);
+    },
+    showMenu(e, product) {
+      e.preventDefault();
+      console.log("MENU DATA: ", product);
+      this.menu = false;
+      this.menu_x = e.clientX;
+      this.menu_y = e.clientY;
+      this.$nextTick(() => {
+        this.menu = true;
+      });
+    },
     getRGBA(rgba) {
       const color = rgba;
       return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
@@ -237,12 +326,38 @@ export default {
       } else alert("No hay más espacio disponible.");
     },
   },
+  created: async function () {
+    this.loading = true;
+    this.products = [];
+    await this.$http
+      .get("Simple")
+      .then((res) => {
+        if (res && res.data) {
+          this.products = res.data.map(function (p) {
+            return { text: p.nombre, value: p.id };
+          });
+        }
+      })
+      .catch((err) => console.log(err))
+      .finally(() => {
+        this.loading = false;
+      });
+  },
   mounted: function () {
     this.handleImage();
   },
 };
 </script>
 <style>
+.products__column {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 700px;
+  border: 1px solid #eeeeee;
+  overflow-y: scroll;
+}
+
 .my-class {
   background-color: green;
   border: 1px solid red;

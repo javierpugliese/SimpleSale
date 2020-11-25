@@ -121,12 +121,12 @@
       <!-- Aca va un for de los estantes -->
       <vue-draggable-resizable
         v-for="(shelf, index) in shelves"
-        v-bind:key="index"
+        v-bind:key="`shelf-${index}`"
         :w="planogram.width"
-        :h="shelf.maxHeight"
+        :h="+shelf.max_height"
         axis="y"
         :resizable="false"
-        @dragging="onDrag"
+        :draggable="true"
         :lock-aspect-ratio="true"
         :grid="[grid.planogram.x, grid.planogram.y]"
         :parent="true"
@@ -134,13 +134,13 @@
       >
         <div
           class="d-flex justify-content-center"
-          :style="{ height: `${shelf.maxHeight}px` }"
+          :style="{ height: `${shelf.max_height}px` }"
         >
           <v-sheet
             class="align-self-end"
             :width="planogram.width"
-            :height="shelf.baseHeight"
-            :color="shelf.baseColor"
+            :height="shelf.height"
+            :color="getRGBA(shelf.color)"
             >{{ index + 1 }}</v-sheet
           >
         </div>
@@ -201,7 +201,7 @@ export default {
       maxHeight: 100,
     },
     shelves: [
-      {
+      /* {
         baseHeight: 20,
         baseColor: "rgba(190,40,0, 0.9)",
         maxHeight: 100,
@@ -215,7 +215,7 @@ export default {
         baseHeight: 30,
         baseColor: "rgba(0,0,255, 0.6)",
         maxHeight: 100,
-      },
+      }, */
     ],
   }),
   computed: {
@@ -235,6 +235,10 @@ export default {
     },
   },
   methods: {
+    getRGBA(rgba) {
+      const color = rgba;
+      return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
+    },
     handleImage: function (path) {
       console.log("path", path);
 
@@ -256,8 +260,13 @@ export default {
       this.x = x;
       this.y = y;
     },
-    addShelf: function () {
-      this.shelves.push(this.shelf_item);
+    addShelf() {
+      const obj = {
+        color: this.shelf_item.baseColor,
+        height: this.shelf_item.baseHeight,
+        max_height: this.shelf_item.maxHeight,
+      };
+      this.shelves.push(obj);
     },
   },
   mounted: function () {

@@ -1,154 +1,100 @@
 <template>
   <div class="virtuals">
     <v-row>
-      <v-col cols="12"> Configurar Planograma </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12" sm="4">
-        <v-text-field
-          v-model="planogram.width"
-          label="Ancho (pixeles)"
-          outlined
-          clearable
-          required
-        ></v-text-field>
+      <v-col cols="12" md="2">
+        <div class="d-flex flex-column px-5" style="height: 100%">
+          <v-img
+            :src="require('@/assets/no-disponible.png')"
+            :contain="true"
+            class="my-2"
+            height="128"
+            max-height="128"
+            width="128"
+            max-width="128"
+          ></v-img>
+        </div>
       </v-col>
-      <v-col cols="12" sm="4">
-        <v-text-field
-          v-model="planogram.height"
-          label="Alto (pixeles)"
-          outlined
-          clearable
-          required
-        ></v-text-field>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12" sm="4">
-        <v-text-field
-          v-model="grid.planogram.x"
-          label="Grilla horizontal general"
-          outlined
-          clearable
-          required
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-text-field
-          v-model="grid.planogram.y"
-          label="Grilla vertical general"
-          outlined
-          clearable
-          required
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-switch
-          v-model="grid.planogram.show"
-          label="Mostrar grilla general"
-          outlined
-          clearable
-          required
-        ></v-switch>
-      </v-col>
-    </v-row>
-    <v-row>
-      <v-col cols="12" sm="4">
-        <v-color-picker
-          v-model="shelf_item.baseColor"
-          label="Color de la base"
-          dot-size="25"
-          hide-mode-switch
-          mode="rgba"
-        ></v-color-picker>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-text-field
-          v-model="shelf_item.baseHeight"
-          label="Tamaño de la base (px)"
-          outlined
-          clearable
-          required
-        ></v-text-field>
-      </v-col>
-      <v-col cols="12" sm="4">
-        <v-text-field
-          v-model="shelf_item.maxHeight"
-          label="Tamaño máximo manipulable (px)"
-          outlined
-          clearable
-          required
-        ></v-text-field>
-      </v-col>
-      <v-btn @click="addShelf" color="success">Agregar estante</v-btn>
-    </v-row>
-    <!-- <div>
-        <vue-draggable-resizable
-          class-name="my-class"
-          class-name-resizing="my-resizing-class"
-          class-name-dragging="my-dragging-class"
-          class-name-active="my-active-class"
-          class-name-handle="my-handle-class"
-          :draggable="true"
-          :resizable="true"
-        >
-          <p>You can drag me around and resize me as you wish.</p>
-          <div slot="tl">😀</div>
-          <div slot="tm">😀</div>
-          <div slot="tr">😀</div>
-          <div slot="mr">😀</div>
-          <div slot="br">😀</div>
-          <div slot="bm">😀</div>
-          <div slot="bl">😀</div>
-          <div slot="ml">😀</div>
-        </vue-draggable-resizable>
-      </div> -->
-
-    <!-- Planograma -->
-    <div
-      :style="{
-        position: 'relative',
-        width: getPlanogramWidth,
-        height: getPlanogramHeight,
-        background: grid.planogram.show
-          ? `linear-gradient(-90deg, #000 0.1px, transparent 0.6px)
+      <v-col cols="12" md="6">
+        <!-- Planograma -->
+        <div
+          :style="{
+            position: 'relative',
+            width: getPlanogramWidth,
+            height: getPlanogramHeight,
+            background: grid.planogram.show
+              ? `linear-gradient(-90deg, #000 0.1px, transparent 0.6px)
               repeat scroll 0% 0% / ${grid.planogram.x}px ${grid.planogram.x}px, 
               white linear-gradient(#000 0.1px, transparent 0.6px)
               repeat scroll 0% 0% / ${grid.planogram.y}px ${grid.planogram.y}px`
-          : 'none',
-      }"
-    >
-      <!-- Aca va un for de los estantes -->
-      <vue-draggable-resizable
-        v-for="(shelf, index) in shelves"
-        v-bind:key="`shelf-${index}`"
-        :w="planogram.width"
-        :h="+shelf.max_height"
-        axis="y"
-        :resizable="false"
-        :draggable="true"
-        :lock-aspect-ratio="true"
-        :grid="[grid.planogram.x, grid.planogram.y]"
-        :parent="true"
-        class-name-dragging="shelf__dragging"
-      >
-        <div
-          class="d-flex justify-content-center"
-          :style="{ height: `${shelf.max_height}px` }"
+              : 'none',
+            'z-index': 100,
+          }"
         >
-          <v-sheet
-            class="align-self-end"
-            :width="planogram.width"
-            :height="shelf.height"
-            :color="getRGBA(shelf.color)"
-            >{{ index + 1 }}</v-sheet
+          <!-- Aca va un for de los estantes -->
+          <vue-draggable-resizable
+            v-for="(shelf, index) in shelves"
+            v-bind:key="`shelf-${index}`"
+            :w="planogram.width"
+            :h="+shelf.max_height"
+            axis="y"
+            :resizable="false"
+            :draggable="shelf_active"
+            :lock-aspect-ratio="true"
+            :grid="[grid.planogram.x, grid.planogram.y]"
+            :z="101"
+            :parent="true"
+            :active="shelf_active"
+            class-name-dragging="shelf__dragging"
           >
-        </div>
-        <!-- <p>
+            <div
+              class="d-flex justify-content-center"
+              :style="{ height: `${shelf.max_height}px` }"
+            >
+              <!-- Aca va un for de los estantes -->
+              <vue-draggable-resizable
+                v-for="(product, index) in 4"
+                v-bind:key="`product-${index}`"
+                :w="40"
+                :h="40"
+                :resizable="true"
+                :draggable="true"
+                :lock-aspect-ratio="true"
+                :grid="[grid.shelf.x, grid.shelf.y]"
+                :z="102"
+                :parent="true"
+                @activated="shelf_active = false"
+                @deactivated="shelf_active = true"
+                class-name-dragging="shelf__dragging"
+              >
+                <div
+                  class="d-flex justify-content-center"
+                  :style="{ height: `40px` }"
+                >
+                  <v-img
+                    :src="require('@/assets/no-disponible.png')"
+                    :contain="true"
+                    height="40"
+                    max-height="40"
+                    width="40"
+                    max-width="40"
+                  ></v-img>
+                </div>
+              </vue-draggable-resizable>
+
+              <!-- Shelf base -->
+              <v-sheet
+                class="align-self-end"
+                :width="planogram.width"
+                :height="defaultShelfHeight"
+                :color="getRGBA(shelf.color)"
+                >{{ index + 1 }}</v-sheet
+              >
+            </div>
+            <!-- <p>
           Estante<br />
           X: {{ x }} / Y: {{ y }} - Width: {{ width }} / Height: {{ height }}
         </p> -->
-        <!-- <v-img
+            <!-- <v-img
           :src="require('@/assets/no-disponible.png')"
           :contain="true"
           height="44"
@@ -156,8 +102,44 @@
           width="44"
           max-width="44"
         ></v-img> -->
-      </vue-draggable-resizable>
-    </div>
+          </vue-draggable-resizable>
+        </div>
+      </v-col>
+      <v-col cols="12" md="4">
+        <v-row>
+          <v-col cols="12" sm="4">
+            <v-switch
+              v-model="grid.planogram.show"
+              label="Mostrar grilla general"
+              outlined
+              clearable
+              required
+            ></v-switch>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12" sm="4">
+            <v-color-picker
+              v-model="shelf_item.baseColor"
+              label="Color de la base"
+              dot-size="25"
+              hide-mode-switch
+              mode="rgba"
+            ></v-color-picker>
+          </v-col>
+          <v-col cols="12" sm="4">
+            <v-text-field
+              v-model="shelf_item.maxHeight"
+              label="Tamaño máximo manipulable (px)"
+              outlined
+              clearable
+              required
+            ></v-text-field>
+          </v-col>
+          <v-btn @click="addShelf" color="success">Agregar estante</v-btn>
+        </v-row>
+      </v-col>
+    </v-row>
   </div>
 </template>
 
@@ -174,6 +156,7 @@ export default {
     height: 0,
     x: 0,
     y: 0,
+    draggable: false,
     grid: {
       planogram: {
         show: true,
@@ -197,13 +180,16 @@ export default {
       availableSpace: 700,
     },
     shelf_item: {
-      baseHeight: 20,
       baseColor: { r: 0, g: 0, b: 0, a: 1 },
       maxHeight: 100,
     },
+    shelf_active: true,
     shelves: [],
   }),
   computed: {
+    defaultShelfHeight() {
+      return (this.planogram.height / 100) * 0.8;
+    },
     getPlanogramWidth() {
       return `${this.planogram.width}px`;
     },
@@ -245,7 +231,6 @@ export default {
         console.log("available space now", this.planogram.availableSpace);
         const obj = {
           color: this.shelf_item.baseColor,
-          height: this.shelf_item.baseHeight,
           max_height: this.shelf_item.maxHeight,
         };
         this.shelves.push(obj);

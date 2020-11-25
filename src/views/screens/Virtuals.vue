@@ -194,39 +194,16 @@ export default {
     planogram: {
       width: 400,
       height: 700,
+      availableSpace: 700,
     },
     shelf_item: {
-      baseHeight: 10,
+      baseHeight: 20,
       baseColor: { r: 0, g: 0, b: 0, a: 1 },
       maxHeight: 100,
     },
-    shelves: [
-      /* {
-        baseHeight: 20,
-        baseColor: "rgba(190,40,0, 0.9)",
-        maxHeight: 100,
-      },
-      {
-        baseHeight: 20,
-        baseColor: "rgba(0,128,0, 1)",
-        maxHeight: 80,
-      },
-      {
-        baseHeight: 30,
-        baseColor: "rgba(0,0,255, 0.6)",
-        maxHeight: 100,
-      }, */
-    ],
+    shelves: [],
   }),
   computed: {
-    /* handleShelfColor: {
-      get() {
-        return this[this.shelf_item.baseColor];
-      },
-      set(v) {
-        this[this.shelf_item.baseColor] = v;
-      },
-    }, */
     getPlanogramWidth() {
       return `${this.planogram.width}px`;
     },
@@ -261,12 +238,18 @@ export default {
       this.y = y;
     },
     addShelf() {
-      const obj = {
-        color: this.shelf_item.baseColor,
-        height: this.shelf_item.baseHeight,
-        max_height: this.shelf_item.maxHeight,
-      };
-      this.shelves.push(obj);
+      console.log("available space", this.planogram.availableSpace);
+      if (this.planogram.availableSpace > 40) {
+        this.planogram.availableSpace =
+          this.planogram.availableSpace - this.shelf_item.maxHeight;
+        console.log("available space now", this.planogram.availableSpace);
+        const obj = {
+          color: this.shelf_item.baseColor,
+          height: this.shelf_item.baseHeight,
+          max_height: this.shelf_item.maxHeight,
+        };
+        this.shelves.push(obj);
+      } else alert("No hay más espacio disponible.");
     },
   },
   mounted: function () {

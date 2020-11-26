@@ -68,9 +68,7 @@
                   <v-btn color="blue darken-1" text @click="close">
                     Cancelar
                   </v-btn>
-                  <v-btn color="success" @click="save">
-                    Guardar
-                  </v-btn>
+                  <v-btn color="success" @click="save"> Guardar </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -103,9 +101,7 @@
           </v-icon>
         </template>
         <template v-slot:no-data>
-          <v-btn color="primary" @click="initialize">
-            Recargar
-          </v-btn>
+          <v-btn color="primary" @click="initialize"> Recargar </v-btn>
         </template>
       </v-data-table>
     </v-container>
@@ -122,18 +118,18 @@ export default {
       {
         text: "Mantenimiento de Tablas",
         disabled: false,
-        href: "/mantenimiento-de-tablas"
+        href: "/mantenimiento-de-tablas",
       },
-      { text: "Tipos de Pantalla", disabled: true }
+      { text: "Tipos de Pantalla", disabled: true },
     ],
     headers: [
       {
         text: "Nombre",
         align: "start",
         sortable: true,
-        value: "nombre"
+        value: "nombre",
       },
-      { text: "Acciones", value: "actions", align: "end", sortable: false }
+      { text: "Acciones", value: "actions", align: "end", sortable: false },
     ],
     loading: false,
     screenTypes: [],
@@ -142,15 +138,15 @@ export default {
     dialogDelete: false,
     editedIndex: -1,
     editedItem: {
-      nombre: ""
+      nombre: "",
     },
     editedId: -1,
     defaultItem: {
-      nombre: ""
+      nombre: "",
     },
     snackbar: false,
     snackbarText: "",
-    snackbarColor: "black"
+    snackbarColor: "black",
   }),
 
   computed: {
@@ -158,7 +154,7 @@ export default {
       return this.editedIndex === -1
         ? "Nuevo Tipo de Pantalla"
         : "Editar Tipo de Pantalla";
-    }
+    },
   },
 
   watch: {
@@ -167,7 +163,7 @@ export default {
     },
     dialogDelete(val) {
       val || this.closeDelete();
-    }
+    },
   },
 
   created() {
@@ -180,10 +176,10 @@ export default {
       this.loading = true;
       await this.$http
         .get("TiposObjetoPublicitar")
-        .then(res => {
+        .then((res) => {
           if (res && res.data) this.screenTypes = res.data;
         })
-        .catch(err => console.log(err))
+        .catch((err) => console.log(err))
         .then(() => {
           this.loading = false;
         });
@@ -207,14 +203,14 @@ export default {
       this.loading = true;
       await this.$http
         .delete(`TiposObjetoPublicitar/${this.editedId}`, this.editedItem)
-        .then(res => {
+        .then((res) => {
           if (res) {
             this.snackbarText = "Se eliminó el tipo de pantalla exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
         })
-        .catch(err => {
+        .catch((err) => {
           if (err) {
             console.log(err);
             this.snackbarText =
@@ -254,7 +250,7 @@ export default {
         Object.assign(this.screenTypes[this.editedIndex], this.editedItem);
         await this.$http
           .put(`TiposObjetoPublicitar/${this.editedId}`, this.editedItem)
-          .then(res => {
+          .then((res) => {
             if (res) {
               this.snackbarText =
                 "Se actualizó el tipo de pantalla exitosamente.";
@@ -262,7 +258,7 @@ export default {
               this.snackbar = true;
             }
           })
-          .catch(err => {
+          .catch((err) => {
             if (err) {
               this.snackbarText =
                 "¡ERROR! No se pudo guardar el tipo de pantalla.";
@@ -275,15 +271,19 @@ export default {
           });
       } else {
         await this.$http
-          .post("TiposObjetoPublicitar", this.editedItem)
-          .then(res => {
+          .post("TiposObjetoPublicitar", this.editedItem, {
+            onUploadProgress: ({ total, loaded }) => {
+              console.log("UPLOAD PROGRESS", total, loaded);
+            },
+          })
+          .then((res) => {
             if (res) {
               this.snackbarText = "Se agregó el tipo de pantalla exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.log(err);
             if (err) {
               this.snackbarText =
@@ -298,7 +298,7 @@ export default {
       }
       this.close();
       this.initialize();
-    }
-  }
+    },
+  },
 };
 </script>

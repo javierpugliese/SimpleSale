@@ -9,7 +9,7 @@
             </v-sheet>
           </v-col>
         </v-row>
-        <div class="products__column">
+        <!-- <div class="products__column">
           <v-autocomplete
             v-model="productId"
             :items="products"
@@ -65,7 +65,7 @@
               </v-list>
             </v-menu>
           </div>
-        </div>
+        </div> -->
       </v-col>
       <v-col cols="12" lg="3" class="d-flex justify-center">
         <!-- Planograma -->
@@ -80,22 +80,16 @@
             <div
               :style="{
                 position: 'relative',
-                width: getPlanogramWidth,
-                height: getPlanogramHeight,
-                background: grid.planogram.show
-                  ? `linear-gradient(-90deg, #000 0.1px, transparent 0.6px)
-              repeat scroll 0% 0% / ${grid.planogram.x}px ${grid.planogram.x}px, 
-              white linear-gradient(#000 0.1px, transparent 0.6px)
-              repeat scroll 0% 0% / ${grid.planogram.y}px ${grid.planogram.y}px`
-                  : `url('${require(`@/assets/fondo.jpg`)}') no-repeat center center fixed`,
-                'z-index': 100,
+                height: `${getPlanogramHeight}px`,
+                width: `${getPlanogramWidth}px`,
+                background: `url('${require(`@/assets/fondo.jpg`)}') no-repeat center center fixed`,
               }"
             >
               <!-- Planogram shelves -->
               <vue-draggable-resizable
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
-                :w="planogram.width"
+                :w="getPlanogramWidth"
                 :h="+shelf.max_height"
                 axis="y"
                 :resizable="false"
@@ -147,7 +141,7 @@
                   <!-- Shelf base -->
                   <v-sheet
                     class="align-self-end"
-                    :width="planogram.width"
+                    :width="getPlanogramWidth"
                     :height="defaultShelfHeight"
                     :color="getRGBA(shelf.color)"
                   ></v-sheet>
@@ -178,12 +172,6 @@
           </v-col>
         </v-row>
         <v-row>
-          <v-col cols="12">
-            <v-switch
-              v-model="grid.planogram.show"
-              label="Mostrar grilla"
-            ></v-switch>
-          </v-col>
           <v-col cols="12">
             <v-color-picker
               v-model="shelf_item.baseColor"
@@ -241,8 +229,7 @@ export default {
       },
     },
     planogram: {
-      width: 400,
-      height: 700,
+      height: Math.ceil(window.innerHeight * 0.75),
       availableSpace: 700,
     },
     shelf_item: {
@@ -263,13 +250,17 @@ export default {
   }),
   computed: {
     defaultShelfHeight() {
-      return (this.planogram.height / 100) * 0.8;
+      return Math.ceil((this.planogram.height / 100) * 0.8);
     },
     getPlanogramWidth() {
-      return `${this.planogram.width}px`;
+      let w = Math.ceil((this.planogram.height / 16) * 9);
+      console.log("plano w", w);
+      return w;
     },
     getPlanogramHeight() {
-      return `${this.planogram.height}px`;
+      let h = this.planogram.height;
+      console.log("plano h", h);
+      return h;
     },
   },
   methods: {
@@ -293,10 +284,13 @@ export default {
     },
     handleImage: function (path) {
       console.log("path", path);
-
+      let h = window.innerHeight * 0.75;
+      let w = (h / 16) * 9;
       const asset = require("@/assets/no-disponible.png");
       const image = new Image();
       image.src = asset;
+      image.width = w + 1;
+      image.height = h + 1;
       console.log("img", image);
       image.onload = () => {
         console.log("img loaded", image.width, image.height);

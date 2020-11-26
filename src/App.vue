@@ -1,25 +1,16 @@
 <template>
   <v-app>
-    <v-navigation-drawer
-      v-model="drawer"
-      :mini-variant.sync="mini"
-      permanent
-      app
-    >
+    <v-navigation-drawer v-model="drawer" temporary app>
       <v-list-item class="px-2 py-1">
         <v-list-item-avatar>
           <v-avatar color="blue-grey lighten-1">
-            <v-icon dark>
-              fas fa-user
-            </v-icon>
+            <v-icon dark> fas fa-user </v-icon>
           </v-avatar>
         </v-list-item-avatar>
 
-        <v-list-item-title v-show="!mini" class="ml-2"
-          >Usuario</v-list-item-title
-        >
+        <v-list-item-title class="ml-2">Usuario</v-list-item-title>
 
-        <v-btn icon @click.stop="mini = !mini">
+        <v-btn icon @click.stop="drawer = !drawer">
           <v-icon>fas fa-angle-left</v-icon>
         </v-btn>
       </v-list-item>
@@ -43,15 +34,14 @@
       </v-list>
 
       <template v-slot:append>
-        <div class="pa-2" v-show="!mini">
-          <v-btn color="red" large block>
-            Cerrar sesión
-          </v-btn>
+        <div class="pa-2">
+          <v-btn color="red" large block> Cerrar sesión </v-btn>
         </div>
       </template>
     </v-navigation-drawer>
 
     <v-app-bar app dark>
+      <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
       <div class="d-flex align-center">
         <!-- <v-img
           alt="Isologo de SimpliSales"
@@ -95,7 +85,7 @@ export default {
   components: {},
 
   data: () => ({
-    drawer: true,
+    drawer: false,
     mini: true,
     items: [
       { title: "Galería", icon: "fas fa-image", link: "/" },
@@ -104,9 +94,9 @@ export default {
       {
         title: "Mantenimiento de Tablas",
         icon: "fas fa-tools",
-        link: "/mantenimiento-de-tablas"
-      }
-    ]
-  })
+        link: "/mantenimiento-de-tablas",
+      },
+    ],
+  }),
 };
 </script>

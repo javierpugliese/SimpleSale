@@ -9,7 +9,7 @@
             </v-sheet>
           </v-col>
         </v-row>
-        <!-- <div class="products__column">
+        <div class="products__column">
           <v-autocomplete
             v-model="productId"
             :items="products"
@@ -65,7 +65,7 @@
               </v-list>
             </v-menu>
           </div>
-        </div> -->
+        </div>
       </v-col>
       <v-col cols="12" lg="3" class="d-flex justify-center">
         <!-- Planograma -->
@@ -86,7 +86,7 @@
               }"
             >
               <object
-                :data="require('@/assets/navidad.mp4')"
+                :data="require('@/assets/fondo.jpg')"
                 :width="getPlanogramWidth"
                 :height="getPlanogramHeight"
                 style="position: absolute; z-index: 100 !important; top: 0; left; 0"
@@ -238,11 +238,12 @@ export default {
     },
     planogram: {
       height: Math.ceil(window.innerHeight * 0.75),
-      availableSpace: 700,
+      availableSpace: Math.ceil(window.innerHeight * 0.75),
+      minimalShelfSpace: Math.ceil(window.innerHeight * 0.75 * 0.15),
     },
     shelf_item: {
       baseColor: { r: 0, g: 0, b: 0, a: 1 },
-      maxHeight: 100,
+      maxHeight: Math.ceil(window.innerHeight * 0.75 * 0.15),
     },
     shelf_active: true,
     productId: -1,
@@ -334,17 +335,24 @@ export default {
       this.y = y;
     },
     addShelf() {
-      console.log("available space", this.planogram.availableSpace);
-      if (this.planogram.availableSpace > 40) {
-        this.planogram.availableSpace =
-          this.planogram.availableSpace - this.shelf_item.maxHeight;
-        console.log("available space now", this.planogram.availableSpace);
-        const obj = {
-          color: this.shelf_item.baseColor,
-          max_height: this.shelf_item.maxHeight,
-        };
-        this.shelves.push(obj);
-      } else alert("No hay más espacio disponible.");
+      if (this.shelf_item.maxHeight >= this.planogram.minimalShelfSpace) {
+        if (this.planogram.availableSpace > this.planogram.minimalShelfSpace) {
+          this.planogram.availableSpace =
+            this.planogram.availableSpace - this.shelf_item.maxHeight;
+          this.shelves.push(
+            Object.assign(
+              {},
+              {
+                color: this.shelf_item.baseColor,
+                max_height: this.shelf_item.maxHeight,
+              }
+            )
+          );
+        } else alert("No hay más espacio disponible.");
+      } else
+        alert(
+          `El minimo de altura del estante debe ser de ${this.planogram.minimalShelfSpace}px`
+        );
     },
   },
   created: async function () {

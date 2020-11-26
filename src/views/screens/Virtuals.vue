@@ -102,13 +102,20 @@
                 axis="y"
                 :resizable="false"
                 :draggable="shelf_active"
-                :lock-aspect-ratio="true"
+                :lock-aspect-ratio="false"
                 :grid="[grid.planogram.x, grid.planogram.y]"
                 :z="101"
                 :parent="true"
                 :active="shelf_active"
+                :handles="['tm', 'mr']"
                 class-name-dragging="shelf__dragging"
               >
+                <!-- <div slot="mr" class="ml-16">
+                  <v-sheet color="secondary" class="text-h6 text-center pa-5">
+                    Vista Previa
+                  </v-sheet>
+                  😀
+                </div> -->
                 <div
                   class="d-flex justify-content-center"
                   :style="{ height: `${shelf.max_height}px` }"

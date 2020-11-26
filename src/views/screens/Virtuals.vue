@@ -78,14 +78,22 @@
           <v-col cols="12"></v-col>
           <v-col cols="12" class="d-flex justify-center">
             <div
-              :style="{
-                position: 'relative',
-                height: `${getPlanogramHeight}px`,
+              v-bind:style="{
                 width: `${getPlanogramWidth}px`,
-                background: `url('${require(`@/assets/fondo.jpg`)}') no-repeat center center fixed`,
+                height: `${getPlanogramHeight}px`,
+                position: 'relative',
+                'z-index': 10,
               }"
             >
-              <!-- Planogram shelves -->
+              <object
+                :data="require('@/assets/navidad.mp4')"
+                :width="getPlanogramWidth"
+                :height="getPlanogramHeight"
+                style="position: absolute; z-index: 100 !important; top: 0; left; 0"
+              >
+                <param name="wmode" value="transparent" />
+              </object>
+
               <vue-draggable-resizable
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
@@ -282,6 +290,25 @@ export default {
       const color = rgba;
       return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
     },
+    handleBackground(type, path = "") {
+      if (type === "image") {
+        const asset = require("@/assets/fondo.jpg" || path);
+        let h = window.innerHeight * 0.75;
+        let w = (h / 16) * 9;
+        const image = new Image();
+        image.src = asset;
+        image.width = w + 1;
+        image.height = h + 1;
+        image.onload = () => {
+          /* document.getElementById(
+            "planogram"
+          ).style.backgroundImage = `url('${image.src}')`; */
+          return image.src;
+        };
+      } else if (type === "video") {
+        console.log("is video");
+      }
+    },
     handleImage: function (path) {
       console.log("path", path);
       let h = window.innerHeight * 0.75;
@@ -338,7 +365,8 @@ export default {
       });
   },
   mounted: function () {
-    this.handleImage();
+    //this.handleImage();
+    this.handleBackground("image");
   },
 };
 </script>

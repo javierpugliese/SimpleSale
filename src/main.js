@@ -14,7 +14,7 @@ Vue.config.productionTip = false;
 
 const axiosInstance = axios.create({
   baseURL: "https://touch-test-app.azurewebsites.net/",
-  timeout: 10000
+  timeout: 20000
 });
 
 axiosInstance.interceptors.request.use(

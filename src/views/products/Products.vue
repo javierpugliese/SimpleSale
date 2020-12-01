@@ -24,7 +24,7 @@
         <template v-slot:item.imagen>
           <v-img
             class="my-2"
-            :src="require('@/assets/no-disponible.png')"
+            :src="require('@/assets/no-disponible.jpg')"
             max-width="184"
           ></v-img>
         </template>
@@ -266,7 +266,7 @@
                             <v-col cols="4">
                               <v-card>
                                 <v-img
-                                  :src="require('@/assets/no-disponible.png')"
+                                  :src="require('@/assets/no-disponible.jpg')"
                                   alt=" "
                                   :contain="true"
                                   class="white--text align-end"

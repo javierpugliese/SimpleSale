@@ -33,7 +33,7 @@
               "
             >
               <v-img
-                :src="require('@/assets/no-disponible.png')"
+                :src="require('@/assets/no-disponible.jpg')"
                 :contain="true"
                 class="mx-auto my-2"
                 style="z-index: 0 !important"
@@ -143,7 +143,7 @@
                       :style="{ height: `40px` }"
                     >
                       <v-img
-                        :src="require('@/assets/no-disponible.png')"
+                        :src="require('@/assets/no-disponible.jpg')"
                         :contain="true"
                         height="40"
                         max-height="40"
@@ -166,7 +166,7 @@
           X: {{ x }} / Y: {{ y }} - Width: {{ width }} / Height: {{ height }}
         </p> -->
                 <!-- <v-img
-          :src="require('@/assets/no-disponible.png')"
+          :src="require('@/assets/no-disponible.jpg')"
           :contain="true"
           height="44"
           max-height="44"
@@ -321,7 +321,7 @@ export default {
       console.log("path", path);
       let h = window.innerHeight * 0.75;
       let w = (h / 16) * 9;
-      const asset = require("@/assets/no-disponible.png");
+      const asset = require("@/assets/no-disponible.jpg");
       const image = new Image();
       image.src = asset;
       image.width = w + 1;

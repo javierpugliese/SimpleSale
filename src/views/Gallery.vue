@@ -139,8 +139,16 @@
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="info" text @click="close"> Cancelar </v-btn>
-          <v-btn color="red" text @click="deleteItem" v-show="editedIndex > -1"> Eliminar </v-btn>
-          <v-btn color="success" @click="save">
+          <v-btn
+            color="red"
+            text
+            @click="deleteItem"
+            v-show="editedIndex > -1"
+            :loading="loading"
+          >
+            Eliminar
+          </v-btn>
+          <v-btn color="success" @click="save" :loading="loading">
             <v-icon class="mr-2"> fas fa-save </v-icon>
             Guardar
           </v-btn>
@@ -157,7 +165,10 @@
           <v-btn color="blue darken-1" text @click="closeDelete"
             >Cancelar</v-btn
           >
-          <v-btn color="blue darken-1" @click="deleteItemConfirm"
+          <v-btn
+            color="blue darken-1"
+            @click="deleteItemConfirm"
+            :loading="loading"
             >Aceptar</v-btn
           >
           <v-spacer></v-spacer>

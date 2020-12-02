@@ -1,26 +1,114 @@
 <template>
   <div class="gallery">
-    <v-snackbar v-model="snackbar" :color="snackbarColor" top right>
-      {{ snackbarText }}
-
-      <template v-slot:action="{ attrs }">
-        <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
-          Cerrar
+    <v-toolbar :color="!multiSelect ? 'grey darken-4' : '#1F96A3'" dark>
+      <v-scale-transition>
+        <v-btn v-if="multiSelect" @click="multiSelect = false" icon>
+          <v-icon>fas fa-times</v-icon>
         </v-btn>
-      </template>
-    </v-snackbar>
+      </v-scale-transition>
+      <v-scroll-y-transition>
+        <v-toolbar-title>
+          {{
+            selection.length ? `${selection.length} seleccionados` : "Galería"
+          }}
+        </v-toolbar-title>
+      </v-scroll-y-transition>
+      <v-spacer></v-spacer>
+      <v-scale-transition>
+        <v-btn
+          v-if="!multiSelect"
+          :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
+          @click="dialog = true"
+          :icon="$vuetify.breakpoint.xsOnly ? true : false"
+          class="mx-1"
+          :disabled="loading"
+        >
+          <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
+            fas fa-cloud-upload-alt
+          </v-icon>
+          {{ !$vuetify.breakpoint.xsOnly ? "Nuevo Archivo" : "" }}
+        </v-btn>
+      </v-scale-transition>
+      <v-scale-transition>
+        <v-btn
+          v-if="!multiSelect"
+          :color="$vuetify.breakpoint.xsOnly ? 'none' : '#FFA440'"
+          :icon="$vuetify.breakpoint.xsOnly ? true : false"
+          @click="multiSelect = true"
+          class="mx-1"
+          :disabled="loading"
+        >
+          <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
+            fas fa-object-group
+          </v-icon>
+          {{ !$vuetify.breakpoint.xsOnly ? "Selección Múltiple" : "" }}
+        </v-btn>
+      </v-scale-transition>
+      <v-scale-transition>
+        <v-btn
+          v-if="multiSelect"
+          :color="$vuetify.breakpoint.xsOnly ? 'none' : '#F31E01'"
+          :icon="$vuetify.breakpoint.xsOnly ? true : false"
+          class="mx-1"
+          :disabled="loading || selection.length <= 0"
+        >
+          <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
+            fas fa-trash-alt
+          </v-icon>
+          {{ !$vuetify.breakpoint.xsOnly ? "Eliminar" : "" }}
+        </v-btn>
+      </v-scale-transition>
+      <v-expand-x-transition>
+        <v-text-field
+          v-show="searchMode"
+          v-model="search"
+          class="mt-auto mx-1"
+          placeholder="Buscar"
+          filled
+          outlined
+          clearable
+          :disabled="loading"
+        ></v-text-field>
+      </v-expand-x-transition>
+      <v-scale-transition>
+        <v-btn
+          class="mx-1"
+          @click="searchMode = !searchMode"
+          :icon="!searchMode"
+          :fab="searchMode"
+          :outlined="searchMode"
+        >
+          <v-icon>fas fa-search</v-icon>
+        </v-btn>
+      </v-scale-transition>
+    </v-toolbar>
 
-    <v-row>
-      <v-col cols="12">
-        <v-sheet color="secondary" class="text-h6 text-left pa-5">
-          Galería de Archivos
-        </v-sheet>
-      </v-col>
-    </v-row>
+    <v-scale-transition>
+      <v-snackbar v-model="snackbar" :color="snackbarColor" top right>
+        {{ snackbarText }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+            Cerrar
+          </v-btn>
+        </template>
+      </v-snackbar>
+    </v-scale-transition>
 
     <v-row dense>
       <v-col class="d-flex flex-row flex-wrap flex-grow-1">
+        <div v-if="loading" class="d-flex flex-row flex-wrap flex-grow-1">
+          <v-skeleton-loader
+            class="ma-3"
+            v-for="(n, index) in 50"
+            :key="index"
+            :width="fileWidth"
+            :height="fileHeight"
+            type="image"
+          ></v-skeleton-loader>
+        </div>
         <v-img
+          v-else
           v-for="file in backgrounds"
           :key="`background-${file.id}`"
           class="ma-3 background"
@@ -41,12 +129,12 @@
       hide-overlay
       scrollable
     >
-      <template v-slot:activator="{ on, attrs }">
+      <!-- <template v-slot:activator="{ on, attrs }">
         <v-btn color="primary" dark class="my-3" v-bind="attrs" v-on="on" large>
           <v-icon class="mr-2">fas fa-plus</v-icon>
           Nuevo Fondo
         </v-btn>
-      </template>
+      </template> -->
       <v-card>
         <v-card-title>
           <span class="headline">{{ formTitle }}</span>
@@ -143,12 +231,17 @@
             color="red"
             text
             @click="deleteItem"
-            v-show="editedIndex > -1"
-            :loading="loading"
+            v-if="editedIndex > -1"
+            :disabled="loading"
           >
             Eliminar
           </v-btn>
-          <v-btn color="success" @click="save" :loading="loading">
+          <v-btn
+            color="success"
+            @click="save"
+            :loading="loading"
+            :disabled="loading"
+          >
             <v-icon class="mr-2"> fas fa-save </v-icon>
             Guardar
           </v-btn>
@@ -185,6 +278,10 @@ export default {
   components: {},
   data: () => ({
     loading: false,
+    multiSelect: false,
+    searchMode: false,
+    search: "",
+    selection: [],
     fileType: -1,
     backgrounds: [],
     file: null,

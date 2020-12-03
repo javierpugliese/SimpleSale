@@ -2,15 +2,16 @@
   <div class="gallery">
     <v-toolbar :color="!multiSelect ? 'grey darken-4' : '#1F96A3'" dark>
       <v-scale-transition>
-        <v-btn v-if="multiSelect" @click="multiSelect = false" icon>
+        <v-app-bar-nav-icon v-if="!multiSelect">
+          <v-icon>fas fa-image</v-icon>
+        </v-app-bar-nav-icon>
+        <v-btn v-else-if="multiSelect" @click="multiSelect = false" icon>
           <v-icon>fas fa-times</v-icon>
         </v-btn>
       </v-scale-transition>
       <v-scroll-y-transition>
         <v-toolbar-title>
-          {{
-            selection.length ? `${selection.length} seleccionados` : "Galería"
-          }}
+          {{ multiSelect ? `${selection.length} seleccionados` : "Galería" }}
         </v-toolbar-title>
       </v-scroll-y-transition>
       <v-spacer></v-spacer>
@@ -34,7 +35,10 @@
           v-if="!multiSelect"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#FFA440'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
-          @click="multiSelect = true"
+          @click="
+            selection = [];
+            multiSelect = true;
+          "
           class="mx-1"
           :disabled="loading"
         >
@@ -51,6 +55,7 @@
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
           :disabled="loading || selection.length <= 0"
+          @click="dialogDelete = true"
         >
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-trash-alt
@@ -117,8 +122,18 @@
           :width="fileWidth"
           :max-height="fileHeight"
           :max-width="fileWidth"
-          @click="editItem(file)"
-        ></v-img>
+          @click="multiSelect ? undefined : editItem(file)"
+          style="position: relative; z-index: 0"
+        >
+          <v-checkbox
+            v-show="multiSelect"
+            v-model="selection"
+            color="whitesmoke"
+            label=""
+            :value="file.idArchivoOriginal"
+            style="position: absolute; z-index: 1; top: 0; right: 0"
+          ></v-checkbox>
+        </v-img>
       </v-col>
     </v-row>
 
@@ -129,12 +144,6 @@
       hide-overlay
       scrollable
     >
-      <!-- <template v-slot:activator="{ on, attrs }">
-        <v-btn color="primary" dark class="my-3" v-bind="attrs" v-on="on" large>
-          <v-icon class="mr-2">fas fa-plus</v-icon>
-          Nuevo Fondo
-        </v-btn>
-      </template> -->
       <v-card>
         <v-card-title>
           <span class="headline">{{ formTitle }}</span>
@@ -201,24 +210,11 @@
                     </v-row>
                   </template>
                 </v-img>
-                <div v-else-if="!editedIndex > 0">Ver original</div>
-                <!-- <object
-                  class="pr-auto d-flex"
-                  :type="
-                    editedItem.url.endsWith('.jpg')
-                      ? 'image/jpg'
-                      : editedItem.url.endsWith('.mp4')
-                      ? 'video/mp4'
-                      : ''
-                  "
-                  :data="
-                    editedItem.urls || require('@/assets/navidad.mp4')
-                  "
-                  :width="bgWidth"
-                  :height="bgHeight"
-                >
-                  <param name="wmode" value="transparent" />
-                </object> -->
+                <div v-else-if="!editedIndex > 0">
+                  <v-btn @click="alert('Ver original')" icon>
+                    <v-icon>fas fa-paperclip</v-icon>
+                  </v-btn>
+                </div>
               </v-col>
             </v-row>
           </v-sheet>
@@ -251,7 +247,7 @@
     <v-dialog v-model="dialogDelete" max-width="500px">
       <v-card>
         <v-card-title class="headline"
-          >¿Está seguro de que quiere eliminar este archivo?</v-card-title
+          >¿Está seguro de que quiere eliminar este/os archivo/s?</v-card-title
         >
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -260,10 +256,11 @@
           >
           <v-btn
             color="blue darken-1"
-            @click="deleteItemConfirm"
+            @click="multiSelect ? deleteItems() : deleteItemConfirm()"
             :loading="loading"
-            >Aceptar</v-btn
           >
+            Aceptar
+          </v-btn>
           <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
@@ -339,6 +336,9 @@ export default {
     },
     dialogDelete(val) {
       val || this.closeDelete();
+    },
+    multiSelect(val) {
+      console.log("multiSelect", val);
     },
   },
 
@@ -434,6 +434,41 @@ export default {
         });
       this.closeDelete();
       this.initialize();
+    },
+
+    async deleteItems() {
+      console.log("deleteItems");
+      let i = 0,
+        promises = [];
+      let arr = this.selection.length;
+      if (arr) {
+        for (i; i < arr; i++) {
+          let prom = this.$http.delete(`Archivos/${this.selection[i]}`);
+          promises.push(prom);
+        }
+        if (promises.length) {
+          this.loading = true;
+          this.closeDelete();
+          await this.$http
+            .all(promises)
+            .then(
+              this.$http.spread((...responses) => {
+                let i = 0;
+                let res = responses.length;
+                for (i; i < res; i++) {
+                  console.log(res[i]);
+                }
+              })
+            )
+            .catch((errors) => console.log(errors))
+            .finally(() => {
+              this.loading = false;
+              this.selection = [];
+              this.multiSelect = false;
+            });
+          this.initialize();
+        }
+      }
     },
 
     close() {

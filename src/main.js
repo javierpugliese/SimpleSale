@@ -14,7 +14,7 @@ import VueWorker from 'vue-worker';
 
 Vue.config.productionTip = false;
 
-const axiosInstance = axios.create({
+/* const axiosInstance = axios.create({
   baseURL: "https://touch-test-app.azurewebsites.net/",
   timeout: 20000
 });
@@ -23,7 +23,21 @@ axiosInstance.interceptors.request.use(
   config => {
     console.log(
       `${config.method.toUpperCase()} request sent to ${config.baseURL}${config.url} at ${new Date()}`
-    ); /* Log method, complete url and datetime */
+    );
+    return config;
+  },
+  error => {
+    return Promise.reject(error);
+  }
+); */
+
+axios.defaults.baseURL = "https://touch-test-app.azurewebsites.net/";
+
+axios.interceptors.request.use(
+  config => {
+    console.log(
+      `${config.method.toUpperCase()} request sent to ${config.baseURL}${config.url} at ${new Date()}`
+    );
     return config;
   },
   error => {
@@ -31,7 +45,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-Vue.prototype.$http = axiosInstance;
+Vue.prototype.$http = axios;
 
 Vue.use(VueWorker, "$worker");
 

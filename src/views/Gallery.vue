@@ -104,7 +104,7 @@
       <v-col class="d-flex flex-row flex-wrap flex-grow-1">
         <div v-if="loading" class="d-flex flex-row flex-wrap flex-grow-1">
           <v-skeleton-loader
-            class="ma-3"
+            class="mx-3 mb-3"
             v-for="(n, index) in 50"
             :key="index"
             :width="fileWidth"
@@ -152,9 +152,9 @@
         <v-card-text>
           <v-sheet class="pa-5" color="blue-grey darken-4">
             <v-row dense>
-              <v-col cols="auto" class="mx-auto">
+              <v-col cols="12" class="mx-auto">
                 <v-row dense>
-                  <v-col cols="12">
+                  <v-col cols="12" v-if="editedIndex > -1">
                     <v-text-field
                       v-model="editedItem.nombre"
                       label="Nombre"
@@ -168,6 +168,7 @@
                   </v-col>
                   <v-col cols="12">
                     <v-file-input
+                      v-if="editedIndex > -1"
                       v-model="file"
                       counter
                       label="Archivo (imagen o video)"
@@ -184,10 +185,35 @@
                         </v-chip>
                       </template>
                     </v-file-input>
+                    <v-file-input
+                      v-else
+                      v-model="files"
+                      counter
+                      label="Archivos (imagenes o videos)"
+                      accept=".jpg, .mp4"
+                      placeholder="Examinar..."
+                      prepend-icon=""
+                      outlined
+                      multiple
+                      :show-size="1000"
+                    >
+                      <template v-slot:selection="{ index, text }">
+                        <v-chip v-if="index < 2" color="info" dark label small>
+                          {{ text }}
+                        </v-chip>
+
+                        <span
+                          v-else-if="index === 2"
+                          class="overline text--darken-3 mx-2"
+                        >
+                          +{{ files.length - 2 }} Archivo(s)
+                        </span>
+                      </template>
+                    </v-file-input>
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col cols="auto" class="mx-auto">
+              <v-col cols="12" class="mx-auto" v-if="editedIndex > -1">
                 <v-img
                   v-if="editedIndex > -1 && editedItem.url.endsWith('.jpg')"
                   :src="editedItem.url"
@@ -282,6 +308,7 @@ export default {
     fileType: -1,
     backgrounds: [],
     file: null,
+    files: [],
     dialog: false,
     dialogDelete: false,
     editedIndex: -1,
@@ -336,9 +363,6 @@ export default {
     },
     dialogDelete(val) {
       val || this.closeDelete();
-    },
-    multiSelect(val) {
-      console.log("multiSelect", val);
     },
   },
 
@@ -437,7 +461,6 @@ export default {
     },
 
     async deleteItems() {
-      console.log("deleteItems");
       let i = 0,
         promises = [];
       let arr = this.selection.length;
@@ -449,6 +472,8 @@ export default {
         if (promises.length) {
           this.loading = true;
           this.closeDelete();
+          this.selection = [];
+          this.multiSelect = false;
           await this.$http
             .all(promises)
             .then(
@@ -463,8 +488,6 @@ export default {
             .catch((errors) => console.log(errors))
             .finally(() => {
               this.loading = false;
-              this.selection = [];
-              this.multiSelect = false;
             });
           this.initialize();
         }
@@ -487,13 +510,15 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.files = [];
+        this.file = null;
       });
     },
 
     async save() {
-      this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
         Object.assign(this.backgrounds[this.editedIndex], this.editedItem);
+        this.loading = true;
         await this.$http
           .put(`Articulos/${this.editedId}`, this.editedItem)
           .then((res) => {
@@ -519,9 +544,38 @@ export default {
         postFormData.append("small", true);
         postFormData.append("medium", true);
         postFormData.append("large", false);
-        postFormData.append("file", this.file);
+        //postFormData.append("file", this.file);
 
-        await this.$http
+        let f = 0,
+          promises = [];
+        let files = this.files.length;
+        if (files) {
+          for (f; f < files; f++) {
+            postFormData.set("file", this.files[f]);
+            promises.push(this.$http.post("Archivos", postFormData));
+          }
+          if (promises.length) {
+            this.loading = true;
+            this.close();
+            await this.$http
+              .all(promises)
+              .then(
+                this.$http.spread((...responses) => {
+                  let i = 0;
+                  let res = responses.length;
+                  for (i; i < res; i++) {
+                    console.log(res[i]);
+                  }
+                })
+              )
+              .catch((errors) => console.log(errors))
+              .finally(() => {
+                this.loading = false;
+              });
+          }
+        }
+
+        /*  await this.$http
           .post("Archivos", postFormData)
           .then((res) => {
             if (res) {
@@ -540,9 +594,8 @@ export default {
           })
           .then(() => {
             this.loading = false;
-          });
+          }); */
       }
-      this.close();
       this.initialize();
     },
   },

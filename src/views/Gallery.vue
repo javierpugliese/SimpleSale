@@ -104,7 +104,7 @@
       <v-col class="d-flex flex-row flex-wrap flex-grow-1">
         <div v-if="loading" class="d-flex flex-row flex-wrap flex-grow-1">
           <v-skeleton-loader
-            class="mx-3 mb-3"
+            class="mx-3 my-1"
             v-for="(n, index) in 50"
             :key="index"
             :width="fileWidth"
@@ -539,21 +539,22 @@ export default {
             this.loading = false;
           });
       } else {
-        const postFormData = new FormData();
-        postFormData.append("idTipo", +this.fileType);
-        postFormData.append("small", true);
-        postFormData.append("medium", true);
-        postFormData.append("large", false);
-        //postFormData.append("file", this.file);
-
+        let postFormData;
         let f = 0,
           promises = [];
         let files = this.files.length;
         if (files) {
           for (f; f < files; f++) {
-            postFormData.set("file", this.files[f]);
+            postFormData = new FormData();
+            postFormData.append("idTipo", +this.fileType);
+            postFormData.append("small", true);
+            postFormData.append("medium", true);
+            postFormData.append("large", false);
+            postFormData.append("descripcion", "any");
+            postFormData.append("file", this.files[f]);
             promises.push(this.$http.post("Archivos", postFormData));
           }
+
           if (promises.length) {
             this.loading = true;
             this.close();

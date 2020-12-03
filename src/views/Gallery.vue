@@ -11,7 +11,7 @@
       </v-scale-transition>
       <v-scroll-y-transition>
         <v-toolbar-title>
-          {{ multiSelect ? `${selection.length} seleccionados` : "Galería" }}
+          {{ multiSelect ? `${selection.length} seleccionado(s)` : "Galería" }}
         </v-toolbar-title>
       </v-scroll-y-transition>
       <v-spacer></v-spacer>
@@ -46,6 +46,21 @@
             fas fa-object-group
           </v-icon>
           {{ !$vuetify.breakpoint.xsOnly ? "Selección Múltiple" : "" }}
+        </v-btn>
+      </v-scale-transition>
+      <v-scale-transition>
+        <v-btn
+          v-if="multiSelect"
+          :color="$vuetify.breakpoint.xsOnly ? 'none' : '#E85111'"
+          :icon="$vuetify.breakpoint.xsOnly ? true : false"
+          class="mx-1"
+          @click="selectAll"
+          :disabled="loading"
+        >
+          <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
+            fas fa-check-double
+          </v-icon>
+          {{ !$vuetify.breakpoint.xsOnly ? "Marcar todos" : "" }}
         </v-btn>
       </v-scale-transition>
       <v-scale-transition>
@@ -371,6 +386,10 @@ export default {
   },
 
   methods: {
+    selectAll() {
+      this.selection = [];
+      this.selection = [...this.backgrounds.map((bg) => +bg.idArchivoOriginal)];
+    },
     onFileUpload(file) {
       this.file = file;
     },

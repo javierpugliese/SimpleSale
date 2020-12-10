@@ -347,6 +347,12 @@ export default {
   name: "Products",
   components: {},
   data: () => ({
+    loading: false,
+    page: 1,
+    pages: 1,
+    itemsPerPage: 10,
+    totalRecords: 0,
+    search: "",
     headers: [
       {
         text: "Vista Previa",
@@ -391,7 +397,6 @@ export default {
         value: "modificado",
       },
     ],
-    loading: false,
     products: [],
     manufacturers: [],
     productTypes: [],
@@ -460,6 +465,12 @@ export default {
   },
 
   methods: {
+    previousPage() {
+      this.page--;
+    },
+    nextPage() {
+      this.page++;
+    },
     async initialize() {
       this.products = [];
       this.loading = true;

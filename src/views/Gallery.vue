@@ -17,7 +17,7 @@
       <v-spacer></v-spacer>
       <v-scale-transition>
         <v-btn
-          v-if="!multiSelect"
+          v-if="!multiSelect && !searchMode"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
           @click="dialog = true"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
@@ -32,7 +32,7 @@
       </v-scale-transition>
       <v-scale-transition>
         <v-btn
-          v-if="!multiSelect"
+          v-if="!multiSelect && !searchMode"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#FFA440'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           @click="
@@ -127,6 +127,29 @@
             type="image"
           ></v-skeleton-loader>
         </div>
+        <div
+          class="d-flex justify-center ma-10"
+          v-else-if="!loading && backgrounds.length <= 0"
+          style="width: 100vw"
+        >
+          <v-sheet
+            color="secondary"
+            class="d-flex flex-column text-h6 text-center pa-5"
+          >
+            No hay resultados disponibles.
+            <div class="d-flex justify-center flex-row mt-3">
+              <v-btn class="mx-1" color="info" @click="previousPage">
+                <v-icon>fas fa-angle-left</v-icon></v-btn
+              >
+              <v-btn class="mx-1" color="primary" @click="initialize">
+                <v-icon>fas fa-refresh</v-icon> Recargar</v-btn
+              >
+              <v-btn class="mx-1" color="info" @click="nextPage">
+                <v-icon>fas fa-angle-right</v-icon></v-btn
+              >
+            </div>
+          </v-sheet>
+        </div>
         <v-img
           v-else
           v-for="file in backgrounds"
@@ -150,11 +173,12 @@
           ></v-checkbox>
         </v-img>
       </v-col>
-      <v-col cols="12">
+      <v-col cols="12" style="position: fixed; bottom: 0">
         <v-pagination
-          v-if="backgrounds.length > 0"
           v-model="page"
-          :length="pageSize"
+          :length="pages"
+          :total-visible="7"
+          @input="goToPage"
         ></v-pagination>
       </v-col>
     </v-row>
@@ -323,7 +347,7 @@ export default {
   components: {},
   data: () => ({
     page: 1,
-    pages: 1,
+    pages: 5,
     pageSize: 10,
     totalRecords: 0,
     loading: false,
@@ -384,6 +408,9 @@ export default {
   },
 
   watch: {
+    page(val) {
+      console.log(val);
+    },
     dialog(val) {
       val || this.close();
     },
@@ -397,11 +424,17 @@ export default {
   },
 
   methods: {
+    goToPage(value) {
+      this.page = value;
+      this.initialize();
+    },
     previousPage() {
-      this.pageNumber--;
+      this.page--;
+      this.initialize();
     },
     nextPage() {
-      this.pageNumber++;
+      this.page++;
+      this.initialize();
     },
     selectAll() {
       this.selection = [];

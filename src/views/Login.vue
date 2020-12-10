@@ -1,6 +1,12 @@
 <template>
   <div class="login">
-    Iniciar sesión
+    <v-container>
+      <v-row>
+        <v-col cols="12" sm="6">
+          <v-text-field></v-text-field>
+        </v-col>
+      </v-row>
+    </v-container>
   </div>
 </template>
 
@@ -9,6 +15,6 @@
 
 export default {
   name: "Login",
-  components: {}
+  components: {},
 };
 </script>

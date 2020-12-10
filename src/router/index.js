@@ -19,6 +19,13 @@ const routes = [
     }
   },
   {
+    path: "/login",
+    name: "Login",
+    component: function () {
+      return import(/* webpackChunkName: "login" */ "../views/Login.vue");
+    }
+  },
+  {
     path: "/pantallas",
     name: "Screens",
     component: function () {

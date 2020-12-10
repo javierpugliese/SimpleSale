@@ -150,6 +150,13 @@
           ></v-checkbox>
         </v-img>
       </v-col>
+      <v-col cols="12">
+        <v-pagination
+          v-if="backgrounds.length > 0"
+          v-model="page"
+          :length="pageSize"
+        ></v-pagination>
+      </v-col>
     </v-row>
 
     <v-dialog
@@ -315,6 +322,10 @@ export default {
   name: "Gallery",
   components: {},
   data: () => ({
+    page: 1,
+    pages: 1,
+    pageSize: 10,
+    totalRecords: 0,
     loading: false,
     multiSelect: false,
     searchMode: false,
@@ -386,6 +397,12 @@ export default {
   },
 
   methods: {
+    previousPage() {
+      this.pageNumber--;
+    },
+    nextPage() {
+      this.pageNumber++;
+    },
     selectAll() {
       this.selection = [];
       this.selection = [...this.backgrounds.map((bg) => +bg.idArchivoOriginal)];
@@ -406,17 +423,18 @@ export default {
             .get(`Archivos/Tipo/`, {
               params: {
                 idTipo: +this.fileType,
+                pageNumber: this.page,
+                pageSize: this.pageSize,
               },
             })
             .then((res) => {
               if (res && res.data) {
-                const data = res.data;
+                const data = res.data.list;
                 this.backgrounds = data.filter((x) => x.size == "Small");
                 console.log("backgrounds", this.backgrounds);
               }
             })
             .catch((error) => {
-              console.log(error.toJSON());
               if (error.response) {
                 // The request was made and the server responded with a status code
                 // that falls out of the range of 2xx

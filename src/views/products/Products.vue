@@ -11,6 +11,22 @@
         </template>
       </v-snackbar>
 
+      <v-row>
+        <v-col cols="12">
+          <v-sheet color="secondary" class="d-flex justify-space-between pa-3">
+            <v-btn
+              class="mx-3"
+              v-for="(v, index) in views"
+              :key="index"
+              :color="v.color"
+              :to="v.href"
+              v-text="v.text"
+            >
+            </v-btn>
+          </v-sheet>
+        </v-col>
+      </v-row>
+
       <v-data-table
         :headers="headers"
         :items="products"
@@ -443,6 +459,28 @@ export default {
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
+    views: [
+      {
+        color: "secondary",
+        href: "/productos/sponsors/",
+        text: "Sponsors",
+      },
+      {
+        color: "secondary",
+        href: "/productos/promociones/",
+        text: "Promociones",
+      },
+      {
+        color: "secondary",
+        href: "/productos/alternativos/",
+        text: "Alternativos",
+      },
+      {
+        color: "secondary",
+        href: "/productos/cruzados/",
+        text: "Cruzados",
+      },
+    ],
   }),
 
   watch: {

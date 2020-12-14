@@ -19,7 +19,7 @@ const routes = [
     }
   },
   {
-    path: "/sponsors",
+    path: "/productos/sponsors",
     name: "Sponsors",
     component: function () {
       return import(/* webpackChunkName: "sponsors" */ "../views/products/Sponsors.vue");

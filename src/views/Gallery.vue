@@ -347,7 +347,7 @@ export default {
   components: {},
   data: () => ({
     page: 1,
-    pages: 5,
+    pages: 1,
     pageSize: 10,
     totalRecords: 0,
     loading: false,
@@ -463,6 +463,7 @@ export default {
             .then((res) => {
               if (res && res.data) {
                 const data = res.data.list;
+                this.pages = res.data.totalPages;
                 this.backgrounds = data.filter((x) => x.size == "Small");
                 console.log("backgrounds", this.backgrounds);
               }

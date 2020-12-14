@@ -445,12 +445,6 @@ export default {
     snackbarColor: "black",
   }),
 
-  computed: {
-    formTitle() {
-      return this.editedIndex === -1 ? "Nuevo Producto" : "Editar Producto";
-    },
-  },
-
   watch: {
     dialog(val) {
       val || this.close();
@@ -460,8 +454,10 @@ export default {
     },
   },
 
-  created() {
-    this.initialize();
+  computed: {
+    formTitle() {
+      return this.editedIndex === -1 ? "Nuevo Producto" : "Editar Producto";
+    },
   },
 
   methods: {
@@ -472,8 +468,8 @@ export default {
       this.page++;
     },
     async initialize() {
-      this.products = [];
       this.loading = true;
+      this.products = [];
 
       const products = this.$http.get("Articulos");
       const manufacturers = this.$http.get("Fabricantes");
@@ -482,35 +478,44 @@ export default {
 
       const promises = [products, manufacturers, productTypes, categories];
 
-      await Promise.all(promises)
-        .then((responses) => {
-          const productsRes = responses[0];
-          const manufacturersRes = responses[1];
-          const productTypesRes = responses[2];
-          const categoriesRes = responses[3];
+      await this.$http
+        .all(promises)
+        .then(
+          this.$http.spread((...responses) => {
+            let i = 0;
+            let res = responses.length;
+            for (i; i < res; i++) {
+              console.log(res[i]);
+            }
+            const productsRes = responses[0];
+            const manufacturersRes = responses[1];
+            const productTypesRes = responses[2];
+            const categoriesRes = responses[3];
 
-          if (productsRes && productsRes.data) this.products = productsRes.data;
-          if (manufacturersRes && manufacturersRes.data) {
-            this.manufacturers = manufacturersRes.data.map((at) => ({
-              text: at.nombre,
-              value: at.id,
-            }));
-          }
-          if (productTypesRes && productTypesRes.data) {
-            this.productTypes = productTypesRes.data.map((at) => ({
-              text: at.nombre,
-              value: at.id,
-            }));
-          }
-          if (categoriesRes && categoriesRes.data) {
-            this.categories = categoriesRes.data.map((at) => ({
-              text: at.nombre,
-              value: at.id,
-            }));
-          }
-        })
+            if (productsRes && productsRes.data)
+              this.products = productsRes.data;
+            if (manufacturersRes && manufacturersRes.data) {
+              this.manufacturers = manufacturersRes.data.map((at) => ({
+                text: at.nombre,
+                value: at.id,
+              }));
+            }
+            if (productTypesRes && productTypesRes.data) {
+              this.productTypes = productTypesRes.data.map((at) => ({
+                text: at.nombre,
+                value: at.id,
+              }));
+            }
+            if (categoriesRes && categoriesRes.data) {
+              this.categories = categoriesRes.data.map((at) => ({
+                text: at.nombre,
+                value: at.id,
+              }));
+            }
+          })
+        )
         .catch((errors) => {
-          console.error(errors);
+          console.log(errors);
         })
         .finally(() => {
           this.loading = false;
@@ -629,6 +634,10 @@ export default {
       this.close();
       this.initialize();
     },
+  },
+
+  mounted() {
+    this.initialize();
   },
 };
 </script>

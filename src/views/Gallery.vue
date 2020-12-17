@@ -453,23 +453,22 @@ export default {
 
       const fileType = await this.$http.get("TipoArchivos/nombre/Fondo");
       if (fileType && fileType.data) {
+        console.log("FILE TYPE", fileType.data);
         this.fileType = fileType.data[0].id;
         if (this.fileType > 0) {
           await this.$http
-            .get(`Archivos/Tipo/`, {
+            .get(`Archivos/SizeAndTipo/`, {
               params: {
                 idTipo: +this.fileType,
+                size: "small",
                 pageNumber: this.page,
                 pageSize: this.pageSize,
               },
             })
             .then((res) => {
               if (res && res.data) {
-                const data = res.data.list;
                 this.pages = res.data.totalPages;
-                this.backgrounds = data.map(function (m) {
-                  for (let x of m.miniaturas) if (x.size === "Small") return x;
-                });
+                this.backgrounds = res.data.list;
               }
             })
             .catch((error) => {

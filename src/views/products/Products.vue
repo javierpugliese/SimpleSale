@@ -259,13 +259,12 @@
                             </template>
                           </v-file-input>
 
-                          <!-- <v-row v-else dense>
+                          <v-row dense>
                             <v-col
-                              v-for="card in cards"
-                              :key="card.title"
-                              :cols="card.flex"
+                              v-for="(i, index) in 5"
+                              :key="index"
+                              cols="4"
                             >
-                            <v-col cols="4">
                               <v-card>
                                 <v-img
                                   :src="require('@/assets/no-disponible.jpg')"
@@ -295,7 +294,7 @@
                                 </v-card-actions>
                               </v-card>
                             </v-col>
-                          </v-row> -->
+                          </v-row>
                         </v-col>
                       </v-row>
                     </v-sheet>
@@ -735,7 +734,7 @@ export default {
 };
 </script>
 <style scoped>
-td:hover {
+v-data-table > td:hover {
   cursor: pointer !important;
 }
 </style>

@@ -19,13 +19,6 @@ const routes = [
     }
   },
   {
-    path: "/productos/sponsors",
-    name: "Sponsors",
-    component: function () {
-      return import(/* webpackChunkName: "sponsors" */ "../views/products/Sponsors.vue");
-    }
-  },
-  {
     path: "/login",
     name: "Login",
     component: function () {

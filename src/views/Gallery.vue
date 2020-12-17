@@ -417,6 +417,9 @@ export default {
     dialogDelete(val) {
       val || this.closeDelete();
     },
+    backgrounds(val) {
+      console.log("backgrounds", val);
+    },
   },
 
   mounted() {
@@ -464,8 +467,9 @@ export default {
               if (res && res.data) {
                 const data = res.data.list;
                 this.pages = res.data.totalPages;
-                this.backgrounds = data.filter((x) => x.size == "Small");
-                console.log("backgrounds", this.backgrounds);
+                this.backgrounds = data.map(function (m) {
+                  for (let x of m.miniaturas) if (x.size === "Small") return x;
+                });
               }
             })
             .catch((error) => {

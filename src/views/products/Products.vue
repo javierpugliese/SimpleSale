@@ -11,31 +11,16 @@
         </template>
       </v-snackbar>
 
-      <v-row>
-        <v-col cols="12">
-          <v-sheet color="secondary" class="d-flex justify-space-between pa-3">
-            <v-btn
-              class="mx-3"
-              v-for="(v, index) in views"
-              :key="index"
-              :color="v.color"
-              :to="v.href"
-              v-text="v.text"
-            >
-            </v-btn>
-          </v-sheet>
-        </v-col>
-      </v-row>
-
       <v-data-table
         :headers="headers"
         :items="products"
         :loading="loading"
-        :items-per-page="-1"
         @click:row="editItem"
         loading-text="Cargando..."
         sort-by="nombre"
         class="elevation-1"
+        :disable-pagination="true"
+        :hide-default-footer="true"
       >
         <template v-slot:item.imagen>
           <v-img
@@ -149,9 +134,9 @@
                         </v-col>
                         <v-col cols="12" sm="4">
                           <v-autocomplete
-                            v-model="editedItem.idCategoria"
+                            v-model="editedItem.categorias"
                             :items="categories"
-                            label="Categoría"
+                            label="Categorías"
                             maxlength="50"
                             multiple
                             clearable
@@ -181,7 +166,8 @@
                             clearable
                             outlined
                             small-chips
-                          ></v-autocomplete>
+                          >
+                          </v-autocomplete>
                         </v-col>
                       </v-row>
                       <v-row>
@@ -319,7 +305,12 @@
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn color="info" text @click="close"> Cancelar </v-btn>
-                  <v-btn color="red" text @click="deleteItemConfirm">
+                  <v-btn
+                    color="red"
+                    v-if="editedIndex > -1 && editedId > -1"
+                    text
+                    @click="deleteItemConfirm"
+                  >
                     Eliminar
                   </v-btn>
                   <v-btn color="success" @click="save">
@@ -352,6 +343,42 @@
         <template v-slot:no-data>
           <v-btn color="primary" @click="initialize"> Recargar </v-btn>
         </template>
+        <template v-slot:footer>
+          <v-row
+            class="pa-2"
+            no-gutters
+            dense
+            style="border-top: 1px solid #343434"
+          >
+            <v-col cols="12" sm="4" class="d-flex justify-start align-center">
+              <v-select
+                v-model="itemsPerPage"
+                :items="itemsPerPageItems"
+                filled
+                outlined
+                label="Filas por página"
+                :hide-details="true"
+                :loading="loading"
+                :disabled="loading"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" sm="4" class="d-flex justify-center align-center">
+              <v-pagination
+                v-model="page"
+                :length="pages"
+                :total-visible="7"
+                @input="goToPage"
+                elevation="3"
+                color="#343434"
+              ></v-pagination>
+            </v-col>
+            <v-col cols="12" sm="4" class="d-flex justify-end align-center">
+              <p v-show="!loading" class="text-overline text-dark my-auto">
+                Mostrando {{ itemsPerPage }} de {{ totalRecords }} resultados.
+              </p>
+            </v-col>
+          </v-row>
+        </template>
       </v-data-table>
     </v-container>
   </div>
@@ -366,7 +393,7 @@ export default {
     loading: false,
     page: 1,
     pages: 1,
-    itemsPerPage: 10,
+    itemsPerPage: 5,
     totalRecords: 0,
     search: "",
     headers: [
@@ -404,7 +431,7 @@ export default {
         text: "Tipo de Producto",
         align: "start",
         sortable: true,
-        value: "tipoArticuloDto.nombre",
+        value: "tipoArticulo.nombre",
       },
       {
         text: "Última Modificación",
@@ -419,7 +446,14 @@ export default {
     categories: [],
     attributes: [],
     files: [],
-
+    itemsPerPageItems: [
+      { text: "5 filas", value: 5 },
+      { text: "10 filas", value: 10 },
+      { text: "15 filas", value: 15 },
+      { text: "30 filas", value: 30 },
+      { text: "50 filas", value: 50 },
+      { text: "100 filas", value: 100 },
+    ],
     attributeTypes: [],
     delimiters: [",", ".", "-", "/", " "],
     dialog: false,
@@ -434,7 +468,7 @@ export default {
       descripcion: "",
       descripcionLarga: "",
       prospecto: "",
-      idCategoria: -1,
+      categorias: [],
       idFabricante: -1,
       idTipo: -1,
       atributos: [],
@@ -450,7 +484,7 @@ export default {
       descripcion: "",
       descripcionLarga: "",
       prospecto: "",
-      idCategoria: -1,
+      categorias: [],
       idFabricante: -1,
       idTipo: -1,
       atributos: [],
@@ -459,28 +493,6 @@ export default {
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
-    views: [
-      {
-        color: "secondary",
-        href: "/productos/sponsors/",
-        text: "Sponsors",
-      },
-      {
-        color: "secondary",
-        href: "/productos/promociones/",
-        text: "Promociones",
-      },
-      {
-        color: "secondary",
-        href: "/productos/alternativos/",
-        text: "Alternativos",
-      },
-      {
-        color: "secondary",
-        href: "/productos/cruzados/",
-        text: "Cruzados",
-      },
-    ],
   }),
 
   watch: {
@@ -489,6 +501,9 @@ export default {
     },
     dialogDelete(val) {
       val || this.closeDelete();
+    },
+    itemsPerPage() {
+      this.initialize();
     },
   },
 
@@ -499,56 +514,95 @@ export default {
   },
 
   methods: {
+    goToPage(value) {
+      this.page = value;
+      this.initialize();
+    },
     previousPage() {
       this.page--;
+      this.initialize();
     },
     nextPage() {
       this.page++;
+      this.initialize();
     },
     async initialize() {
       this.loading = true;
       this.products = [];
 
-      const products = this.$http.get("Articulos");
+      const products = this.$http.get("Articulos", {
+        params: { pageNumber: this.page, pageSize: this.itemsPerPage },
+      });
       const manufacturers = this.$http.get("Fabricantes");
       const productTypes = this.$http.get("TiposArticulo");
       const categories = this.$http.get("CategoriasArticulo");
+      const attributeTypes = this.$http.get("TiposDeAtributo");
 
-      const promises = [products, manufacturers, productTypes, categories];
+      const promises = [
+        products,
+        manufacturers,
+        productTypes,
+        categories,
+        attributeTypes,
+      ];
 
       await this.$http
         .all(promises)
         .then(
           this.$http.spread((...responses) => {
-            let i = 0;
-            let res = responses.length;
-            for (i; i < res; i++) {
-              console.log(res[i]);
-            }
             const productsRes = responses[0];
             const manufacturersRes = responses[1];
             const productTypesRes = responses[2];
             const categoriesRes = responses[3];
+            const attrTypesRes = responses[4];
 
-            if (productsRes && productsRes.data)
-              this.products = productsRes.data;
+            if (productsRes && productsRes.data.list) {
+              this.products = productsRes.data.list;
+              this.pages = productsRes.data.totalPages;
+              this.totalRecords = productsRes.data.totalRecords;
+            }
             if (manufacturersRes && manufacturersRes.data) {
-              this.manufacturers = manufacturersRes.data.map((at) => ({
-                text: at.nombre,
-                value: at.id,
+              this.manufacturers = manufacturersRes.data.map((m) => ({
+                text: m.nombre,
+                value: m.id,
               }));
             }
             if (productTypesRes && productTypesRes.data) {
-              this.productTypes = productTypesRes.data.map((at) => ({
-                text: at.nombre,
-                value: at.id,
+              this.productTypes = productTypesRes.data.map((pt) => ({
+                text: pt.nombre,
+                value: pt.id,
               }));
             }
             if (categoriesRes && categoriesRes.data) {
-              this.categories = categoriesRes.data.map((at) => ({
-                text: at.nombre,
-                value: at.id,
+              this.categories = categoriesRes.data.map((c) => ({
+                text: c.nombre,
+                value: c.id,
               }));
+            }
+            if (attrTypesRes && attrTypesRes.data) {
+              let list = attrTypesRes.data;
+              let attributes = [];
+
+              for (let at of list) {
+                if (at.atributos && at.atributos.length > 0) {
+                  attributes.push(
+                    Object.assign({}, { header: at.nombre.toUpperCase() })
+                  );
+                  attributes.push(Object.assign({}, { divider: true }));
+                  for (let a of at.atributos) {
+                    attributes.push(
+                      Object.assign(
+                        {},
+                        {
+                          text: a.nombre,
+                          value: a.id,
+                        }
+                      )
+                    );
+                  }
+                }
+              }
+              this.attributes = attributes;
             }
           })
         )
@@ -564,9 +618,10 @@ export default {
       this.editedIndex = this.products.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
-      this.editedItem.idTipo = item.tipoArticuloDto.id || -1;
+      this.editedItem.idTipo = item.tipoArticulo.id || -1;
       this.editedItem.idFabricante = item.fabricante.id || -1;
-      this.editedItem.idCategoria = item.categoria.id || -1;
+      this.editedItem.categorias = item.categorias.map((c) => c.id) || [];
+      this.editedItem.atributos = item.atributos.map((a) => a.id) || [];
       this.dialog = true;
     },
 
@@ -574,9 +629,10 @@ export default {
       this.editedIndex = this.products.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
-      this.editedItem.idTipo = item.tipoArticuloDto.id || -1;
+      this.editedItem.idTipo = item.tipoArticulo.id || -1;
       this.editedItem.idFabricante = item.fabricante.id || -1;
-      this.editedItem.idCategoria = item.categoria.id || -1;
+      this.editedItem.categorias = item.categorias.map((c) => c.id) || [];
+      this.editedItem.atributos = item.atributos.map((a) => a.id) || [];
       this.dialogDelete = true;
     },
 
@@ -673,9 +729,13 @@ export default {
       this.initialize();
     },
   },
-
-  mounted() {
+  mounted: function () {
     this.initialize();
   },
 };
 </script>
+<style scoped>
+td:hover {
+  cursor: pointer !important;
+}
+</style>

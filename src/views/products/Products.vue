@@ -227,17 +227,33 @@
                         </v-col>
                       </v-row>
                       <v-row>
-                        <v-col cols="12">
+                        <v-col cols="12" class="d-flex flex-column">
+                          <v-alert
+                            border="bottom"
+                            colored-border
+                            type="warning"
+                            elevation="2"
+                          >
+                            Para garantizar una mejor experiencia en la fluidez
+                            del sistema, se recomienda adjuntar las imagenes en
+                            formato <b>.webp</b>, y los videos en formato
+                            <b>.webm</b> una carga rápida. Se permiten los
+                            formatos <b>JPG</b>, <b>PNG</b>, <b>WEBP</b> y
+                            <b>MP4</b> para en el caso de los videos. Las
+                            imagenes deben no ser superiores a 1000x1000 en
+                            dimensiones.
+                          </v-alert>
                           <v-file-input
                             v-model="files"
                             counter
                             label="Archivos (imagenes o videos)"
-                            accept=".jpg, .mp4"
+                            accept=".jpg, .png, .webp, .mp4"
                             multiple
                             placeholder="Seleccione archivos..."
                             prepend-icon="fas fa-paperclip"
                             outlined
                             :show-size="1000"
+                            @change="onFileUpload($event)"
                           >
                             <template v-slot:selection="{ index, text }">
                               <v-chip
@@ -252,49 +268,43 @@
 
                               <span
                                 v-else-if="index === 2"
-                                class="overline grey--text text--darken-3 mx-2"
+                                class="overline grey--text text--ligthen-3 mx-2"
                               >
                                 +{{ files.length - 2 }} Archivo(s)
                               </span>
                             </template>
                           </v-file-input>
 
-                          <v-row dense>
-                            <v-col
-                              v-for="(i, index) in 5"
+                          <div
+                            class="d-flex flex-wrap justify-start"
+                            style="align-items: flex-start"
+                          >
+                            <v-img
+                              v-for="(i, index) in filesURLs"
                               :key="index"
-                              cols="4"
+                              :src="i || require('@/assets/no-disponible.jpg')"
+                              alt=" "
+                              :contain="true"
+                              class="white--text ma-2"
+                              gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                              style="
+                                position: relative;
+                                max-height: 20vh;
+                                max-width: 20vh;
+                                min-height: 20vh;
+                                min-width: 20vh;
+                              "
                             >
-                              <v-card>
-                                <v-img
-                                  :src="require('@/assets/no-disponible.jpg')"
-                                  alt=" "
-                                  :contain="true"
-                                  class="white--text align-end"
-                                  gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-                                  max-height="240"
-                                  max-width="240"
-                                >
-                                </v-img>
-
-                                <v-card-actions>
-                                  <v-spacer></v-spacer>
-
-                                  <v-btn icon>
-                                    <v-icon color="success"
-                                      >fas fa-upload</v-icon
-                                    >
-                                  </v-btn>
-
-                                  <v-btn icon>
-                                    <v-icon color="red"
-                                      >fas fa-trash-alt</v-icon
-                                    >
-                                  </v-btn>
-                                </v-card-actions>
-                              </v-card>
-                            </v-col>
-                          </v-row>
+                              <v-btn
+                                icon
+                                large
+                                style="position: absolute; top: 0; right: 0"
+                                @click="removeFile(index)"
+                              >
+                                <v-icon color="red"> fas fa-times </v-icon>
+                              </v-btn>
+                            </v-img>
+                          </div>
                         </v-col>
                       </v-row>
                     </v-sheet>
@@ -445,6 +455,7 @@ export default {
     categories: [],
     attributes: [],
     files: [],
+    filesURLs: [],
     itemsPerPageItems: [
       { text: "5 filas", value: 5 },
       { text: "10 filas", value: 10 },
@@ -504,6 +515,9 @@ export default {
     itemsPerPage() {
       this.initialize();
     },
+    files(val) {
+      console.log("FILES", val);
+    },
   },
 
   computed: {
@@ -513,6 +527,14 @@ export default {
   },
 
   methods: {
+    handleFileWidth(img) {
+      let image = new Image();
+      image.src = img;
+      image.onload = () => {
+        console.log("img w", image.width);
+        return image.width;
+      };
+    },
     goToPage(value) {
       this.page = value;
       this.initialize();
@@ -524,6 +546,24 @@ export default {
     nextPage() {
       this.page++;
       this.initialize();
+    },
+    async onFileUpload(files) {
+      this.filesURLs = [];
+      let i = 0;
+      let arr = files.length;
+      if (arr < 10) {
+        for (i; i < arr; i++) {
+          let url = URL.createObjectURL(files[i]);
+          this.filesURLs.push(url);
+        }
+      } else {
+        this.files = [];
+        alert("Máximo de 10 archivos");
+      }
+    },
+    removeFile(pos) {
+      this.files.splice(pos, 1);
+      this.filesURLs.splice(pos, 1);
     },
     async initialize() {
       this.loading = true;

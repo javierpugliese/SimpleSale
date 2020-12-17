@@ -420,6 +420,9 @@ export default {
     backgrounds(val) {
       console.log("backgrounds", val);
     },
+    editedItem(val) {
+      console.log("editedItem", val);
+    },
   },
 
   mounted() {
@@ -590,9 +593,9 @@ export default {
     },
 
     async save() {
+      this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
         Object.assign(this.backgrounds[this.editedIndex], this.editedItem);
-        this.loading = true;
         await this.$http
           .put(`Articulos/${this.editedId}`, this.editedItem)
           .then((res) => {

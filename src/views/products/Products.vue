@@ -99,7 +99,7 @@
                         </v-col>
                         <v-col cols="12" sm="4">
                           <v-text-field
-                            v-model="editedItem.precio"
+                            v-model.number="editedItem.precio"
                             label="Precio"
                             prefix="$"
                             value="0.00"
@@ -459,8 +459,7 @@ export default {
     itemsPerPageItems: [
       { text: "5 filas", value: 5 },
       { text: "10 filas", value: 10 },
-      { text: "15 filas", value: 15 },
-      { text: "30 filas", value: 30 },
+      { text: "25 filas", value: 25 },
       { text: "50 filas", value: 50 },
       { text: "100 filas", value: 100 },
     ],
@@ -514,9 +513,6 @@ export default {
     },
     itemsPerPage() {
       this.initialize();
-    },
-    files(val) {
-      console.log("FILES", val);
     },
   },
 

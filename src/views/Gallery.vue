@@ -122,8 +122,8 @@
             class="mx-3 my-1"
             v-for="(n, index) in 50"
             :key="index"
-            :width="fileWidth"
-            :height="fileHeight"
+            :width="135"
+            :height="240"
             type="image"
           ></v-skeleton-loader>
         </div>
@@ -155,11 +155,14 @@
           v-for="file in backgrounds"
           :key="`background-${file.id}`"
           class="ma-3 background"
-          :src="file.url || require('@/assets/no-disponible.jpg')"
-          :height="fileHeight"
-          :width="fileWidth"
-          :max-height="fileHeight"
-          :max-width="fileWidth"
+          :src="
+            getSmallFile(file.miniaturas) ||
+            require('@/assets/no-disponible.jpg')
+          "
+          :height="240"
+          :width="135"
+          :max-height="240"
+          :max-width="135"
           @click="multiSelect ? undefined : editItem(file)"
           style="position: relative; z-index: 0"
         >
@@ -168,18 +171,46 @@
             v-model="selection"
             color="whitesmoke"
             label=""
-            :value="file.idArchivoOriginal"
+            :value="file.id"
             style="position: absolute; z-index: 1; top: 0; right: 0"
           ></v-checkbox>
         </v-img>
       </v-col>
       <v-col cols="12" style="position: fixed; bottom: 0">
-        <v-pagination
-          v-model="page"
-          :length="pages"
-          :total-visible="7"
-          @input="goToPage"
-        ></v-pagination>
+        <v-row
+          class="pa-2"
+          no-gutters
+          dense
+          style="border-top: 1px solid #343434"
+        >
+          <v-col cols="12" sm="4" class="d-flex justify-start align-center">
+            <v-select
+              v-model="itemsPerPage"
+              :items="itemsPerPageItems"
+              filled
+              outlined
+              label="Filas por página"
+              :hide-details="true"
+              :loading="loading"
+              :disabled="loading"
+            ></v-select>
+          </v-col>
+          <v-col cols="12" sm="4" class="d-flex justify-center align-center">
+            <v-pagination
+              v-model="page"
+              :length="pages"
+              :total-visible="7"
+              @input="goToPage"
+              elevation="3"
+              color="#343434"
+            ></v-pagination>
+          </v-col>
+          <v-col cols="12" sm="4" class="d-flex justify-end align-center">
+            <p v-show="!loading" class="text-overline text-dark my-auto">
+              Mostrando {{ itemsPerPage }} de {{ totalRecords }} resultados.
+            </p>
+          </v-col>
+        </v-row>
       </v-col>
     </v-row>
 
@@ -298,7 +329,7 @@
           <v-btn
             color="red"
             text
-            @click="deleteItem"
+            @click="dialogDelete = true"
             v-if="editedIndex > -1"
             :disabled="loading"
           >
@@ -348,7 +379,7 @@ export default {
   data: () => ({
     page: 1,
     pages: 1,
-    pageSize: 10,
+    itemsPerPage: 5,
     totalRecords: 0,
     loading: false,
     multiSelect: false,
@@ -363,23 +394,22 @@ export default {
     dialogDelete: false,
     editedIndex: -1,
     editedId: -1,
+    itemsPerPageItems: [
+      { text: "5 registros", value: 5 },
+      { text: "10 registros", value: 10 },
+      { text: "25 registros", value: 25 },
+      { text: "50 registros", value: 50 },
+      { text: "100 registros", value: 100 },
+    ],
     editedItem: {
       nombre: "",
-      size: "",
       url: "",
       idArchivoOriginal: -1,
-      creado: null,
-      modificado: null,
-      eliminado: false,
     },
     defaultItem: {
       nombre: "",
-      size: "",
       url: "",
       idArchivoOriginal: -1,
-      creado: null,
-      modificado: null,
-      eliminado: false,
     },
     snackbar: false,
     snackbarText: "",
@@ -389,12 +419,6 @@ export default {
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo Fondo" : "Editar Fondo";
-    },
-    fileWidth() {
-      return 135;
-    },
-    fileHeight() {
-      return 240;
     },
     bgHeight() {
       return Math.ceil(window.innerHeight * 0.65);
@@ -408,20 +432,14 @@ export default {
   },
 
   watch: {
-    page(val) {
-      console.log(val);
-    },
     dialog(val) {
       val || this.close();
     },
     dialogDelete(val) {
       val || this.closeDelete();
     },
-    backgrounds(val) {
-      console.log("backgrounds", val);
-    },
-    editedItem(val) {
-      console.log("editedItem", val);
+    itemsPerPage() {
+      this.initialize();
     },
   },
 
@@ -444,10 +462,18 @@ export default {
     },
     selectAll() {
       this.selection = [];
-      this.selection = [...this.backgrounds.map((bg) => +bg.idArchivoOriginal)];
+      this.selection = [...this.backgrounds.map((bg) => +bg.id)];
     },
     onFileUpload(file) {
       this.file = file;
+    },
+    getSmallFile(thumbs) {
+      let i = 0;
+      let arr = thumbs.length;
+      if (arr > 0) {
+        for (i; i < arr; i++)
+          if (thumbs[i].size === "Small") return thumbs[i].url;
+      } else return undefined;
     },
     async initialize() {
       this.fileType = -1;
@@ -456,21 +482,22 @@ export default {
 
       const fileType = await this.$http.get("TipoArchivos/nombre/Fondo");
       if (fileType && fileType.data) {
-        console.log("FILE TYPE", fileType.data);
         this.fileType = fileType.data[0].id;
         if (this.fileType > 0) {
           await this.$http
-            .get(`Archivos/SizeAndTipo/`, {
+            .get(`Archivos/Tipo/`, {
               params: {
                 idTipo: +this.fileType,
-                size: "small",
+                size: "Original",
                 pageNumber: this.page,
-                pageSize: this.pageSize,
+                pageSize: this.itemsPerPage,
               },
             })
             .then((res) => {
               if (res && res.data) {
+                this.page = res.data.pageNumber;
                 this.pages = res.data.totalPages;
+                this.totalRecords = res.data.totalRecords;
                 this.backgrounds = res.data.list;
               }
             })
@@ -504,17 +531,11 @@ export default {
       this.dialog = true;
     },
 
-    deleteItem() {
-      /* this.editedIndex = this.backgrounds.indexOf(item);
-      this.editedItem = Object.assign({}, item);
-      this.editedId = item.id || -1; */
-      this.dialogDelete = true;
-    },
-
     async deleteItemConfirm() {
       this.loading = true;
+      this.dialogDelete = false;
       await this.$http
-        .delete(`Archivos/${this.editedId}`, this.editedItem)
+        .delete(`Archivos/${this.editedId}`)
         .then((res) => {
           if (res) {
             this.snackbarText = "Se eliminó el fondo exitosamente.";
@@ -595,9 +616,15 @@ export default {
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        Object.assign(this.backgrounds[this.editedIndex], this.editedItem);
+        /* Object.assign(this.backgrounds[this.editedIndex], this.editedItem); */
+        let putFd = new FormData();
+        putFd.append("idTipo", +this.fileType);
+        putFd.append("nombre", this.editedItem.nombre);
+        putFd.append("descripcion", "any");
+        putFd.append("file", this.file);
+        this.dialog = false;
         await this.$http
-          .put(`Articulos/${this.editedId}`, this.editedItem)
+          .put(`Articulos/${this.editedId}`, putFd)
           .then((res) => {
             if (res) {
               this.snackbarText = "Se actualizó el fondo exitosamente.";
@@ -652,27 +679,6 @@ export default {
               });
           }
         }
-
-        /*  await this.$http
-          .post("Archivos", postFormData)
-          .then((res) => {
-            if (res) {
-              this.snackbarText = "Se agregó el fondo exitosamente.";
-              this.snackbarColor = "success";
-              this.snackbar = true;
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-            if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar el fondo.";
-              this.snackbarColor = "danger";
-              this.snackbar = true;
-            }
-          })
-          .then(() => {
-            this.loading = false;
-          }); */
       }
       this.initialize();
     },

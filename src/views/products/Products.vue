@@ -720,7 +720,11 @@ export default {
       if (this.editedIndex > -1 && this.editedId > -1) {
         Object.assign(this.products[this.editedIndex], this.editedItem);
         await this.$http
-          .put(`Articulos/${this.editedId}`, this.editedItem)
+          .put(`Articulos/${this.editedId}`, this.editedItem, {
+            transformRequest: function(data) {
+              console.log("transformRequest", data);
+            }
+          })
           .then((res) => {
             if (res) {
               this.snackbarText = "Se actualizó el atributo exitosamente.";
@@ -740,7 +744,15 @@ export default {
           });
       } else {
         await this.$http
-          .post("Articulos", this.editedItem)
+          .post("Articulos", this.editedItem, {
+            headers: {
+              "Content-Type": "application/json"
+            },
+            transformRequest: function(data) {
+              data.etiquetas = data.etiquetas.join();
+              console.log("transformRequest", data);
+            }
+          })
           .then((res) => {
             if (res) {
               this.snackbarText = "Se agregó el atributo exitosamente.";

@@ -22,10 +22,19 @@
         :disable-pagination="true"
         :hide-default-footer="true"
       >
-        <template v-slot:item.imagen>
+        <template v-slot:item.imagen="{ item }">
           <v-img
+            style="
+              position: relative;
+              max-height: 20vh;
+              max-width: 20vh;
+              min-height: 20vh;
+              min-width: 20vh;
+            "
             class="my-2"
-            :src="require('@/assets/no-disponible.jpg')"
+            :src="
+              getProductImage(item) || require('@/assets/no-disponible.jpg')
+            "
             max-width="184"
           ></v-img>
         </template>
@@ -523,6 +532,11 @@ export default {
   },
 
   methods: {
+    getProductImage(item) {
+      if (item.archivos && item.archivos.length > 0)
+        return item.archivos[0].url;
+      else return false;
+    },
     handleFileWidth(img) {
       let image = new Image();
       image.src = img;
@@ -564,6 +578,9 @@ export default {
     async initialize() {
       this.loading = true;
       this.products = [];
+      this.manufacturers = [];
+      this.categories = [];
+      this.attributeTypes = [];
 
       const products = this.$http.get("Articulos", {
         params: { pageNumber: this.page, pageSize: this.itemsPerPage },
@@ -721,9 +738,9 @@ export default {
         Object.assign(this.products[this.editedIndex], this.editedItem);
         await this.$http
           .put(`Articulos/${this.editedId}`, this.editedItem, {
-            transformRequest: function(data) {
+            transformRequest: function (data) {
               console.log("transformRequest", data);
-            }
+            },
           })
           .then((res) => {
             if (res) {
@@ -746,12 +763,12 @@ export default {
         await this.$http
           .post("Articulos", this.editedItem, {
             headers: {
-              "Content-Type": "application/json"
+              "Content-Type": "application/json",
             },
-            transformRequest: function(data) {
+            transformRequest: function (data) {
               data.etiquetas = data.etiquetas.join();
               console.log("transformRequest", data);
-            }
+            },
           })
           .then((res) => {
             if (res) {

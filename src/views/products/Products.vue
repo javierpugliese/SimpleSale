@@ -39,6 +39,10 @@
           ></v-img>
         </template>
 
+        <template v-slot:item.modificado="{ item }">
+          {{ parseDate(item) }}
+        </template>
+
         <template v-slot:top>
           <v-toolbar flat>
             <v-toolbar-title>Lista de Productos</v-toolbar-title>
@@ -392,7 +396,7 @@
             </v-col>
             <v-col cols="12" sm="4" class="d-flex justify-end align-center">
               <p v-show="!loading" class="text-overline text-dark my-auto">
-                Mostrando {{ itemsPerPage }} de {{ totalRecords }} resultados.
+                {{ totalRecords }} resultados totales.
               </p>
             </v-col>
           </v-row>
@@ -403,6 +407,7 @@
 </template>
 
 <script>
+import moment from "moment";
 // @ is an alias to /src
 export default {
   name: "Products",
@@ -532,6 +537,12 @@ export default {
   },
 
   methods: {
+    parseDate(item) {
+      console.log("asd", moment().locale())
+      if (item.modificado) {
+        return moment(item.modificado).format("LLL");
+      } else return "Sin modificaciones.";
+    },
     getProductImage(item) {
       if (item.archivos && item.archivos.length > 0)
         return item.archivos[0].url;

@@ -79,6 +79,8 @@
 </template>
 
 <script>
+import moment from "moment";
+moment.locale("es");
 export default {
   name: "App",
 

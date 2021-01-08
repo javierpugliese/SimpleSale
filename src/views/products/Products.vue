@@ -354,7 +354,7 @@
                   </v-btn>
                   <v-btn color="blue darken-1" @click="deleteItemConfirm">
                     Aceptar
-                  </v-btn>                  
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -494,6 +494,7 @@ export default {
       idTipo: -1,
       atributos: [],
       codigosDeBarra: [],
+      archivos: [],
     },
     editedId: -1,
     defaultItem: {
@@ -510,6 +511,7 @@ export default {
       idTipo: -1,
       atributos: [],
       codigosDeBarra: [],
+      archivos: [],
     },
     snackbar: false,
     snackbarText: "",
@@ -543,14 +545,6 @@ export default {
       if (item.archivos && item.archivos.length > 0)
         return item.archivos[0].url;
       else return false;
-    },
-    handleFileWidth(img) {
-      let image = new Image();
-      image.src = img;
-      image.onload = () => {
-        console.log("img w", image.width);
-        return image.width;
-      };
     },
     goToPage(value) {
       this.page = value;
@@ -681,6 +675,9 @@ export default {
       this.editedItem.idFabricante = item.fabricante.id || -1;
       this.editedItem.categorias = item.categorias.map((c) => c.id) || [];
       this.editedItem.atributos = item.atributos.map((a) => a.id) || [];
+      if (item.archivos && item.archivos.length > 0) {
+        this.filesURLs = item.archivos.map((file) => file.url) || [];
+      }
       this.dialog = true;
     },
 
@@ -718,6 +715,8 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.files = [];
+        this.filesURLs = [];        
       });
     },
 

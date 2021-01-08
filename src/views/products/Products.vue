@@ -63,6 +63,7 @@
                   v-bind="attrs"
                   v-on="on"
                   large
+                  :loading="loading"
                 >
                   <v-icon class="mr-2">fas fa-plus</v-icon>
                   Nuevo Producto
@@ -247,10 +248,9 @@
                             type="warning"
                             elevation="2"
                           >
-                            Para garantizar una mejor experiencia en la fluidez
-                            del sistema, se recomienda adjuntar las imagenes en
+                            Se recomienda adjuntar las imagenes en
                             formato <b>.webp</b>, y los videos en formato
-                            <b>.webm</b> una carga rápida. Se permiten los
+                            <b>.webm</b> para una carga rápida. Se permiten los
                             formatos <b>JPG</b>, <b>PNG</b>, <b>WEBP</b> y
                             <b>MP4</b> para en el caso de los videos. Las
                             imagenes deben no ser superiores a 1000x1000 en
@@ -716,7 +716,7 @@ export default {
         this.editedIndex = -1;
         this.editedId = -1;
         this.files = [];
-        this.filesURLs = [];        
+        this.filesURLs = [];
       });
     },
 
@@ -757,32 +757,83 @@ export default {
             this.loading = false;
           });
       } else {
+        this.loading = true;
+        this.dialog = false;
         await this.$http
-          .post("Articulos", this.editedItem, {
-            headers: {
-              "Content-Type": "application/json",
-            },
-            transformRequest: function (data) {
-              data.etiquetas = data.etiquetas.join();
-              console.log("transformRequest", data);
-            },
-          })
-          .then((res) => {
+          .post(
+            "Articulos",
+            Object.assign(
+              {},
+              {
+                nombre: this.editedItem.nombre,
+                sku: this.editedItem.sku,
+                precio: this.editedItem.precio,
+                activo: this.editedItem.activo,
+                etiquetas: this.editedItem.etiquetas,
+                descripcion: this.editedItem.descripcion,
+                descripcionLarga: this.editedItem.descripcionLarga,
+                prospecto: this.editedItem.prospecto,
+                categorias: this.editedItem.categorias,
+                atributos: this.editedItem.atributos,
+                codigosDeBarra: this.editedItem.codigosDeBarra,
+                idFabricante: this.editedItem.idFabricante,
+                idTipo: this.editedItem.idTipo,
+              }
+            )
+          )
+          .then(async (res) => {
             if (res) {
-              this.snackbarText = "Se agregó el atributo exitosamente.";
+              this.snackbarText = "Se agregó el producto exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
+
+              let productId = res.data.idObjeto;
+              let fd;
+              let i = 0;
+              let arr = this.files.length;
+              let proms = [];
+              if (this.files && arr > 0) {
+                for (i; i < arr; i++) {
+                  fd = new FormData();
+                  fd.set("idArticulo", productId);
+                  fd.set("idTipo", 85); // Fijo, cambiar dps!
+                  fd.set("Small", false);
+                  fd.set("Medium", false);
+                  fd.set("Large", false);
+                  fd.set("file", this.files[i]);
+                  proms.push(this.$http.post("Articulos/Archivos", fd));
+                }
+                if (proms.length) {
+                  this.loading = true;
+                  this.close();
+                  await this.$http
+                    .all(proms)
+                    .then(
+                      this.$http.spread((...responses) => {
+                        let i = 0;
+                        let res = responses.length;
+                        for (i; i < res; i++) {
+                          console.log(res[i]);
+                        }
+                      })
+                    )
+                    .catch((errors) => console.log(errors))
+                    .finally(() => {
+                      this.loading = false;
+                    });
+                }
+              }
             }
           })
           .catch((err) => {
             console.log(err);
             if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar el atributo.";
+              this.snackbarText = "¡ERROR! No se pudo guardar el producto.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
           })
-          .then(() => {
+          .finally(() => {
             this.loading = false;
           });
       }

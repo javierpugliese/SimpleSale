@@ -156,6 +156,7 @@
           :key="`background-${file.id}`"
           class="ma-3 background"
           :src="
+            file.url ||
             getSmallFile(file.miniaturas) ||
             require('@/assets/no-disponible.jpg')
           "
@@ -229,21 +230,36 @@
         <v-card-text>
           <v-sheet class="pa-5" color="blue-grey darken-4">
             <v-row dense>
-              <v-col cols="12" class="mx-auto">
+              <v-col cols="8" class="d-flex">
                 <v-row dense>
                   <v-col cols="12" v-if="editedIndex > -1">
+                    <v-alert
+                      class="text-caption py-1 px-5"
+                      outlined
+                      type="warning"
+                      prominent
+                      border="left"
+                      style="text-align: justify; text-justify: inter-word"
+                    >
+                      <p>
+                        Imagenes 4k verticales (2160x3840), máximo 10MB, en
+                        formato JPG.
+                      </p>
+                      <p>Videos en formato MP4, máximo 200MB.</p>
+                    </v-alert>
                     <v-text-field
                       v-model="editedItem.nombre"
                       label="Nombre"
                       counter="50"
                       maxlength="50"
+                      class="my-auto"
                       outlined
                       clearable
                       required
                     >
                     </v-text-field>
                   </v-col>
-                  <v-col cols="12">
+                  <v-col cols="12" class="align-self-end">
                     <v-file-input
                       v-if="editedIndex > -1"
                       v-model="file"
@@ -290,15 +306,20 @@
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col cols="12" class="mx-auto" v-if="editedIndex > -1">
+              <v-col cols="4" v-if="editedIndex > -1">
                 <v-img
                   v-if="editedIndex > -1 && editedItem.url.endsWith('.jpg')"
                   :src="editedItem.url"
                   :lazy-src="require('@/assets/no-disponible.jpg')"
                   :aspect-ratio="16 / 9"
-                  :width="bgWidth"
-                  :height="bgHeight"
-                  class="grey lighten-2"
+                  style="
+                    position: relative;
+                    max-height: 40vh;
+                    max-width: 20vh;
+                    min-height: 40vh;
+                    min-width: 20vh;
+                  "
+                  class="d-block mx-auto grey lighten-2"
                 >
                   <template v-slot:placeholder>
                     <v-row
@@ -394,6 +415,7 @@ export default {
     dialogDelete: false,
     editedIndex: -1,
     editedId: -1,
+    uploadPercentage: 0,
     itemsPerPageItems: [
       { text: "5 registros", value: 5 },
       { text: "10 registros", value: 10 },
@@ -441,6 +463,9 @@ export default {
     itemsPerPage() {
       this.initialize();
     },
+    uploadPercentage(val) {
+      console.log("uploadPercentage", val);
+    },
   },
 
   mounted() {
@@ -485,10 +510,10 @@ export default {
         this.fileType = fileType.data[0].id;
         if (this.fileType > 0) {
           await this.$http
-            .get(`Archivos/Tipo/`, {
+            .get(`Archivos/SizeAndTipo/`, {
               params: {
                 idTipo: +this.fileType,
-                size: "Original",
+                size: "Small",
                 pageNumber: this.page,
                 pageSize: this.itemsPerPage,
               },
@@ -527,7 +552,7 @@ export default {
     editItem(item) {
       this.editedIndex = this.backgrounds.indexOf(item);
       this.editedItem = Object.assign({}, item);
-      this.editedId = item.id || -1;
+      this.editedId = item.idArchivoOriginal || -1;
       this.dialog = true;
     },
 
@@ -616,6 +641,7 @@ export default {
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
+        console.log("im here");
         /* Object.assign(this.backgrounds[this.editedIndex], this.editedItem); */
         let putFd = new FormData();
         putFd.append("idTipo", +this.fileType);
@@ -624,7 +650,7 @@ export default {
         putFd.append("file", this.file);
         this.dialog = false;
         await this.$http
-          .put(`Articulos/${this.editedId}`, putFd)
+          .put(`Archivos/${this.editedId}`, putFd)
           .then((res) => {
             if (res) {
               this.snackbarText = "Se actualizó el fondo exitosamente.";
@@ -656,14 +682,23 @@ export default {
             postFormData.append("large", false);
             postFormData.append("descripcion", "any");
             postFormData.append("file", this.files[f]);
-            promises.push(this.$http.post("Archivos", postFormData));
+            let prom = this.$http.post("Archivos", postFormData);
+            promises.push(prom);
           }
 
           if (promises.length) {
             this.loading = true;
             this.close();
             await this.$http
-              .all(promises)
+              .all(promises, {
+                onUploadProgress: function (progressEvent) {
+                  this.uploadPercentage = parseInt(
+                    Math.round(
+                      (progressEvent.loaded / progressEvent.total) * 100
+                    )
+                  );
+                }.bind(this),
+              })
               .then(
                 this.$http.spread((...responses) => {
                   let i = 0;

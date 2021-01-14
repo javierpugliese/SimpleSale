@@ -243,18 +243,21 @@
                       <v-row>
                         <v-col cols="12" class="d-flex flex-column">
                           <v-alert
-                            border="bottom"
-                            colored-border
+                            class="text-overline py-1 px-5"
                             type="warning"
+                            prominent
+                            colored-border
+                            border="left"
                             elevation="2"
+                            style="
+                              text-align: justify;
+                              text-justify: inter-word;
+                            "
                           >
-                            Se recomienda adjuntar las imagenes en
-                            formato <b>.webp</b>, y los videos en formato
-                            <b>.webm</b> para una carga rápida. Se permiten los
-                            formatos <b>JPG</b>, <b>PNG</b>, <b>WEBP</b> y
-                            <b>MP4</b> para en el caso de los videos. Las
-                            imagenes deben no ser superiores a 1000x1000 en
-                            dimensiones.
+                            <p>
+                              Imagenes en formato JPG, dimensiones máximas 1000x1000.
+                            </p>
+                            <p>Videos en formato MP4, máximo 200MB.</p>
                           </v-alert>
                           <v-file-input
                             v-model="files"

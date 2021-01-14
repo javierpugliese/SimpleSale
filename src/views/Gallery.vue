@@ -11,7 +11,11 @@
       </v-scale-transition>
       <v-scroll-y-transition>
         <v-toolbar-title>
-          {{ multiSelect ? `${selection.length} seleccionado(s)` : "Galería" }}
+          {{
+            multiSelect
+              ? `${selection.length} seleccionado(s)`
+              : "Galería de Fondos de Pantalla"
+          }}
         </v-toolbar-title>
       </v-scroll-y-transition>
       <v-spacer></v-spacer>
@@ -27,7 +31,7 @@
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-cloud-upload-alt
           </v-icon>
-          {{ !$vuetify.breakpoint.xsOnly ? "Nuevo Archivo" : "" }}
+          {{ !$vuetify.breakpoint.xsOnly ? "Subir archivo" : "" }}
         </v-btn>
       </v-scale-transition>
       <v-scale-transition>
@@ -40,7 +44,7 @@
             multiSelect = true;
           "
           class="mx-1"
-          :disabled="loading"
+          :disabled="loading || !backgrounds.length"
         >
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-object-group
@@ -97,6 +101,7 @@
           :icon="!searchMode"
           :fab="searchMode"
           :outlined="searchMode"
+          :disabled="loading || !backgrounds.length"
         >
           <v-icon>fas fa-search</v-icon>
         </v-btn>
@@ -115,8 +120,33 @@
       </v-snackbar>
     </v-scale-transition>
 
+    <v-scale-transition>
+      <v-snackbar
+        v-model="uploading"
+        color="#333333"
+        :timeout="-1"
+        :multi-line="true"
+        top
+        right
+      >
+        <p class="text-button text-center">Subiendo archivo(s)...</p>
+        <v-progress-linear
+          v-model="fileTotalProgress"
+          height="50"
+          color="#55AA99"
+        >
+          <div class="d-flex flex-column justify-center my-3">
+            <strong class="text-overline">{{ fileName }}</strong>
+            <strong class="text-center"
+              >{{ Math.ceil(fileTotalProgress) }}%</strong
+            >
+          </div>
+        </v-progress-linear>
+      </v-snackbar>
+    </v-scale-transition>
+
     <v-row dense>
-      <v-col class="d-flex flex-row flex-wrap flex-grow-1">
+      <v-col class="d-flex flex-row flex-wrap flex-grow-1 mb-16">
         <div v-if="loading" class="d-flex flex-row flex-wrap flex-grow-1">
           <v-skeleton-loader
             class="mx-3 my-1"
@@ -155,11 +185,8 @@
           v-for="file in backgrounds"
           :key="`background-${file.id}`"
           class="ma-3 background"
-          :src="
-            file.url ||
-            getSmallFile(file.miniaturas) ||
-            require('@/assets/no-disponible.jpg')
-          "
+          :lazy-src="require('@/assets/no-disponible.jpg')"
+          :src="file.url || require('@/assets/no-disponible.jpg')"
           :height="240"
           :width="135"
           :max-height="240"
@@ -167,6 +194,15 @@
           @click="multiSelect ? undefined : editItem(file)"
           style="position: relative; z-index: 0"
         >
+          <template v-slot:placeholder>
+            <v-row class="fill-height ma-0" align="center" justify="center">
+              <v-progress-circular
+                indeterminate
+                color="info"
+              ></v-progress-circular>
+            </v-row>
+          </template>
+
           <v-checkbox
             v-show="multiSelect"
             v-model="selection"
@@ -177,7 +213,7 @@
           ></v-checkbox>
         </v-img>
       </v-col>
-      <v-col cols="12" style="position: fixed; bottom: 0">
+      <v-col cols="12" class="__pagination">
         <v-row
           class="pa-2"
           no-gutters
@@ -190,7 +226,7 @@
               :items="itemsPerPageItems"
               filled
               outlined
-              label="Filas por página"
+              label="Fondos por página"
               :hide-details="true"
               :loading="loading"
               :disabled="loading"
@@ -207,8 +243,12 @@
             ></v-pagination>
           </v-col>
           <v-col cols="12" sm="4" class="d-flex justify-end align-center">
-            <p v-show="!loading" class="text-overline text-dark my-auto">
-              Mostrando {{ itemsPerPage }} de {{ totalRecords }} resultados.
+            <p v-show="!loading" class="text-overline text-dark my-auto pr-3">
+              {{
+                itemsPerPage > totalRecords
+                  ? `Mostrando ${totalRecords} resultados.`
+                  : `Mostrando ${itemsPerPage} de ${totalRecords} resultados.`
+              }}
             </p>
           </v-col>
         </v-row>
@@ -230,7 +270,7 @@
         <v-card-text>
           <v-sheet class="pa-5" color="blue-grey darken-4">
             <v-row dense>
-              <v-col cols="8" class="d-flex">
+              <v-col :cols="editedIndex > -1 ? 8 : 12" class="d-flex">
                 <v-row dense>
                   <v-col cols="12" v-if="editedIndex > -1">
                     <v-alert
@@ -278,48 +318,74 @@
                         </v-chip>
                       </template>
                     </v-file-input>
-                    <v-file-input
-                      v-else
-                      v-model="files"
-                      counter
-                      label="Archivos (imagenes o videos)"
-                      accept=".jpg, .mp4"
-                      placeholder="Examinar..."
-                      prepend-icon=""
-                      outlined
-                      multiple
-                      :show-size="1000"
-                    >
-                      <template v-slot:selection="{ index, text }">
-                        <v-chip v-if="index < 2" color="info" dark label small>
-                          {{ text }}
-                        </v-chip>
+                    <div v-else>
+                      <v-file-input
+                        v-model="files"
+                        counter
+                        label="Archivos (imagenes o videos)"
+                        accept=".jpg, .mp4"
+                        placeholder="Examinar..."
+                        prepend-icon=""
+                        outlined
+                        multiple
+                        @change="onFileUploadMultiple"
+                        :show-size="1000"
+                      >
+                        <template v-slot:selection="{ index, text }">
+                          <v-chip
+                            v-if="index < 2"
+                            color="info"
+                            dark
+                            label
+                            small
+                          >
+                            {{ text }}
+                          </v-chip>
 
-                        <span
-                          v-else-if="index === 2"
-                          class="overline text--darken-3 mx-2"
+                          <span
+                            v-else-if="index === 2"
+                            class="overline text--darken-3 mx-2"
+                          >
+                            +{{ files.length - 2 }} Archivo(s)
+                          </span>
+                        </template>
+                      </v-file-input>
+
+                      <!-- Preview before upload -->
+                      <div
+                        class="d-flex flex-wrap justify-start"
+                        style="align-items: flex-start"
+                      >
+                        <v-img
+                          v-for="(i, index) in filesURLs"
+                          :key="index"
+                          :src="i || require('@/assets/no-disponible.jpg')"
+                          alt=" "
+                          :contain="true"
+                          class="white--text ma-2 __background-small"
+                          gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
                         >
-                          +{{ files.length - 2 }} Archivo(s)
-                        </span>
-                      </template>
-                    </v-file-input>
+                          <v-btn
+                            icon
+                            large
+                            style="position: absolute; top: 0; right: 0"
+                            @click="removeFile(index)"
+                          >
+                            <v-icon color="red"> fas fa-times </v-icon>
+                          </v-btn>
+                        </v-img>
+                      </div>
+                    </div>
                   </v-col>
                 </v-row>
               </v-col>
               <v-col cols="4" v-if="editedIndex > -1">
                 <v-img
                   v-if="editedIndex > -1 && editedItem.url.endsWith('.jpg')"
-                  :src="editedItem.url"
+                  :src="fileURL || editedItem.url"
                   :lazy-src="require('@/assets/no-disponible.jpg')"
                   :aspect-ratio="16 / 9"
-                  style="
-                    position: relative;
-                    max-height: 40vh;
-                    max-width: 20vh;
-                    min-height: 40vh;
-                    min-width: 20vh;
-                  "
-                  class="d-block mx-auto grey lighten-2"
+                  class="d-block mx-auto grey lighten-2 __background-medium"
                 >
                   <template v-slot:placeholder>
                     <v-row
@@ -360,7 +426,11 @@
             color="success"
             @click="save"
             :loading="loading"
-            :disabled="loading"
+            :disabled="
+              loading ||
+              (editedIndex > -1 && !file) ||
+              (editedIndex < 0 && !files.length)
+            "
           >
             <v-icon class="mr-2"> fas fa-save </v-icon>
             Guardar
@@ -370,9 +440,9 @@
     </v-dialog>
     <v-dialog v-model="dialogDelete" max-width="500px">
       <v-card>
-        <v-card-title class="headline"
-          >¿Está seguro de que quiere eliminar este/os archivo/s?</v-card-title
-        >
+        <v-card-title class="headline">
+          ¿Está seguro de que quiere eliminar este/os archivo/s?
+        </v-card-title>
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn color="blue darken-1" text @click="closeDelete"
@@ -385,7 +455,6 @@
           >
             Aceptar
           </v-btn>
-          <v-spacer></v-spacer>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -403,6 +472,7 @@ export default {
     itemsPerPage: 5,
     totalRecords: 0,
     loading: false,
+    uploading: false,
     multiSelect: false,
     searchMode: false,
     search: "",
@@ -415,13 +485,12 @@ export default {
     dialogDelete: false,
     editedIndex: -1,
     editedId: -1,
-    uploadPercentage: 0,
     itemsPerPageItems: [
-      { text: "5 registros", value: 5 },
-      { text: "10 registros", value: 10 },
-      { text: "25 registros", value: 25 },
-      { text: "50 registros", value: 50 },
-      { text: "100 registros", value: 100 },
+      { text: "5 fondos", value: 5 },
+      { text: "10 fondos", value: 10 },
+      { text: "25 fondos", value: 25 },
+      { text: "50 fondos", value: 50 },
+      { text: "100 fondos", value: 100 },
     ],
     editedItem: {
       nombre: "",
@@ -436,6 +505,10 @@ export default {
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
+    fileName: "",
+    fileTotalProgress: 0,
+    filesURLs: [],
+    fileURL: "",
   }),
 
   computed: {
@@ -463,9 +536,6 @@ export default {
     itemsPerPage() {
       this.initialize();
     },
-    uploadPercentage(val) {
-      console.log("uploadPercentage", val);
-    },
   },
 
   mounted() {
@@ -490,20 +560,38 @@ export default {
       this.selection = [...this.backgrounds.map((bg) => +bg.id)];
     },
     onFileUpload(file) {
-      this.file = file;
+      if (file) {
+        this.file = file;
+        this.fileURL = URL.createObjectURL(file);
+      } else this.fileURL = "";
     },
-    getSmallFile(thumbs) {
+    async onFileUploadMultiple(files) {
+      this.filesURLs = [];
       let i = 0;
-      let arr = thumbs.length;
-      if (arr > 0) {
-        for (i; i < arr; i++)
-          if (thumbs[i].size === "Small") return thumbs[i].url;
-      } else return undefined;
+      let arr = files.length;
+      if (arr < 10) {
+        for (i; i < arr; i++) {
+          let url = URL.createObjectURL(files[i]);
+          this.filesURLs.push(url);
+        }
+      } else {
+        this.files = [];
+        alert("Máximo de 10 archivos");
+      }
+    },
+    removeFile(pos) {
+      this.files.splice(pos, 1);
+      this.filesURLs.splice(pos, 1);
     },
     async initialize() {
       this.fileType = -1;
       this.backgrounds = [];
       this.loading = true;
+      this.uploading = false;
+      this.file = null;
+      this.files = [];
+      this.filesURLs = [];
+      this.fileTotalProgress = 0;
 
       const fileType = await this.$http.get("TipoArchivos/nombre/Fondo");
       if (fileType && fileType.data) {
@@ -526,23 +614,11 @@ export default {
                 this.backgrounds = res.data.list;
               }
             })
-            .catch((error) => {
-              if (error.response) {
-                // The request was made and the server responded with a status code
-                // that falls out of the range of 2xx
-                console.log(error.response.data);
-                console.log(error.response.status);
-                console.log(error.response.headers);
-              } else if (error.request) {
-                // The request was made but no response was received
-                // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
-                // http.ClientRequest in node.js
-                console.log(error.request);
-              } else {
-                // Something happened in setting up the request that triggered an Error
-                console.log("Error", error.message);
-              }
-              console.log(error.config);
+            .catch(() => {
+              this.snackbarText =
+                "¡ERROR! Ocurrió un error al obtener los resultados.";
+              this.snackbarColor = "danger";
+              this.snackbar = true;
             });
         }
       }
@@ -553,6 +629,7 @@ export default {
       this.editedIndex = this.backgrounds.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.idArchivoOriginal || -1;
+      this.file = null;
       this.dialog = true;
     },
 
@@ -641,16 +718,23 @@ export default {
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        console.log("im here");
-        /* Object.assign(this.backgrounds[this.editedIndex], this.editedItem); */
         let putFd = new FormData();
         putFd.append("idTipo", +this.fileType);
         putFd.append("nombre", this.editedItem.nombre);
-        putFd.append("descripcion", "any");
+        putFd.append("descripcion", "any"); // delete later
         putFd.append("file", this.file);
+        let filename = this.file.name;
+        this.uploading = true;
         this.dialog = false;
         await this.$http
-          .put(`Archivos/${this.editedId}`, putFd)
+          .put(`Archivos/${this.editedId}`, putFd, {
+            onUploadProgress: (progressEvent) => {
+              this.fileName = filename;
+              this.fileTotalProgress = parseInt(
+                Math.round((progressEvent.loaded / progressEvent.total) * 100)
+              );
+            },
+          })
           .then((res) => {
             if (res) {
               this.snackbarText = "Se actualizó el fondo exitosamente.";
@@ -666,6 +750,7 @@ export default {
             }
           })
           .finally(() => {
+            this.uploading = false;
             this.loading = false;
           });
       } else {
@@ -682,23 +767,28 @@ export default {
             postFormData.append("large", false);
             postFormData.append("descripcion", "any");
             postFormData.append("file", this.files[f]);
-            let prom = this.$http.post("Archivos", postFormData);
+            let filename = this.files[f].name;
+            let prom = this.$http.post("Archivos", postFormData, {
+              onUploadProgress: (progressEvent) => {
+                if (this.fileTotalProgress >= 100) {
+                  this.fileName = "";
+                  this.fileTotalProgress = 0;
+                }
+                this.fileName = filename;
+                this.fileTotalProgress = parseInt(
+                  Math.round((progressEvent.loaded / progressEvent.total) * 100)
+                );
+              },
+            });
             promises.push(prom);
           }
 
           if (promises.length) {
             this.loading = true;
+            this.uploading = true;
             this.close();
             await this.$http
-              .all(promises, {
-                onUploadProgress: function (progressEvent) {
-                  this.uploadPercentage = parseInt(
-                    Math.round(
-                      (progressEvent.loaded / progressEvent.total) * 100
-                    )
-                  );
-                }.bind(this),
-              })
+              .all(promises)
               .then(
                 this.$http.spread((...responses) => {
                   let i = 0;
@@ -710,6 +800,7 @@ export default {
               )
               .catch((errors) => console.log(errors))
               .finally(() => {
+                this.uploading = false;
                 this.loading = false;
               });
           }
@@ -723,5 +814,24 @@ export default {
 <style scoped>
 .background:hover {
   cursor: pointer;
+}
+.__pagination {
+  position: fixed;
+  bottom: 0;
+  background-color: #333333;
+}
+.__background-small {
+  position: relative;
+  max-height: 20vh;
+  max-width: 20vh;
+  min-height: 20vh;
+  min-width: 20vh;
+}
+.__background-medium {
+  position: relative;
+  max-height: 40vh;
+  max-width: 20vh;
+  min-height: 40vh;
+  min-width: 20vh;
 }
 </style>

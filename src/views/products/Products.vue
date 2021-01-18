@@ -907,10 +907,10 @@ export default {
           })
           .finally(() => (this.loading = false));
         if (productId) {
+          this.close();
           let fd;
           let i = 0;
           let arr = this.files.length;
-          let proms = [];
           for (i; i < arr; i++) {
             fd = new FormData();
             fd.set("idArticulo", productId);
@@ -920,8 +920,10 @@ export default {
             fd.set("Large", false);
             fd.set("file", this.files[i]);
             let filename = this.files[i].name;
-            proms.push(
-              this.$http.post("Archivos/Articulos", fd, {
+            this.uploading = true;
+            this.loading = true;
+            await this.$http
+              .post("Archivos/Articulos", fd, {
                 onUploadProgress: (progressEvent) => {
                   if (this.fileTotalProgress >= 100) {
                     this.fileName = "";
@@ -935,15 +937,6 @@ export default {
                   );
                 },
               })
-            );
-          }
-          if (proms.length) {
-            this.loading = true;
-            this.uploading = true;
-            this.close();
-            await this.$http
-              .all(proms)
-              .catch((errors) => console.log(errors))
               .finally(() => {
                 this.uploading = false;
                 this.loading = false;

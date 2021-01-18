@@ -755,10 +755,10 @@ export default {
           });
       } else {
         let postFormData;
-        let f = 0,
-          promises = [];
+        let f = 0;
         let files = this.files.length;
         if (files) {
+          this.close();                   
           for (f; f < files; f++) {
             postFormData = new FormData();
             postFormData.append("idTipo", +this.fileType);
@@ -768,37 +768,23 @@ export default {
             postFormData.append("descripcion", "any");
             postFormData.append("file", this.files[f]);
             let filename = this.files[f].name;
-            let prom = this.$http.post("Archivos", postFormData, {
-              onUploadProgress: (progressEvent) => {
-                if (this.fileTotalProgress >= 100) {
-                  this.fileName = "";
-                  this.fileTotalProgress = 0;
-                }
-                this.fileName = filename;
-                this.fileTotalProgress = parseInt(
-                  Math.round((progressEvent.loaded / progressEvent.total) * 100)
-                );
-              },
-            });
-            promises.push(prom);
-          }
-
-          if (promises.length) {
-            this.loading = true;
             this.uploading = true;
-            this.close();
+          this.loading = true; 
             await this.$http
-              .all(promises)
-              .then(
-                this.$http.spread((...responses) => {
-                  let i = 0;
-                  let res = responses.length;
-                  for (i; i < res; i++) {
-                    console.log(res[i]);
+              .post("Archivos", postFormData, {
+                onUploadProgress: (progressEvent) => {
+                  if (this.fileTotalProgress >= 100) {
+                    this.fileName = "";
+                    this.fileTotalProgress = 0;
                   }
-                })
-              )
-              .catch((errors) => console.log(errors))
+                  this.fileName = filename;
+                  this.fileTotalProgress = parseInt(
+                    Math.round(
+                      (progressEvent.loaded / progressEvent.total) * 100
+                    )
+                  );
+                },
+              })
               .finally(() => {
                 this.uploading = false;
                 this.loading = false;

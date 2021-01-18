@@ -11,6 +11,31 @@
         </template>
       </v-snackbar>
 
+      <v-scale-transition>
+        <v-snackbar
+          v-model="uploading"
+          color="#333333"
+          :timeout="-1"
+          :multi-line="true"
+          top
+          right
+        >
+          <p class="text-button text-center">Subiendo archivo(s)...</p>
+          <v-progress-linear
+            v-model="fileTotalProgress"
+            height="50"
+            color="#55AA99"
+          >
+            <div class="d-flex flex-column justify-center my-3">
+              <strong class="text-overline">{{ fileName }}</strong>
+              <strong class="text-center"
+                >{{ Math.ceil(fileTotalProgress) }}%</strong
+              >
+            </div>
+          </v-progress-linear>
+        </v-snackbar>
+      </v-scale-transition>
+
       <v-data-table
         :headers="headers"
         :items="products"
@@ -24,6 +49,7 @@
       >
         <template v-slot:item.imagen="{ item }">
           <v-img
+            :lazy-src="require('@/assets/no-disponible.jpg')"
             style="
               position: relative;
               max-height: 20vh;
@@ -36,7 +62,16 @@
               getProductImage(item) || require('@/assets/no-disponible.jpg')
             "
             max-width="184"
-          ></v-img>
+          >
+            <template v-slot:placeholder>
+              <v-row class="fill-height ma-0" align="center" justify="center">
+                <v-progress-circular
+                  indeterminate
+                  color="info"
+                ></v-progress-circular>
+              </v-row>
+            </template>
+          </v-img>
         </template>
 
         <template v-slot:item.modificado="{ item }">
@@ -242,28 +277,16 @@
                       </v-row>
                       <v-row>
                         <v-col cols="12" class="d-flex flex-column">
-                          <v-alert
-                            class="text-overline py-1 px-5"
-                            type="warning"
-                            prominent
-                            colored-border
-                            border="left"
-                            elevation="2"
-                            style="
-                              text-align: justify;
-                              text-justify: inter-word;
-                            "
-                          >
-                            <p>
-                              Imagenes en formato JPG, dimensiones máximas 1000x1000.
-                            </p>
-                            <p>Videos en formato MP4, máximo 200MB.</p>
+                          <v-alert class="mt-n6" dense type="warning">
+                            Subida de Archivos: Imagenes en formato JPG,
+                            dimensiones máximas 1000x1000. Videos en formato
+                            MP4, máximo 50MB.
                           </v-alert>
                           <v-file-input
                             v-model="files"
                             counter
-                            label="Archivos (imagenes o videos)"
-                            accept=".jpg, .png, .webp, .mp4"
+                            label="Subir archivos"
+                            accept=".jpg, .mp4"
                             multiple
                             placeholder="Seleccione archivos..."
                             prepend-icon="fas fa-paperclip"
@@ -290,6 +313,12 @@
                               </span>
                             </template>
                           </v-file-input>
+                          <p
+                            v-if="files.length"
+                            class="text-overline warning--text"
+                          >
+                            Archivos que se subirán
+                          </p>
 
                           <div
                             class="d-flex flex-wrap justify-start"
@@ -301,15 +330,8 @@
                               :src="i || require('@/assets/no-disponible.jpg')"
                               alt=" "
                               :contain="true"
-                              class="white--text ma-2"
+                              class="__background-small white--text ma-2"
                               gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-                              style="
-                                position: relative;
-                                max-height: 20vh;
-                                max-width: 20vh;
-                                min-height: 20vh;
-                                min-width: 20vh;
-                              "
                             >
                               <v-btn
                                 icon
@@ -319,6 +341,60 @@
                               >
                                 <v-icon color="red"> fas fa-times </v-icon>
                               </v-btn>
+                            </v-img>
+                          </div>
+                          <p
+                            v-if="
+                              (editedId > -1 || editedIndex > -1) &&
+                              editedItem.archivos
+                            "
+                            class="text-overline warning--text"
+                          >
+                            Archivos del producto
+                          </p>
+                          <v-alert
+                            v-else-if="editedId > -1 || editedIndex > -1"
+                            dense
+                            type="info"
+                          >
+                            El producto no tiene archivos.
+                          </v-alert>
+                          <div
+                            class="d-flex flex-wrap justify-start"
+                            style="align-items: flex-start"
+                          >
+                            <v-img
+                              v-for="(i, index) in editedItem.archivos"
+                              :key="index"
+                              :lazy-src="require('@/assets/no-disponible.jpg')"
+                              :src="
+                                i.url || require('@/assets/no-disponible.jpg')
+                              "
+                              alt=" "
+                              :contain="true"
+                              class="__background-small white--text ma-2"
+                              gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                            >
+                              <v-btn
+                                icon
+                                large
+                                style="position: absolute; top: 0; right: 0"
+                                @click="removeFileFromProduct(index)"
+                              >
+                                <v-icon color="red"> fas fa-times </v-icon>
+                              </v-btn>
+                              <template v-slot:placeholder>
+                                <v-row
+                                  class="fill-height ma-0"
+                                  align="center"
+                                  justify="center"
+                                >
+                                  <v-progress-circular
+                                    indeterminate
+                                    color="info"
+                                  ></v-progress-circular>
+                                </v-row>
+                              </template>
                             </v-img>
                           </div>
                         </v-col>
@@ -364,6 +440,7 @@
           </v-toolbar>
         </template>
         <template v-slot:no-data>
+          No hay productos disponibles
           <v-btn color="primary" @click="initialize"> Recargar </v-btn>
         </template>
         <template v-slot:footer>
@@ -415,6 +492,7 @@ export default {
   components: {},
   data: () => ({
     loading: false,
+    uploading: false,
     page: 1,
     pages: 1,
     itemsPerPage: 5,
@@ -519,6 +597,8 @@ export default {
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
+    fileTotalProgress: 0,
+    fileName: "",
   }),
 
   watch: {
@@ -578,6 +658,24 @@ export default {
     removeFile(pos) {
       this.files.splice(pos, 1);
       this.filesURLs.splice(pos, 1);
+    },
+    async removeFileFromProduct(pos) {
+      try {
+        let file = this.editedItem.archivos[pos];
+        let productId = file.id;
+        let ep = `Archivos/${productId}`;
+        let req = this.$http.delete(ep);
+        await req;
+        this.editedItem.archivos.splice(pos, 1);
+        this.snackbarText = "Se eliminó el archivo del producto.";
+        this.snackbarColor = "success";
+        this.snackbar = true;
+      } catch (error) {
+        this.snackbarText =
+          "Ocurrió un error al eliminar el archivo del producto.";
+        this.snackbarColor = "danger";
+        this.snackbar = true;
+      }
     },
     async initialize() {
       this.loading = true;
@@ -678,9 +776,12 @@ export default {
       this.editedItem.idFabricante = item.fabricante.id || -1;
       this.editedItem.categorias = item.categorias.map((c) => c.id) || [];
       this.editedItem.atributos = item.atributos.map((a) => a.id) || [];
-      if (item.archivos && item.archivos.length > 0) {
-        this.filesURLs = item.archivos.map((file) => file.url) || [];
+      try {
+        this.editedItem.codigosDeBarra = item.codigosDeBarra.map((b) => b.id);
+      } catch (error) {
+        this.editedItem.codigosDeBarra = [];
       }
+
       this.dialog = true;
     },
 
@@ -736,6 +837,9 @@ export default {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
         Object.assign(this.products[this.editedIndex], this.editedItem);
+        /*  if (this.files.length) {
+
+        } */
         await this.$http
           .put(`Articulos/${this.editedId}`, this.editedItem, {
             transformRequest: function (data) {
@@ -761,7 +865,7 @@ export default {
           });
       } else {
         this.loading = true;
-        this.dialog = false;
+        let productId;
         await this.$http
           .post(
             "Articulos",
@@ -790,42 +894,7 @@ export default {
               this.snackbarColor = "success";
               this.snackbar = true;
 
-              let productId = res.data.idObjeto;
-              let fd;
-              let i = 0;
-              let arr = this.files.length;
-              let proms = [];
-              if (this.files && arr > 0) {
-                for (i; i < arr; i++) {
-                  fd = new FormData();
-                  fd.set("idArticulo", productId);
-                  fd.set("idTipo", 85); // Fijo, cambiar dps!
-                  fd.set("Small", false);
-                  fd.set("Medium", false);
-                  fd.set("Large", false);
-                  fd.set("file", this.files[i]);
-                  proms.push(this.$http.post("Articulos/Archivos", fd));
-                }
-                if (proms.length) {
-                  this.loading = true;
-                  this.close();
-                  await this.$http
-                    .all(proms)
-                    .then(
-                      this.$http.spread((...responses) => {
-                        let i = 0;
-                        let res = responses.length;
-                        for (i; i < res; i++) {
-                          console.log(res[i]);
-                        }
-                      })
-                    )
-                    .catch((errors) => console.log(errors))
-                    .finally(() => {
-                      this.loading = false;
-                    });
-                }
-              }
+              productId = res.data.idObjeto;
             }
           })
           .catch((err) => {
@@ -836,9 +905,51 @@ export default {
               this.snackbar = true;
             }
           })
-          .finally(() => {
-            this.loading = false;
-          });
+          .finally(() => (this.loading = false));
+        if (productId) {
+          let fd;
+          let i = 0;
+          let arr = this.files.length;
+          let proms = [];
+          for (i; i < arr; i++) {
+            fd = new FormData();
+            fd.set("idArticulo", productId);
+            fd.set("idTipo", 88); // Fijo, cambiar dps!
+            fd.set("Small", false);
+            fd.set("Medium", false);
+            fd.set("Large", false);
+            fd.set("file", this.files[i]);
+            let filename = this.files[i].name;
+            proms.push(
+              this.$http.post("Archivos/Articulos", fd, {
+                onUploadProgress: (progressEvent) => {
+                  if (this.fileTotalProgress >= 100) {
+                    this.fileName = "";
+                    this.fileTotalProgress = 0;
+                  }
+                  this.fileName = filename;
+                  this.fileTotalProgress = parseInt(
+                    Math.round(
+                      (progressEvent.loaded / progressEvent.total) * 100
+                    )
+                  );
+                },
+              })
+            );
+          }
+          if (proms.length) {
+            this.loading = true;
+            this.uploading = true;
+            this.close();
+            await this.$http
+              .all(proms)
+              .catch((errors) => console.log(errors))
+              .finally(() => {
+                this.uploading = false;
+                this.loading = false;
+              });
+          }
+        }
       }
       this.close();
       this.initialize();
@@ -852,5 +963,12 @@ export default {
 <style scoped>
 v-data-table > td:hover {
   cursor: pointer !important;
+}
+.__background-small {
+  position: relative;
+  max-height: 20vh;
+  max-width: 20vh;
+  min-height: 20vh;
+  min-width: 20vh;
 }
 </style>

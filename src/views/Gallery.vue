@@ -382,7 +382,7 @@
               <v-col cols="4" v-if="editedIndex > -1">
                 <v-img
                   v-if="editedIndex > -1 && editedItem.url.endsWith('.jpg')"
-                  :src="fileURL || editedItem.url"
+                  :src="fileURL || `${editedItem.url}?${new Date()}`"
                   :lazy-src="require('@/assets/no-disponible.jpg')"
                   :aspect-ratio="16 / 9"
                   class="d-block mx-auto grey lighten-2 __background-medium"

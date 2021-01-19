@@ -136,10 +136,12 @@
           color="#55AA99"
         >
           <div class="d-flex flex-column justify-center my-3">
-            <strong class="text-overline">{{ fileName }}</strong>
-            <strong class="text-center"
-              >{{ Math.ceil(fileTotalProgress) }}%</strong
-            >
+            <strong class="text-overline">
+              {{ fileName.length > 40 ? truncateString(fileName) : fileName }}
+            </strong>
+            <strong class="text-center">
+              {{ Math.ceil(fileTotalProgress) }}%
+            </strong>
           </div>
         </v-progress-linear>
       </v-snackbar>
@@ -166,17 +168,18 @@
             color="secondary"
             class="d-flex flex-column text-h6 text-center pa-5"
           >
-            No hay resultados disponibles.
+            No hay resultados disponibles ó la página seleccionada no existe.
             <div class="d-flex justify-center flex-row mt-3">
               <v-btn class="mx-1" color="info" @click="previousPage">
-                <v-icon>fas fa-angle-left</v-icon></v-btn
-              >
+                <v-icon>fas fa-angle-left</v-icon>
+              </v-btn>
               <v-btn class="mx-1" color="primary" @click="initialize">
-                <v-icon>fas fa-refresh</v-icon> Recargar</v-btn
-              >
+                <v-icon>fas fa-refresh</v-icon>
+                Recargar
+              </v-btn>
               <v-btn class="mx-1" color="info" @click="nextPage">
-                <v-icon>fas fa-angle-right</v-icon></v-btn
-              >
+                <v-icon>fas fa-angle-right</v-icon>
+              </v-btn>
             </div>
           </v-sheet>
         </div>
@@ -243,7 +246,10 @@
             ></v-pagination>
           </v-col>
           <v-col cols="12" sm="4" class="d-flex justify-end align-center">
-            <p v-show="!loading" class="text-overline text-dark my-auto pr-3">
+            <p
+              v-show="!loading && backgrounds.length"
+              class="text-overline text-dark my-auto pr-3"
+            >
               {{
                 itemsPerPage > totalRecords
                   ? `Mostrando ${totalRecords} resultados.`
@@ -441,7 +447,7 @@
     <v-dialog v-model="dialogDelete" max-width="500px">
       <v-card>
         <v-card-title class="headline">
-          ¿Está seguro de que quiere eliminar este/os archivo/s?
+          ¿Eliminar este(os) archivo(s)?
         </v-card-title>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -582,6 +588,9 @@ export default {
     removeFile(pos) {
       this.files.splice(pos, 1);
       this.filesURLs.splice(pos, 1);
+    },
+    truncateString(str, n) {
+      return str.length > n ? str.substr(0, n - 1) + "&hellip;" : str;
     },
     async initialize() {
       this.fileType = -1;
@@ -758,7 +767,7 @@ export default {
         let f = 0;
         let files = this.files.length;
         if (files) {
-          this.close();                   
+          this.close();
           for (f; f < files; f++) {
             postFormData = new FormData();
             postFormData.append("idTipo", +this.fileType);
@@ -769,7 +778,7 @@ export default {
             postFormData.append("file", this.files[f]);
             let filename = this.files[f].name;
             this.uploading = true;
-          this.loading = true; 
+            this.loading = true;
             await this.$http
               .post("Archivos", postFormData, {
                 onUploadProgress: (progressEvent) => {

@@ -102,3 +102,8 @@ export default {
   }),
 };
 </script>
+<style>
+.table-cursor tbody tr:hover {
+  cursor: pointer;
+}
+</style>

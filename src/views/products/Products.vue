@@ -43,25 +43,17 @@
         @click:row="editItem"
         loading-text="Cargando..."
         sort-by="nombre"
-        class="elevation-1"
+        class="elevation-1 table-cursor"
         :disable-pagination="true"
         :hide-default-footer="true"
       >
         <template v-slot:item.imagen="{ item }">
           <v-img
             :lazy-src="require('@/assets/no-disponible.jpg')"
-            style="
-              position: relative;
-              max-height: 20vh;
-              max-width: 20vh;
-              min-height: 20vh;
-              min-width: 20vh;
-            "
-            class="my-2"
+            class="__background-small my-2"
             :src="
               getProductImage(item) || require('@/assets/no-disponible.jpg')
             "
-            max-width="184"
           >
             <template v-slot:placeholder>
               <v-row class="fill-height ma-0" align="center" justify="center">
@@ -326,7 +318,7 @@
                           >
                             <v-img
                               v-for="(i, index) in filesURLs"
-                              :key="index"
+                              v-bind:key="index"
                               :src="i || require('@/assets/no-disponible.jpg')"
                               alt=" "
                               :contain="true"
@@ -346,7 +338,8 @@
                           <p
                             v-if="
                               (editedId > -1 || editedIndex > -1) &&
-                              editedItem.archivos
+                              editedItem.archivos &&
+                              editedItem.archivos.length
                             "
                             class="text-overline warning--text"
                           >
@@ -365,7 +358,7 @@
                           >
                             <v-img
                               v-for="(i, index) in editedItem.archivos"
-                              :key="index"
+                              v-bind:key="index"
                               :lazy-src="require('@/assets/no-disponible.jpg')"
                               :src="
                                 i.url || require('@/assets/no-disponible.jpg')
@@ -414,7 +407,7 @@
                   >
                     Eliminar
                   </v-btn>
-                  <v-btn color="success" @click="save">
+                  <v-btn color="success" @click="save" :disabled="loading">
                     <v-icon class="mr-2"> fas fa-save </v-icon>
                     Guardar
                   </v-btn>
@@ -441,7 +434,9 @@
         </template>
         <template v-slot:no-data>
           No hay productos disponibles
-          <v-btn color="primary" @click="initialize"> Recargar </v-btn>
+          <v-btn class="ml-3" color="primary" @click="initialize">
+            Recargar
+          </v-btn>
         </template>
         <template v-slot:footer>
           <v-row
@@ -456,7 +451,7 @@
                 :items="itemsPerPageItems"
                 filled
                 outlined
-                label="Filas por página"
+                label="Productos por página"
                 :hide-details="true"
                 :loading="loading"
                 :disabled="loading"
@@ -473,8 +468,15 @@
               ></v-pagination>
             </v-col>
             <v-col cols="12" sm="4" class="d-flex justify-end align-center">
-              <p v-show="!loading" class="text-overline text-dark my-auto">
-                {{ totalRecords }} resultados totales.
+              <p
+                v-show="!loading && products.length"
+                class="text-overline text-dark my-auto pr-3"
+              >
+                {{
+                  itemsPerPage > totalRecords
+                    ? `Mostrando ${totalRecords} resultados.`
+                    : `Mostrando ${itemsPerPage} de ${totalRecords} resultados.`
+                }}
               </p>
             </v-col>
           </v-row>
@@ -550,11 +552,11 @@ export default {
     files: [],
     filesURLs: [],
     itemsPerPageItems: [
-      { text: "5 filas", value: 5 },
-      { text: "10 filas", value: 10 },
-      { text: "25 filas", value: 25 },
-      { text: "50 filas", value: 50 },
-      { text: "100 filas", value: 100 },
+      { text: "5 productos", value: 5 },
+      { text: "10 productos", value: 10 },
+      { text: "25 productos", value: 25 },
+      { text: "50 productos", value: 50 },
+      { text: "100 productos", value: 100 },
     ],
     attributeTypes: [],
     delimiters: [",", ".", "-", "/", " "],
@@ -599,6 +601,7 @@ export default {
     snackbarColor: "black",
     fileTotalProgress: 0,
     fileName: "",
+    fileType: -1,
   }),
 
   watch: {
@@ -611,6 +614,12 @@ export default {
     itemsPerPage() {
       this.initialize();
     },
+    fileTotalProgress(val) {
+      if (val >= 100) {
+        this.fileName = "";
+        val = 0;
+      }
+    },
   },
 
   computed: {
@@ -620,10 +629,12 @@ export default {
   },
 
   methods: {
+    /* Parse Date to readable locale 'es' format*/
     parseDate(item) {
       if (item.modificado) return moment(item.modificado).format("LLL");
       else return "Sin modificaciones.";
     },
+    /* Return file from product. Displays in datatable */
     getProductImage(item) {
       if (item.archivos && item.archivos.length > 0)
         return item.archivos[0].url;
@@ -641,6 +652,7 @@ export default {
       this.page++;
       this.initialize();
     },
+    /* Validations when uploading files */
     async onFileUpload(files) {
       this.filesURLs = [];
       let i = 0;
@@ -655,10 +667,12 @@ export default {
         alert("Máximo de 10 archivos");
       }
     },
+    /* Remove file from input file */
     removeFile(pos) {
       this.files.splice(pos, 1);
       this.filesURLs.splice(pos, 1);
     },
+    /* Request api to delete a file */
     async removeFileFromProduct(pos) {
       try {
         let file = this.editedItem.archivos[pos];
@@ -677,6 +691,7 @@ export default {
         this.snackbar = true;
       }
     },
+    /* Init */
     async initialize() {
       this.loading = true;
       this.products = [];
@@ -781,7 +796,6 @@ export default {
       } catch (error) {
         this.editedItem.codigosDeBarra = [];
       }
-
       this.dialog = true;
     },
 
@@ -812,7 +826,7 @@ export default {
       this.closeDelete();
       this.initialize();
     },
-
+    /* Close main dialog */
     close() {
       this.dialog = false;
       this.$nextTick(() => {
@@ -824,6 +838,7 @@ export default {
       });
     },
 
+    /* Close delete dialog */
     closeDelete() {
       this.dialogDelete = false;
       this.$nextTick(() => {
@@ -833,29 +848,43 @@ export default {
       });
     },
 
+    /* Request api to insert or update*/
     async save() {
-      this.loading = true;
+      let productId;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        Object.assign(this.products[this.editedIndex], this.editedItem);
-        /*  if (this.files.length) {
-
-        } */
+        //Object.assign(this.products[this.editedIndex], this.editedItem);
+        this.loading = true;
         await this.$http
-          .put(`Articulos/${this.editedId}`, this.editedItem, {
-            transformRequest: function (data) {
-              console.log("transformRequest", data);
-            },
-          })
+          .put(
+            `Articulos/${this.editedId}`,
+            Object.assign(
+              {},
+              {
+                nombre: this.editedItem.nombre,
+                sku: this.editedItem.sku,
+                precio: this.editedItem.precio,
+                activo: this.editedItem.activo,
+                etiquetas: this.editedItem.etiquetas,
+                descripcion: this.editedItem.descripcion,
+                descripcionLarga: this.editedItem.descripcionLarga,
+                prospecto: this.editedItem.prospecto,
+                categorias: this.editedItem.categorias,
+                atributos: this.editedItem.atributos,
+                idFabricante: this.editedItem.idFabricante,
+                idTipo: this.editedItem.idTipo,
+              }
+            )
+          )
           .then((res) => {
             if (res) {
-              this.snackbarText = "Se actualizó el atributo exitosamente.";
+              this.snackbarText = "Se actualizó el producto exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
           .catch((err) => {
             if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar el atributo.";
+              this.snackbarText = "¡ERROR! No se pudo guardar el producto.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
@@ -864,8 +893,7 @@ export default {
             this.loading = false;
           });
       } else {
-        this.loading = true;
-        let productId;
+        this.loading = true;        
         await this.$http
           .post(
             "Articulos",
@@ -888,7 +916,7 @@ export default {
               }
             )
           )
-          .then(async (res) => {
+          .then((res) => {
             if (res) {
               this.snackbarText = "Se agregó el producto exitosamente.";
               this.snackbarColor = "success";
@@ -906,15 +934,25 @@ export default {
             }
           })
           .finally(() => (this.loading = false));
-        if (productId) {
-          this.close();
+      }
+      if (productId > 0 || this.editedIndex > -1) {
+        const fileType = await this.$http.get("TipoArchivos/nombre/Producto");
+        if (fileType && fileType.data) {
+          this.fileType = fileType.data[0].id;
+        }
+        if (this.fileType > 0) {
           let fd;
           let i = 0;
           let arr = this.files.length;
           for (i; i < arr; i++) {
             fd = new FormData();
-            fd.set("idArticulo", productId);
-            fd.set("idTipo", 88); // Fijo, cambiar dps!
+            if (productId > 0 && this.editedIndex < 0) {
+              fd.set("idArticulo", productId);
+            } else if (productId <= 0 && this.editedIndex > -1) {
+              fd.set("idArticulo", this.editedId);
+            }
+
+            fd.set("idTipo", this.fileType);
             fd.set("Small", false);
             fd.set("Medium", false);
             fd.set("Large", false);
@@ -925,10 +963,6 @@ export default {
             await this.$http
               .post("Archivos/Articulos", fd, {
                 onUploadProgress: (progressEvent) => {
-                  if (this.fileTotalProgress >= 100) {
-                    this.fileName = "";
-                    this.fileTotalProgress = 0;
-                  }
                   this.fileName = filename;
                   this.fileTotalProgress = parseInt(
                     Math.round(
@@ -954,9 +988,6 @@ export default {
 };
 </script>
 <style scoped>
-v-data-table > td:hover {
-  cursor: pointer !important;
-}
 .__background-small {
   position: relative;
   max-height: 20vh;

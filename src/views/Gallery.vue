@@ -325,6 +325,21 @@
                       </template>
                     </v-file-input>
                     <div v-else>
+                      <v-alert
+                        v-if="fileAlerts.length"
+                        outlined
+                        type="error"
+                        prominent
+                        border="left"
+                      >
+                        <div
+                          class="my-1"
+                          v-for="(alert, index) in fileAlerts"
+                          :key="index"
+                        >
+                          - {{ alert }}
+                        </div>
+                      </v-alert>
                       <v-file-input
                         v-model="files"
                         counter
@@ -515,6 +530,8 @@ export default {
     fileTotalProgress: 0,
     filesURLs: [],
     fileURL: "",
+    fileAlerts: [],
+    fileErrors: [],
   }),
 
   computed: {
@@ -541,6 +558,9 @@ export default {
     },
     itemsPerPage() {
       this.initialize();
+    },
+    files(array) {
+      console.log("array", array);
     },
   },
 
@@ -571,19 +591,66 @@ export default {
         this.fileURL = URL.createObjectURL(file);
       } else this.fileURL = "";
     },
-    async onFileUploadMultiple(files) {
+    async onFileUploadMultiple() {
       this.filesURLs = [];
-      let i = 0;
-      let arr = files.length;
+      this.fileAlerts = [];
+      let arr = this.files.length;
+      //this.errors = [];
+
       if (arr < 10) {
-        for (i; i < arr; i++) {
-          let url = URL.createObjectURL(files[i]);
-          this.filesURLs.push(url);
+        for (let i = 0; i < arr; i++) {
+          var indexLoop = i;
+          console.log("this.files[i]", this.files[i]);
+          if (this.files[i]) {
+            let url = URL.createObjectURL(this.files[i]);
+            if (this.files[i].name.match(/.(jpg|jpeg)$/i)) {
+              if (this.files[i].size > 10000000) {
+                this.fileAlerts.push(
+                  `El archivo ${this.files[i].name} supera los 10MB.`
+                );
+                //this.files.splice(i, 1);
+                this.fileErrors.push(indexLoop);
+                //return;
+              }
+              let image = new Image();
+              image.src = url;
+              let filename = this.files[i].name;
+              image.onload = () => {
+                if (image.width == 2160 && image.height == 3840) {
+                  this.filesURLs.push(url);
+                } else {
+                  this.fileAlerts.push(
+                    `El archivo ${filename} no es una imagen 4k vertical (2160x3840).`
+                  );
+                  //this.files.splice(i, 1);
+                  this.fileErrors.push(indexLoop);
+                }
+              };
+            } else if (this.files[i].name.match(/.(mp4)$/i)) {
+              if (this.files[i].size > 250000000) {
+                this.fileAlerts(
+                  `El archivo ${this.files[i].name} supera los 250MB.`
+                );
+                //this.files.splice(i, 1);
+                this.fileErrors.push(indexLoop);
+                //return;
+              }
+            } else {
+              this.fileAlerts.push(
+                `El archivo ${this.files[i].name} no coincide con los formatos soportados.`
+              );
+              //this.files.splice(i, 1);
+              this.fileErrors.push(indexLoop);
+            }
+          }
         }
       } else {
         this.files = [];
-        alert("Máximo de 10 archivos");
+        this.filesURLs = [];
+        this.fileAlerts.push(`Máximo 10 archivos.`);
       }
+      console.log("errors", this.fileErrors[0], this.fileErrors.length);
+      
     },
     removeFile(pos) {
       this.files.splice(pos, 1);

@@ -288,10 +288,10 @@
                       style="text-align: justify; text-justify: inter-word"
                     >
                       <p>
-                        Imagenes 4k verticales (2160x3840), máximo 10MB, en
+                        Imagenes 4k verticales (2160x3840), máximo 10MB (cada individual), en
                         formato JPG.
                       </p>
-                      <p>Videos en formato MP4, máximo 200MB.</p>
+                      <p>Videos en formato MP4, máximo 250MB.</p>
                     </v-alert>
                     <v-text-field
                       v-model="editedItem.nombre"
@@ -311,6 +311,7 @@
                       outlined
                       type="error"
                       prominent
+                      dismissible
                       border="left"
                     >
                       <div
@@ -593,6 +594,7 @@ export default {
               `El archivo ${this.file.name} supera los 10MB.`
             );
             this.file = null;
+            URL.revokeObjectURL(file);
           }
           let image = new Image();
           image.src = url;
@@ -605,18 +607,21 @@ export default {
                 `El archivo ${filename} no es una imagen 4k vertical (2160x3840).`
               );
               this.file = null;
+              URL.revokeObjectURL(file);
             }
           };
         } else if (this.file.name.match(/.(mp4)$/i)) {
           if (this.file.size > 250000000) {
             this.fileAlerts(`El archivo ${this.file.name} supera los 250MB.`);
             this.file = null;
+            URL.revokeObjectURL(file);
           }
         } else {
           this.fileAlerts.push(
             `El archivo ${this.file.name} no coincide con los formatos soportados.`
           );
           this.file = null;
+          URL.revokeObjectURL(file);
         }
       } else {
         this.fileURL = "";
@@ -629,7 +634,7 @@ export default {
       this.fileAlerts = [];
       let arr = this.files.length;
 
-      if (arr < 10) {
+      if (arr < 11) {
         for (var i = arr - 1; i >= 0; i--) {
           var index = this.files.indexOf(this.files[i]);
           if (this.files[i]) {
@@ -640,6 +645,7 @@ export default {
                   `El archivo ${this.files[i].name} supera los 10MB.`
                 );
                 this.files.splice(index, 1);
+                URL.revokeObjectURL(this.files[i]);
                 continue;
               }
               let image = new Image();
@@ -653,6 +659,7 @@ export default {
                     `El archivo ${filename} no es una imagen 4k vertical (2160x3840).`
                   );
                   this.files.splice(index, 1);
+                  URL.revokeObjectURL(this.files[i]);
                 }
               };
             } else if (this.files[i].name.match(/.(mp4)$/i)) {
@@ -661,6 +668,7 @@ export default {
                   `El archivo ${this.files[i].name} supera los 250MB.`
                 );
                 this.files.splice(index, 1);
+                URL.revokeObjectURL(this.files[i]);
                 continue;
               }
             } else {
@@ -668,6 +676,7 @@ export default {
                 `El archivo ${this.files[i].name} no coincide con los formatos soportados.`
               );
               this.files.splice(index, 1);
+              URL.revokeObjectURL(this.files[i]);
             }
           }
         }

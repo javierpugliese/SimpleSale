@@ -168,19 +168,18 @@
             color="secondary"
             class="d-flex flex-column text-h6 text-center pa-5"
           >
-            No hay resultados disponibles ó la página seleccionada no existe.
-            <div class="d-flex justify-center flex-row mt-3">
-              <v-btn class="mx-1" color="info" @click="previousPage">
-                <v-icon>fas fa-angle-left</v-icon>
-              </v-btn>
-              <v-btn class="mx-1" color="primary" @click="initialize">
-                <v-icon>fas fa-refresh</v-icon>
-                Recargar
-              </v-btn>
-              <v-btn class="mx-1" color="info" @click="nextPage">
-                <v-icon>fas fa-angle-right</v-icon>
-              </v-btn>
-            </div>
+            <p class="text-overline">
+              No hay resultados disponibles ó la página seleccionada no existe.
+            </p>
+            <v-btn
+              large
+              class="mx-1"
+              color="primary"
+              @click="{page=1, initialize()}"
+            >
+              <v-icon class="mr-3">fas fa-sync-alt</v-icon>
+              Recargar
+            </v-btn>
           </v-sheet>
         </div>
         <v-img
@@ -288,8 +287,8 @@
                       style="text-align: justify; text-justify: inter-word"
                     >
                       <p>
-                        Imagenes 4k verticales (2160x3840), máximo 10MB (cada individual), en
-                        formato JPG.
+                        Imagenes 4k verticales (2160x3840), máximo 10MB (cada
+                        individual), en formato JPG.
                       </p>
                       <p>Videos en formato MP4, máximo 250MB.</p>
                     </v-alert>

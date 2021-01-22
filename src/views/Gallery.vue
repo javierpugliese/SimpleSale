@@ -306,6 +306,21 @@
                     </v-text-field>
                   </v-col>
                   <v-col cols="12" class="align-self-end">
+                    <v-alert
+                      v-if="fileAlerts.length"
+                      outlined
+                      type="error"
+                      prominent
+                      border="left"
+                    >
+                      <div
+                        class="my-1"
+                        v-for="(alert, index) in fileAlerts"
+                        :key="index"
+                      >
+                        - {{ alert }}
+                      </div>
+                    </v-alert>
                     <v-file-input
                       v-if="editedIndex > -1"
                       v-model="file"
@@ -325,21 +340,6 @@
                       </template>
                     </v-file-input>
                     <div v-else>
-                      <v-alert
-                        v-if="fileAlerts.length"
-                        outlined
-                        type="error"
-                        prominent
-                        border="left"
-                      >
-                        <div
-                          class="my-1"
-                          v-for="(alert, index) in fileAlerts"
-                          :key="index"
-                        >
-                          - {{ alert }}
-                        </div>
-                      </v-alert>
                       <v-file-input
                         v-model="files"
                         counter
@@ -531,7 +531,6 @@ export default {
     filesURLs: [],
     fileURL: "",
     fileAlerts: [],
-    fileErrors: [],
   }),
 
   computed: {
@@ -583,10 +582,46 @@ export default {
       this.selection = [...this.backgrounds.map((bg) => +bg.id)];
     },
     onFileUpload(file) {
+      this.file = file;
+      this.fileURL = "";
+      this.fileAlerts = [];
       if (file) {
-        this.file = file;
-        this.fileURL = URL.createObjectURL(file);
-      } else this.fileURL = "";
+        var url = URL.createObjectURL(file);
+        if (this.file.name.match(/.(jpg|jpeg)$/i)) {
+          if (this.file.size > 10000000) {
+            this.fileAlerts.push(
+              `El archivo ${this.file.name} supera los 10MB.`
+            );
+            this.file = null;
+          }
+          let image = new Image();
+          image.src = url;
+          let filename = this.file.name;
+          image.onload = () => {
+            if (image.width == 2160 && image.height == 3840) {
+              this.fileURL = url;
+            } else {
+              this.fileAlerts.push(
+                `El archivo ${filename} no es una imagen 4k vertical (2160x3840).`
+              );
+              this.file = null;
+            }
+          };
+        } else if (this.file.name.match(/.(mp4)$/i)) {
+          if (this.file.size > 250000000) {
+            this.fileAlerts(`El archivo ${this.file.name} supera los 250MB.`);
+            this.file = null;
+          }
+        } else {
+          this.fileAlerts.push(
+            `El archivo ${this.file.name} no coincide con los formatos soportados.`
+          );
+          this.file = null;
+        }
+      } else {
+        this.fileURL = "";
+        this.file = null;
+      }
     },
     onFileUploadMultiple(files) {
       this.files = files;
@@ -766,6 +801,11 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.files = [];
+        this.file = null;
+        this.fileAlerts = [];
+        this.filesURLs = [];
+        this.fileURL = "";
       });
     },
 
@@ -778,6 +818,9 @@ export default {
         this.editedId = -1;
         this.files = [];
         this.file = null;
+        this.fileAlerts = [];
+        this.filesURLs = [];
+        this.fileURL = "";
       });
     },
 

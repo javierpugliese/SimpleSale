@@ -321,12 +321,26 @@
                       outlined
                       type="error"
                       prominent
-                      dismissible
                       border="left"
                     >
                       <div
                         class="my-1"
                         v-for="(alert, index) in fileAlerts"
+                        :key="index"
+                      >
+                        - {{ alert }}
+                      </div>
+                    </v-alert>
+                    <v-alert
+                      v-if="videoAlerts.length"
+                      outlined
+                      type="error"
+                      prominent
+                      border="left"
+                    >
+                      <div
+                        class="my-1"
+                        v-for="(alert, index) in videoAlerts"
                         :key="index"
                       >
                         - {{ alert }}
@@ -351,12 +365,12 @@
                       </template>
                     </v-file-input>
                     <div v-else>
+                      <!-- Image files -->
                       <v-file-input
                         v-model="files"
                         counter
-                        label="Archivos (imagenes o videos)"
-                        accept=".jpg, .mp4"
-                        placeholder="Examinar..."
+                        label="Archivos (imagenes)"
+                        accept=".jpg"
                         prepend-icon=""
                         outlined
                         multiple
@@ -409,6 +423,65 @@
                           </v-btn>
                         </v-img>
                       </div>
+
+                      <!-- Video files -->
+                      <v-file-input
+                        v-model="videoFiles"
+                        counter
+                        label="Archivos (videos)"
+                        accept=".mp4"
+                        prepend-icon=""
+                        outlined
+                        multiple
+                        @change="onVideoUploadMultiple"
+                        :disabled="loading || uploading"
+                        :show-size="1000"
+                      >
+                        <template v-slot:selection="{ index, text }">
+                          <v-chip
+                            v-if="index < 2"
+                            color="info"
+                            dark
+                            label
+                            small
+                          >
+                            {{ text }}
+                          </v-chip>
+
+                          <span
+                            v-else-if="index === 2"
+                            class="overline text--darken-3 mx-2"
+                          >
+                            +{{ videoFiles.length - 2 }} Archivo(s)
+                          </span>
+                        </template>
+                      </v-file-input>
+
+                      <!-- Preview videos before upload -->
+                      <!-- <div
+                        class="d-flex flex-wrap justify-start"
+                        style="align-items: flex-start"
+                      >
+                        <v-img
+                          v-for="(i, index) in videoURLs"
+                          :key="index"
+                          :src="i || require('@/assets/no-disponible.jpg')"
+                          alt=" "
+                          :contain="true"
+                          class="white--text ma-2 __background-small"
+                          gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                        >
+                          <v-btn
+                            icon
+                            large
+                            style="position: absolute; top: 0; right: 0"
+                            :disabled="loading || uploading"
+                            @click="removeVideoFile(index)"
+                          >
+                            <v-icon color="red"> fas fa-times </v-icon>
+                          </v-btn>
+                        </v-img>
+                      </div> -->
                     </div>
                   </v-col>
                 </v-row>
@@ -471,7 +544,7 @@
             :disabled="
               loading ||
               (editedIndex > -1 && !file) ||
-              (editedIndex < 0 && !files.length)
+              (editedIndex < 0 && !files.length && !videoFiles.length)
             "
           >
             <v-icon class="mr-2"> fas fa-save </v-icon>
@@ -553,6 +626,9 @@ export default {
     fileURL: "",
     fileAlerts: [],
     fileUploadDetailsAlert: true,
+    videoFiles: [],
+    videoAlerts: [],
+    videoURLs: [],
   }),
 
   computed: {
@@ -713,9 +789,95 @@ export default {
         this.fileAlerts.push(`Máximo 10 archivos.`);
       }
     },
+    onVideoUploadMultiple(files) {
+      this.videoFiles = files;
+      this.videoURLs = [];
+      this.videoAlerts = [];
+      let arr = this.videoFiles.length;
+
+      if (arr < 4) {
+        for (var i = arr - 1; i >= 0; i--) {
+          var index = this.videoFiles.indexOf(this.videoFiles[i]);
+          if (this.videoFiles[i]) {
+            //let url = URL.createObjectURL(this.videoFiles[i]);
+            if (this.videoFiles[i].name.match(/.(mp4)$/i)) {
+              if (this.videoFiles[i].size > 250000000) {
+                this.videoAlerts.push(
+                  `El archivo ${this.videoFiles[i].name} supera los 250MB.`
+                );
+                this.videoFiles.splice(index, 1);
+                URL.revokeObjectURL(this.videoFiles[i]);
+                continue;
+              }
+
+              /*
+              // VIDEO METADATA
+              
+              var mime = this.videoFiles[i].type;
+              var rd = new FileReader();
+
+              rd.onload = (e) => {
+                var blob = new Blob([e.target.result], {
+                  type: mime,
+                });
+                var url = URL.createObjectURL(blob);
+                var video = document.createElement("video");
+
+                video.preload = "metadata";
+
+                video.addEventListener("loadedmetadata", () => {
+                  if (video.duration <= 90) {
+                    if (video.videoWidth >= 1080 && video.videoHeight >= 1920) {
+                      this.videoURLs.push(url);
+                    } else if (
+                      video.videoWidth > 2160 ||
+                      video.videoHeight > 3840
+                    ) {
+                      this.videoAlerts.push(
+                        `El archivo ${this.videoFiles[i].name} supera las dimensiones máximas soportadas (2160x3840).`
+                      );
+                      this.videoFiles.splice(index, 1);
+                    } else {
+                      this.videoAlerts.push(
+                        `El archivo ${this.videoFiles[i].name} no supera las dimensiones mínimas soportadas (1080x1920).`
+                      );
+                      this.videoFiles.splice(index, 1);
+                    }
+                  } else {
+                    this.videoAlerts.push(
+                      `El archivo ${this.videoFiles[i].name} tiene una duración superior a 90 segundos.`
+                    );
+                    this.videoFiles.splice(index, 1);
+                  }
+                  URL.revokeObjectURL(url);
+                });
+                video.src = url;
+              };
+
+              var chunk = this.videoFiles[i].slice(0, 500000);
+              rd.readAsArrayBuffer(chunk); */
+            } else {
+              this.videoAlerts.push(
+                `El archivo ${this.videoFiles[i].name} no coincide con los formatos soportados.`
+              );
+              this.videoFiles.splice(index, 1);
+              URL.revokeObjectURL(this.videoFiles[i]);
+            }
+          }
+        }
+      } else {
+        this.videoFiles = [];
+        this.videoURLs = [];
+        this.videoAlerts.push(`Máximo 3 videos.`);
+      }
+    },
     removeFile(pos) {
       this.files.splice(pos, 1);
       this.filesURLs.splice(pos, 1);
+    },
+    removeVideoFile(pos) {
+      this.videoFiles.splice(pos, 1);
+      this.videoURLs.splice(pos, 1);
     },
     truncateString(str, n) {
       return str.length > n ? str.substr(0, n - 1) + "&hellip;" : str;

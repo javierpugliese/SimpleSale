@@ -281,6 +281,7 @@
             <v-row dense>
               <v-col cols="12">
                 <v-alert
+                  v-model="fileUploadDetailsAlert"
                   class="text-caption py-1 px-5"
                   outlined
                   type="warning"
@@ -360,6 +361,7 @@
                         outlined
                         multiple
                         @change="onFileUploadMultiple"
+                        :disabled="loading || uploading"
                         :show-size="1000"
                       >
                         <template v-slot:selection="{ index, text }">
@@ -400,6 +402,7 @@
                             icon
                             large
                             style="position: absolute; top: 0; right: 0"
+                            :disabled="loading || uploading"
                             @click="removeFile(index)"
                           >
                             <v-icon color="red"> fas fa-times </v-icon>
@@ -431,6 +434,7 @@
                     </v-row>
                   </template>
                 </v-img>
+                <!-- Show video here #######TODO -->
                 <div v-else-if="!editedIndex > 0">
                   <v-btn @click="alert('Ver original')" icon>
                     <v-icon>fas fa-paperclip</v-icon>
@@ -443,7 +447,14 @@
 
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="info" text @click="close"> Cancelar </v-btn>
+          <v-btn
+            color="info"
+            text
+            @click="close"
+            :disabled="loading || uploading"
+          >
+            Cancelar
+          </v-btn>
           <v-btn
             color="red"
             text
@@ -541,6 +552,7 @@ export default {
     filesURLs: [],
     fileURL: "",
     fileAlerts: [],
+    fileUploadDetailsAlert: true,
   }),
 
   computed: {
@@ -567,6 +579,12 @@ export default {
     },
     itemsPerPage() {
       this.initialize();
+    },
+    fileTotalProgress(val) {
+      if (val >= 100) {
+        this.fileName = "Finalizando...";
+        val = 0;
+      }
     },
   },
 
@@ -711,6 +729,7 @@ export default {
       this.files = [];
       this.filesURLs = [];
       this.fileTotalProgress = 0;
+      this.fileUploadDetailsAlert = true;
 
       const fileType = await this.$http.get("TipoArchivos/nombre/Fondo");
       if (fileType && fileType.data) {
@@ -749,6 +768,7 @@ export default {
       this.editedItem = Object.assign({}, item);
       this.editedId = item.idArchivoOriginal || -1;
       this.file = null;
+      this.fileUploadDetailsAlert = true;
       this.dialog = true;
     },
 
@@ -885,7 +905,7 @@ export default {
         let f = 0;
         let files = this.files.length;
         if (files) {
-          this.close();
+          //this.close();
           for (f; f < files; f++) {
             postFormData = new FormData();
             postFormData.append("idTipo", +this.fileType);
@@ -900,10 +920,6 @@ export default {
             await this.$http
               .post("Archivos", postFormData, {
                 onUploadProgress: (progressEvent) => {
-                  if (this.fileTotalProgress >= 100) {
-                    this.fileName = "";
-                    this.fileTotalProgress = 0;
-                  }
                   this.fileName = filename;
                   this.fileTotalProgress = parseInt(
                     Math.round(
@@ -919,6 +935,7 @@ export default {
           }
         }
       }
+      this.close();
       this.initialize();
     },
   },

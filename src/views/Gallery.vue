@@ -559,9 +559,6 @@ export default {
     itemsPerPage() {
       this.initialize();
     },
-    files(array) {
-      console.log("array", array);
-    },
   },
 
   mounted() {
@@ -591,16 +588,15 @@ export default {
         this.fileURL = URL.createObjectURL(file);
       } else this.fileURL = "";
     },
-    async onFileUploadMultiple() {
+    onFileUploadMultiple(files) {
+      this.files = files;
       this.filesURLs = [];
       this.fileAlerts = [];
       let arr = this.files.length;
-      //this.errors = [];
 
       if (arr < 10) {
-        for (let i = 0; i < arr; i++) {
-          var indexLoop = i;
-          console.log("this.files[i]", this.files[i]);
+        for (var i = arr - 1; i >= 0; i--) {
+          var index = this.files.indexOf(this.files[i]);
           if (this.files[i]) {
             let url = URL.createObjectURL(this.files[i]);
             if (this.files[i].name.match(/.(jpg|jpeg)$/i)) {
@@ -608,9 +604,8 @@ export default {
                 this.fileAlerts.push(
                   `El archivo ${this.files[i].name} supera los 10MB.`
                 );
-                //this.files.splice(i, 1);
-                this.fileErrors.push(indexLoop);
-                //return;
+                this.files.splice(index, 1);
+                continue;
               }
               let image = new Image();
               image.src = url;
@@ -622,8 +617,7 @@ export default {
                   this.fileAlerts.push(
                     `El archivo ${filename} no es una imagen 4k vertical (2160x3840).`
                   );
-                  //this.files.splice(i, 1);
-                  this.fileErrors.push(indexLoop);
+                  this.files.splice(index, 1);
                 }
               };
             } else if (this.files[i].name.match(/.(mp4)$/i)) {
@@ -631,16 +625,14 @@ export default {
                 this.fileAlerts(
                   `El archivo ${this.files[i].name} supera los 250MB.`
                 );
-                //this.files.splice(i, 1);
-                this.fileErrors.push(indexLoop);
-                //return;
+                this.files.splice(index, 1);
+                continue;
               }
             } else {
               this.fileAlerts.push(
                 `El archivo ${this.files[i].name} no coincide con los formatos soportados.`
               );
-              //this.files.splice(i, 1);
-              this.fileErrors.push(indexLoop);
+              this.files.splice(index, 1);
             }
           }
         }
@@ -649,8 +641,6 @@ export default {
         this.filesURLs = [];
         this.fileAlerts.push(`Máximo 10 archivos.`);
       }
-      console.log("errors", this.fileErrors[0], this.fileErrors.length);
-      
     },
     removeFile(pos) {
       this.files.splice(pos, 1);

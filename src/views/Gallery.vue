@@ -175,7 +175,11 @@
               large
               class="mx-1"
               color="primary"
-              @click="{page=1, initialize()}"
+              @click="
+                {
+                  (page = 1), initialize();
+                }
+              "
             >
               <v-icon class="mr-3">fas fa-sync-alt</v-icon>
               Recargar
@@ -275,23 +279,29 @@
         <v-card-text>
           <v-sheet class="pa-5" color="blue-grey darken-4">
             <v-row dense>
+              <v-col cols="12">
+                <v-alert
+                  class="text-caption py-1 px-5"
+                  outlined
+                  type="warning"
+                  prominent
+                  dismissible
+                  border="left"
+                  style="text-align: justify; text-justify: inter-word"
+                >
+                  <p class="text-overline">
+                    - Imagenes 4k verticales (2160x3840), máximo 10MB (cada
+                    individual), en formato JPG.
+                  </p>
+                  <p class="text-overline">
+                    - Videos en formato MP4, máximo 250MB.
+                  </p>
+                  <p class="text-overline">- Máximo 10 archivos.</p>
+                </v-alert>
+              </v-col>
               <v-col :cols="editedIndex > -1 ? 8 : 12" class="d-flex">
                 <v-row dense>
                   <v-col cols="12" v-if="editedIndex > -1">
-                    <v-alert
-                      class="text-caption py-1 px-5"
-                      outlined
-                      type="warning"
-                      prominent
-                      border="left"
-                      style="text-align: justify; text-justify: inter-word"
-                    >
-                      <p>
-                        Imagenes 4k verticales (2160x3840), máximo 10MB (cada
-                        individual), en formato JPG.
-                      </p>
-                      <p>Videos en formato MP4, máximo 250MB.</p>
-                    </v-alert>
                     <v-text-field
                       v-model="editedItem.nombre"
                       label="Nombre"

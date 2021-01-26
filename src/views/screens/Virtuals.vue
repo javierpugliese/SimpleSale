@@ -1,82 +1,163 @@
 <template>
   <div class="virtuals">
-    <v-row>
-      <v-col cols="12" md="3">
-        <v-row>
+    <!-- Toolbar -->
+    <v-toolbar :color="!planogramList ? 'grey darken-4' : '#1F96A3'" dark>
+      <v-scale-transition>
+        <v-app-bar-nav-icon v-if="!planogramList">
+          <v-icon>fas fa-mobile-alt</v-icon>
+        </v-app-bar-nav-icon>
+        <v-btn v-else-if="planogramList" @click="planogramList = false" icon>
+          <v-icon>fas fa-times</v-icon>
+        </v-btn>
+      </v-scale-transition>
+      <v-scroll-y-transition>
+        <v-toolbar-title> Gestión de Planogramas </v-toolbar-title>
+      </v-scroll-y-transition>
+      <v-autocomplete
+        v-model="productId"
+        :items="products"
+        label="Producto"
+        maxlength="50"
+        class="mt-6"
+        clearable
+        outlined
+        small-chips
+        :allow-overflow="false"
+        :autofocus="true"
+        :cache-items="true"
+        @change="getProduct"
+        :loading="loading"
+        :disabled="loading"
+      ></v-autocomplete>
+      <v-spacer></v-spacer>
+      <v-scale-transition>
+        <v-btn
+          v-if="!planogramList && !searchMode"
+          :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
+          @click="planogramList = true"
+          :icon="$vuetify.breakpoint.xsOnly ? true : false"
+          class="mx-1"
+          :disabled="loading"
+        >
+          <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
+            fas fa-th-list
+          </v-icon>
+          {{ !$vuetify.breakpoint.xsOnly ? "Ver lista" : "" }}
+        </v-btn>
+      </v-scale-transition>
+    </v-toolbar>
+
+    <!-- Planogram management -->
+    <v-row v-if="!planogramList">
+      <!-- Product files list -->
+      <v-col cols="12" md="2">
+        <v-row class="d-flex flex-column" dense>
           <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-left pa-5">
-              Productos
+            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+              Archivos del producto
+            </v-sheet>
+          </v-col>
+          <v-col
+            v-for="(pf, index) in product.archivos"
+            :key="`productFile-${index}`"
+            cols="12"
+            class="d-flex flex-column"
+          >
+            <v-sheet color="333333">
+              <v-img
+                :lazy-src="require('@/assets/no-disponible.jpg')"
+                :src="pf.url || require('@/assets/no-disponible.jpg')"
+                alt=" "
+                :contain="true"
+                class="__background-small white--text ma-2"
+                gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+              >
+                <template v-slot:placeholder>
+                  <v-row
+                    class="fill-height ma-0"
+                    align="center"
+                    justify="center"
+                  >
+                    <v-progress-circular
+                      indeterminate
+                      color="info"
+                    ></v-progress-circular>
+                  </v-row>
+                </template>
+              </v-img>
             </v-sheet>
           </v-col>
         </v-row>
-        <div class="products__column">
-          <v-autocomplete
-            v-model="productId"
-            :items="products"
-            label="Seleccione"
-            maxlength="50"
-            clearable
-            outlined
-            small-chips
-            style="position: sticky; top: 0"
-          ></v-autocomplete>
-          <div>
-            <v-card
-              v-for="product in products"
-              :key="product.id"
-              :ripple="false"
-              class="portrait"
-              @contextmenu="
-                shelves.length > 0
-                  ? showMenu($event, Object.assign({}, product))
-                  : ''
-              "
-            >
-              <v-img
-                :src="require('@/assets/no-disponible.jpg')"
-                :contain="true"
-                class="mx-auto my-2"
-                style="z-index: 0 !important"
-                height="128"
-                max-height="128"
-                width="128"
-                max-width="128"
-              ></v-img
-            ></v-card>
-            <v-menu
-              v-model="menu"
-              :position-x="menu_x"
-              :position-y="menu_y"
-              absolute
-              offset-y
-            >
-              <v-sheet color="secondary" class="text-h6 text-left pa-2">
-                Enviar a estante:
-              </v-sheet>
-              <v-list>
-                <v-list-item
-                  v-for="(n, index) in shelves"
-                  :key="index"
-                  @click="sendToShelf(index)"
-                  mandatory
-                >
-                  <v-list-item-title>Estante {{ index }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
-          </div>
-        </div>
       </v-col>
-      <v-col cols="12" lg="3" class="d-flex justify-center">
-        <!-- Planograma -->
-        <v-row>
+
+      <!-- Chosen files list -->
+      <v-col cols="12" md="2">
+        <v-row class="d-flex flex-column" dense>
           <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-5">
-              Vista Previa
+            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+              Detalles del producto
             </v-sheet>
           </v-col>
-          <v-col cols="12"></v-col>
-          <v-col cols="12" class="d-flex justify-center">
+          <v-col cols="12" class="d-flex flex-column">
+            <v-list subheader three-line>
+              <v-subheader>SKU {{ product.sku }}</v-subheader>
+
+              <v-list-item>
+                <v-list-item-content>
+                  <v-list-item-title>Nombre</v-list-item-title>
+                  <v-list-item-subtitle class="text-overline">
+                    {{ product.nombre }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item>
+                <v-list-item-content>
+                  <v-list-item-title>Precio</v-list-item-title>
+                  <v-list-item-subtitle>
+                    $ {{ product.precio }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item>
+                <v-list-item-content>
+                  <v-list-item-title>Descripción</v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ product.descripcion }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+
+              <v-list-item>
+                <v-list-item-content>
+                  <v-list-item-title>Categorías</v-list-item-title>
+                  <v-list-item-subtitle>
+                    <v-chip
+                      v-for="(c, index) in product.categorias"
+                      :key="`category${c.id}-${index}`"
+                      label
+                      class="ma-1"
+                      v-text="c.nombre.toUpperCase()"
+                    >
+                    </v-chip>
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+            </v-list>
+          </v-col>
+        </v-row>
+      </v-col>
+
+      <!-- Planogram preview -->
+      <v-col cols="12" md="3">
+        <v-row class="d-flex flex-column" dense>
+          <v-col cols="12">
+            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+              Planograma
+            </v-sheet>
+          </v-col>
+          <v-col cols="12">
             <div
               v-bind:style="{
                 width: `${getPlanogramWidth}px`,
@@ -161,51 +242,43 @@
                     :color="getRGBA(shelf.color)"
                   ></v-sheet>
                 </div>
-                <!-- <p>
-          Estante<br />
-          X: {{ x }} / Y: {{ y }} - Width: {{ width }} / Height: {{ height }}
-        </p> -->
-                <!-- <v-img
-          :src="require('@/assets/no-disponible.jpg')"
-          :contain="true"
-          height="44"
-          max-height="44"
-          width="44"
-          max-width="44"
-        ></v-img> -->
               </vue-draggable-resizable>
             </div>
           </v-col>
         </v-row>
       </v-col>
-      <v-col cols="12" lg="6">
-        <v-row>
+
+      <!-- Planogram settings -->
+      <v-col cols="12" md="5">
+        <v-row class="d-flex flex-column" dense>
           <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-5">
-              Ajustes del Planograma
+            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+              Configuración del planograma
             </v-sheet>
           </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12">
-            <v-color-picker
-              v-model="shelf_item.baseColor"
-              label="Color de la base"
-              dot-size="25"
-              hide-mode-switch
-              mode="rgba"
-            ></v-color-picker>
-          </v-col>
-          <v-col cols="12" sm="4">
-            <v-text-field
-              v-model="shelf_item.maxHeight"
-              label="Tamaño máximo manipulable (px)"
-              outlined
-              clearable
-              required
-            ></v-text-field>
-          </v-col>
-          <v-btn @click="addShelf" color="success">Agregar estante</v-btn>
+          <v-row dense>
+            <v-col cols="12" sm="4">
+              <v-color-picker
+                v-model="shelf_item.baseColor"
+                label="Color de la base"
+                dot-size="25"
+                hide-mode-switch
+                mode="rgba"
+              ></v-color-picker>
+            </v-col>
+            <v-col cols="12" sm="4">
+              <v-text-field
+                v-model="shelf_item.maxHeight"
+                label="Tamaño máximo manipulable (px)"
+                outlined
+                clearable
+                required
+                :disabled="true"
+              ></v-text-field>
+            </v-col>
+            <v-col cols="12" sm="4"></v-col>
+            <v-btn @click="addShelf" color="success">Agregar estante</v-btn>
+          </v-row>
         </v-row>
       </v-col>
     </v-row>
@@ -261,8 +334,26 @@ export default {
     menu_y: 0,
 
     products: [],
-
     shelves: [],
+    product: {
+      nombre: "",
+      precio: 0.0,
+      sku: "",
+      descripcion: "",
+      categorias: [],
+      archivos: [],
+    },
+    default_product: {
+      nombre: "",
+      precio: 0.0,
+      sku: "",
+      descripcion: "",
+      categorias: [],
+      archivos: [],
+    },
+    planogramList: false,
+    searchMode: false,
+    search: "",
   }),
   computed: {
     defaultShelfHeight() {
@@ -361,6 +452,34 @@ export default {
           `El minimo de altura del estante debe ser de ${this.planogram.minimalShelfSpace}px`
         );
     },
+    async getProduct() {
+      Object.assign(this.product, this.default_product);
+      if (this.productId) {
+        let endpoint = `Articulos/${this.productId}`;
+        await this.$http
+          .get(endpoint)
+          .then((res) => {
+            if (res && res.data) {
+              let product = res.data;
+              this.product = Object.assign(
+                {},
+                {
+                  nombre: product.nombre,
+                  precio: product.precio,
+                  sku: product.sku,
+                  descripcion: product.descripcion,
+                  archivos: product.archivos,
+                  categorias: product.categorias,
+                }
+              );
+            }
+          })
+          .catch((err) => {
+            console.log("error", err);
+          })
+          .finally(() => {});
+      }
+    },
   },
   created: async function () {
     this.loading = true;
@@ -368,10 +487,10 @@ export default {
     await this.$http
       .get("Simple")
       .then((res) => {
-        if (res && res.data) {
-          this.products = res.data.map(function (p) {
-            return { text: p.nombre, value: p.id };
-          });
+        if (res && res.data.list) {
+          this.products = res.data.list.map((p) =>
+            Object.assign({}, { text: p.nombre, value: p.id })
+          );
         }
       })
       .catch((err) => console.log(err))
@@ -386,13 +505,12 @@ export default {
 };
 </script>
 <style>
-.products__column {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  max-height: 700px;
-  border: 1px solid #eeeeee;
-  overflow-y: scroll;
+.__background-small {
+  position: relative;
+  max-height: 20vh;
+  max-width: 20vh;
+  min-height: 20vh;
+  min-width: 20vh;
 }
 
 .my-class {

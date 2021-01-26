@@ -63,29 +63,24 @@
             cols="12"
             class="d-flex flex-column"
           >
-            <v-sheet color="333333">
-              <v-img
-                :lazy-src="require('@/assets/no-disponible.jpg')"
-                :src="pf.url || require('@/assets/no-disponible.jpg')"
-                alt=" "
-                :contain="true"
-                class="__background-small white--text ma-2"
-                gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-              >
-                <template v-slot:placeholder>
-                  <v-row
-                    class="fill-height ma-0"
-                    align="center"
-                    justify="center"
-                  >
-                    <v-progress-circular
-                      indeterminate
-                      color="info"
-                    ></v-progress-circular>
-                  </v-row>
-                </template>
-              </v-img>
-            </v-sheet>
+            <v-img
+              :lazy-src="require('@/assets/no-disponible.jpg')"
+              :src="pf.url || require('@/assets/no-disponible.jpg')"
+              alt=" "
+              v-bind="attrs"
+              v-on="on"
+              :contain="true"
+              class="__background-small white--text my-2 mx-auto"
+            >
+              <template v-slot:placeholder>
+                <v-row class="fill-height ma-0" align="center" justify="center">
+                  <v-progress-circular
+                    indeterminate
+                    color="info"
+                  ></v-progress-circular>
+                </v-row>
+              </template>
+            </v-img>
           </v-col>
         </v-row>
       </v-col>
@@ -352,6 +347,8 @@ export default {
       archivos: [],
     },
     planogramList: false,
+    showMenu: false,
+    menuItems: [{ title: "test 1" }],
     searchMode: false,
     search: "",
   }),

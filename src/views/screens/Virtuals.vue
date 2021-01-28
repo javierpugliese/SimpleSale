@@ -49,6 +49,36 @@
 
     <!-- Planogram management -->
     <v-row v-if="!planogramList">
+      <v-menu
+        v-model="menu"
+        :close-on-content-click="false"
+        :close-on-click="true"
+        :position-x="menu_x"
+        :position-y="menu_y"
+      >
+        <v-list v-if="shelves.length">
+          <!-- <v-list-item>
+            <v-list-item-content>
+              <v-list-item-title>John Leider</v-list-item-title>
+              <v-list-item-subtitle>Founder of Vuetify</v-list-item-subtitle>
+            </v-list-item-content>
+
+            <v-list-item-action>
+              <v-btn icon>
+                <v-icon>fas fa-arrow-alt-circle-right</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item> -->
+        </v-list>
+        <v-alert
+          v-else
+          type="warning"
+          color="#FFA440"
+          icon="fas fa-exclamation-triangle"
+        >
+          No se encontraron estantes.
+        </v-alert>
+      </v-menu>
       <!-- Product files list -->
       <v-col cols="12" md="2">
         <v-row class="d-flex flex-column" dense>
@@ -63,14 +93,13 @@
             cols="12"
             class="d-flex flex-column"
           >
-            <v-sheet color="333333">
+            <v-card color="333333" @click="showMenu($event, pf)">
               <v-img
                 :lazy-src="require('@/assets/no-disponible.jpg')"
                 :src="pf.url || require('@/assets/no-disponible.jpg')"
                 alt=" "
                 :contain="true"
-                class="__background-small white--text ma-2"
-                gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                class="__background-small white--text mx-auto"
               >
                 <template v-slot:placeholder>
                   <v-row
@@ -85,7 +114,7 @@
                   </v-row>
                 </template>
               </v-img>
-            </v-sheet>
+            </v-card>
           </v-col>
         </v-row>
       </v-col>
@@ -376,7 +405,6 @@ export default {
       console.log("sendToShelf", index, this.shelves[i]);
     },
     showMenu(e, product) {
-      e.preventDefault();
       console.log("MENU DATA: ", product);
       this.menu = false;
       this.menu_x = e.clientX;
@@ -481,7 +509,7 @@ export default {
       }
     },
   },
-  created: async function () {
+  mounted: async function () {
     this.loading = true;
     this.products = [];
     await this.$http
@@ -497,8 +525,6 @@ export default {
       .finally(() => {
         this.loading = false;
       });
-  },
-  mounted: function () {
     //this.handleImage();
     this.handleBackground("image");
   },

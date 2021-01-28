@@ -7,6 +7,8 @@ import "roboto-fontface/css/roboto/roboto-fontface.css";
 import "@fortawesome/fontawesome-free/css/all.css";
 import axios from "axios";
 import VueWorker from 'vue-worker';
+import vdr from 'vue-draggable-resizable-gorkys';
+import 'vue-draggable-resizable-gorkys/dist/VueDraggableResizable.css';
 
 //import VueDraggableResizable from 'vue-draggable-resizable';
 
@@ -48,6 +50,7 @@ axios.interceptors.request.use(
 Vue.prototype.$http = axios;
 
 Vue.use(VueWorker, "$worker");
+Vue.component('vdr', vdr);
 
 new Vue({
   router,

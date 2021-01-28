@@ -48,7 +48,10 @@
     </v-toolbar>
 
     <!-- Planogram management -->
-    <v-row v-if="!planogramList">
+    <v-row
+      v-bind:style="{ position: `sticky`, top: `80px` }"
+      v-if="!planogramList"
+    >
       <v-menu
         v-model="menu"
         :close-on-content-click="false"
@@ -220,12 +223,6 @@
                 :handles="['tm', 'mr']"
                 class-name-dragging="shelf__dragging"
               >
-                <!-- <div slot="mr" class="ml-16">
-                  <v-sheet color="secondary" class="text-h6 text-center pa-5">
-                    Vista Previa
-                  </v-sheet>
-                  😀
-                </div> -->
                 <div
                   class="d-flex justify-content-center"
                   :style="{ height: `${shelf.max_height}px` }"
@@ -311,6 +308,94 @@
           </v-row>
         </v-row>
       </v-col>
+    </v-row>
+
+    <v-row>
+      <!-- Planogram -->
+      <vdr
+        :w="getPlanogramWidth"
+        :h="getPlanogramHeight"
+        :parent="false"
+        :debug="false"
+        :min-width="getPlanogramWidth"
+        :min-height="getPlanogramHeight"
+        :isConflictCheck="false"
+        :snap="false"
+        :draggable="false"
+        :resizable="false"
+        :z="100"
+      >
+        <object
+          :data="require('@/assets/fondo.jpg')"
+          :width="getPlanogramWidth"
+          :height="getPlanogramHeight"
+          style="position: absolute; z-index: 100 !important; top: 0; left; 0"
+        >
+          <param name="wmode" value="transparent" />
+        </object>
+        <!-- shelves  -->
+        <vdr
+          v-for="(shelf, index) in shelves"
+          v-bind:key="`shelf-${index}`"
+          :w="getPlanogramWidth"
+          :h="+shelf.max_height"
+          :resizable="false"
+          :draggable="shelf_active"
+          :lock-aspect-ratio="false"
+          :grid="[grid.planogram.x, grid.planogram.y]"
+          :parent="true"
+          :active="shelf_active"
+          :handles="['tm', 'mr']"
+          class-name-dragging="shelf__dragging"
+          :debug="false"
+          :isConflictCheck="true"
+          :snap="false"
+          :z="101"
+        >
+          <vdr
+            v-for="(product, index) in 4"
+            v-bind:key="`product-${index}`"
+            :w="40"
+            :h="40"
+            :min-width="40"
+            :min-height="40"
+            :resizable="true"
+            :draggable="true"
+            :lock-aspect-ratio="true"
+            :grid="[grid.shelf.x, grid.shelf.y]"
+            :parent="true"
+            @activated="shelf_active = false"
+            @deactivated="shelf_active = true"
+            class-name-dragging="shelf__dragging"
+            :isConflictCheck="true"
+            :debug="false"
+            :z="102"
+          >
+            <div
+              class="d-flex justify-content-center"
+              :style="{ height: `40px` }"
+            >
+              <v-img
+                :src="require('@/assets/no-disponible.jpg')"
+                :contain="true"
+                height="40"
+                max-height="40"
+                width="40"
+                max-width="40"
+              ></v-img>
+            </div>
+          </vdr>
+          <!-- Shelf base -->
+          <div class="d-flex" :style="{ height: `${shelf.max_height}px` }">
+            <v-sheet
+              class="align-self-end"
+              :width="getPlanogramWidth"
+              :height="defaultShelfHeight"
+              :color="getRGBA(shelf.color)"
+            ></v-sheet>
+          </div>
+        </vdr>
+      </vdr>
     </v-row>
   </div>
 </template>
@@ -452,16 +537,25 @@ export default {
       };
     },
     onResize: function (x, y, width, height) {
+      /**
+       * Resizing event
+       */
       this.x = x;
       this.y = y;
       this.width = width;
       this.height = height;
     },
     onDrag: function (x, y) {
+      /**
+       * onDragging event used for vdr component from gorkys
+       */
       this.x = x;
       this.y = y;
     },
     addShelf() {
+      /**
+       * Add shelf to planogram, with computed dimentions
+       */
       if (this.shelf_item.maxHeight >= this.planogram.minimalShelfSpace) {
         if (this.planogram.availableSpace > this.planogram.minimalShelfSpace) {
           this.planogram.availableSpace =

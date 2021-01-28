@@ -231,7 +231,7 @@
                   :style="{ height: `${shelf.max_height}px` }"
                 >
                   <!-- Shelf products -->
-                  <vue-draggable-resizable
+                  <!-- <vue-draggable-resizable
                     v-for="(product, index) in 4"
                     v-bind:key="`product-${index}`"
                     :w="40"
@@ -261,7 +261,7 @@
                         max-width="40"
                       ></v-img>
                     </div>
-                  </vue-draggable-resizable>
+                  </vue-draggable-resizable> -->
 
                   <!-- Shelf base -->
                   <v-sheet
@@ -305,8 +305,9 @@
                 :disabled="true"
               ></v-text-field>
             </v-col>
-            <v-col cols="12" sm="4"></v-col>
-            <v-btn @click="addShelf" color="success">Agregar estante</v-btn>
+            <v-col cols="12" sm="4">
+              <v-btn @click="addShelf" color="#55AA99"> Agregar estante </v-btn>
+            </v-col>
           </v-row>
         </v-row>
       </v-col>

@@ -48,7 +48,40 @@
     </v-toolbar>
 
     <!-- Planogram management -->
-    <v-row v-if="!planogramList">
+    <v-row
+      v-bind:style="{ position: `sticky`, top: `80px` }"
+      v-if="!planogramList"
+    >
+      <v-menu
+        v-model="menu"
+        :close-on-content-click="false"
+        :close-on-click="true"
+        :position-x="menu_x"
+        :position-y="menu_y"
+      >
+        <v-list v-if="shelves.length">
+          <!-- <v-list-item>
+            <v-list-item-content>
+              <v-list-item-title>John Leider</v-list-item-title>
+              <v-list-item-subtitle>Founder of Vuetify</v-list-item-subtitle>
+            </v-list-item-content>
+
+            <v-list-item-action>
+              <v-btn icon>
+                <v-icon>fas fa-arrow-alt-circle-right</v-icon>
+              </v-btn>
+            </v-list-item-action>
+          </v-list-item> -->
+        </v-list>
+        <v-alert
+          v-else
+          type="warning"
+          color="#FFA440"
+          icon="fas fa-exclamation-triangle"
+        >
+          No se encontraron estantes.
+        </v-alert>
+      </v-menu>
       <!-- Product files list -->
       <v-col cols="12" md="2">
         <v-row class="d-flex flex-column" dense>
@@ -63,6 +96,7 @@
             cols="12"
             class="d-flex flex-column"
           >
+<<<<<<< HEAD
             <v-img
               :lazy-src="require('@/assets/no-disponible.jpg')"
               :src="pf.url || require('@/assets/no-disponible.jpg')"
@@ -81,6 +115,30 @@
                 </v-row>
               </template>
             </v-img>
+=======
+            <v-card color="333333" @click="showMenu($event, pf)">
+              <v-img
+                :lazy-src="require('@/assets/no-disponible.jpg')"
+                :src="pf.url || require('@/assets/no-disponible.jpg')"
+                alt=" "
+                :contain="true"
+                class="__background-small white--text mx-auto"
+              >
+                <template v-slot:placeholder>
+                  <v-row
+                    class="fill-height ma-0"
+                    align="center"
+                    justify="center"
+                  >
+                    <v-progress-circular
+                      indeterminate
+                      color="info"
+                    ></v-progress-circular>
+                  </v-row>
+                </template>
+              </v-img>
+            </v-card>
+>>>>>>> b68eaa18d0271a993f2b1c25de28fb8debd7c905
           </v-col>
         </v-row>
       </v-col>
@@ -186,18 +244,12 @@
                 :handles="['tm', 'mr']"
                 class-name-dragging="shelf__dragging"
               >
-                <!-- <div slot="mr" class="ml-16">
-                  <v-sheet color="secondary" class="text-h6 text-center pa-5">
-                    Vista Previa
-                  </v-sheet>
-                  😀
-                </div> -->
                 <div
                   class="d-flex justify-content-center"
                   :style="{ height: `${shelf.max_height}px` }"
                 >
                   <!-- Shelf products -->
-                  <vue-draggable-resizable
+                  <!-- <vue-draggable-resizable
                     v-for="(product, index) in 4"
                     v-bind:key="`product-${index}`"
                     :w="40"
@@ -227,7 +279,7 @@
                         max-width="40"
                       ></v-img>
                     </div>
-                  </vue-draggable-resizable>
+                  </vue-draggable-resizable> -->
 
                   <!-- Shelf base -->
                   <v-sheet
@@ -271,11 +323,100 @@
                 :disabled="true"
               ></v-text-field>
             </v-col>
-            <v-col cols="12" sm="4"></v-col>
-            <v-btn @click="addShelf" color="success">Agregar estante</v-btn>
+            <v-col cols="12" sm="4">
+              <v-btn @click="addShelf" color="#55AA99"> Agregar estante </v-btn>
+            </v-col>
           </v-row>
         </v-row>
       </v-col>
+    </v-row>
+
+    <v-row>
+      <!-- Planogram -->
+      <vdr
+        :w="getPlanogramWidth"
+        :h="getPlanogramHeight"
+        :parent="false"
+        :debug="false"
+        :min-width="getPlanogramWidth"
+        :min-height="getPlanogramHeight"
+        :isConflictCheck="false"
+        :snap="false"
+        :draggable="false"
+        :resizable="false"
+        :z="100"
+      >
+        <object
+          :data="require('@/assets/fondo.jpg')"
+          :width="getPlanogramWidth"
+          :height="getPlanogramHeight"
+          style="position: absolute; z-index: 100 !important; top: 0; left; 0"
+        >
+          <param name="wmode" value="transparent" />
+        </object>
+        <!-- shelves  -->
+        <vdr
+          v-for="(shelf, index) in shelves"
+          v-bind:key="`shelf-${index}`"
+          :w="getPlanogramWidth"
+          :h="+shelf.max_height"
+          :resizable="false"
+          :draggable="shelf_active"
+          :lock-aspect-ratio="false"
+          :grid="[grid.planogram.x, grid.planogram.y]"
+          :parent="true"
+          :active="shelf_active"
+          :handles="['tm', 'mr']"
+          class-name-dragging="shelf__dragging"
+          :debug="false"
+          :isConflictCheck="true"
+          :snap="false"
+          :z="101"
+        >
+          <vdr
+            v-for="(product, index) in 4"
+            v-bind:key="`product-${index}`"
+            :w="40"
+            :h="40"
+            :min-width="40"
+            :min-height="40"
+            :resizable="true"
+            :draggable="true"
+            :lock-aspect-ratio="true"
+            :grid="[grid.shelf.x, grid.shelf.y]"
+            :parent="true"
+            @activated="shelf_active = false"
+            @deactivated="shelf_active = true"
+            class-name-dragging="shelf__dragging"
+            :isConflictCheck="true"
+            :debug="false"
+            :z="102"
+          >
+            <div
+              class="d-flex justify-content-center"
+              :style="{ height: `40px` }"
+            >
+              <v-img
+                :src="require('@/assets/no-disponible.jpg')"
+                :contain="true"
+                height="40"
+                max-height="40"
+                width="40"
+                max-width="40"
+              ></v-img>
+            </div>
+          </vdr>
+          <!-- Shelf base -->
+          <div class="d-flex" :style="{ height: `${shelf.max_height}px` }">
+            <v-sheet
+              class="align-self-end"
+              :width="getPlanogramWidth"
+              :height="defaultShelfHeight"
+              :color="getRGBA(shelf.color)"
+            ></v-sheet>
+          </div>
+        </vdr>
+      </vdr>
     </v-row>
   </div>
 </template>
@@ -373,7 +514,6 @@ export default {
       console.log("sendToShelf", index, this.shelves[i]);
     },
     showMenu(e, product) {
-      e.preventDefault();
       console.log("MENU DATA: ", product);
       this.menu = false;
       this.menu_x = e.clientX;
@@ -420,16 +560,25 @@ export default {
       };
     },
     onResize: function (x, y, width, height) {
+      /**
+       * Resizing event
+       */
       this.x = x;
       this.y = y;
       this.width = width;
       this.height = height;
     },
     onDrag: function (x, y) {
+      /**
+       * onDragging event used for vdr component from gorkys
+       */
       this.x = x;
       this.y = y;
     },
     addShelf() {
+      /**
+       * Add shelf to planogram, with computed dimentions
+       */
       if (this.shelf_item.maxHeight >= this.planogram.minimalShelfSpace) {
         if (this.planogram.availableSpace > this.planogram.minimalShelfSpace) {
           this.planogram.availableSpace =
@@ -478,7 +627,7 @@ export default {
       }
     },
   },
-  created: async function () {
+  mounted: async function () {
     this.loading = true;
     this.products = [];
     await this.$http
@@ -494,8 +643,6 @@ export default {
       .finally(() => {
         this.loading = false;
       });
-  },
-  mounted: function () {
     //this.handleImage();
     this.handleBackground("image");
   },

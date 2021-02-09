@@ -60,18 +60,25 @@
         :position-y="menu_y"
       >
         <v-list v-if="shelves.length">
-          <!-- <v-list-item>
+          <v-list-item disabled>
             <v-list-item-content>
-              <v-list-item-title>John Leider</v-list-item-title>
-              <v-list-item-subtitle>Founder of Vuetify</v-list-item-subtitle>
+              <v-list-item-title>Enviar a:</v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+          <v-list-item
+            v-for="(s, index) in shelves"
+            :key="`AvailableShelf-${index}`"
+          >
+            <v-list-item-content>
+              <v-list-item-title>Estante {{ index }}</v-list-item-title>
             </v-list-item-content>
 
             <v-list-item-action>
-              <v-btn icon>
+              <v-btn @click="sendToShelf(index)" icon>
                 <v-icon>fas fa-arrow-alt-circle-right</v-icon>
               </v-btn>
             </v-list-item-action>
-          </v-list-item> -->
+          </v-list-item>
         </v-list>
         <v-alert
           v-else
@@ -162,7 +169,7 @@
               cols="12"
               class="d-flex flex-column"
             >
-              <v-card color="333333" @click="showMenu($event, pf)">
+              <v-card color="333333" @click="showMenu($event, pf, index)">
                 <v-img
                   :lazy-src="require('@/assets/no-disponible.jpg')"
                   :src="pf.url || require('@/assets/no-disponible.jpg')"
@@ -241,12 +248,12 @@
                 :z="101"
               >
                 <vdr
-                  v-for="(product, index) in 4"
+                  v-for="(product, index) in shelf.storedProducts"
                   v-bind:key="`product-${index}`"
-                  :w="40"
-                  :h="40"
-                  :min-width="40"
-                  :min-height="40"
+                  :w="calculateDimensions(product.url)[w]"
+                  :h="calculateDimensions(product.url)[h]"
+                  :min-width="10"
+                  :min-height="10"
                   :resizable="true"
                   :draggable="true"
                   :lock-aspect-ratio="true"
@@ -258,18 +265,19 @@
                   :isConflictCheck="true"
                   :debug="false"
                   :z="102"
-                  @resizing="onResize"
+                  :snap="true"
+                  :snap-tolerance="2"
                 >
                   <div
                     class="d-flex justify-content-center ma-0"
-                    :style="{ height: `40px` }"
+                    :style="{ height: `100%`, 'max-width': `100%` }"
                   >
-                    <v-img
-                      :src="require('@/assets/teatrical.jpg')"
-                      :contain="true"
-                      :height="height"
-                      :width="width"
-                    ></v-img>
+                    <img
+                      class="shelf_img"
+                      v-bind:src="
+                        product.url || require('@/assets/no-disponible.jpg')
+                      "
+                    />
                   </div>
                 </vdr>
                 <!-- Shelf base -->
@@ -403,11 +411,6 @@ export default {
         x: 5,
         y: 5,
       },
-      pile: {
-        show: true,
-        x: 1,
-        y: 1,
-      },
     },
     planogram: {
       height: Math.ceil(window.innerHeight * 0.75),
@@ -450,6 +453,8 @@ export default {
     searchMode: false,
     search: "",
     file: null,
+    calculatedProductWidth: 0,
+    calculatedProductHeight: 0,
   }),
   computed: {
     defaultShelfHeight() {
@@ -467,15 +472,45 @@ export default {
     },
   },
   methods: {
-    sendToShelf(index) {
-      let i = index;
-      console.log("sendToShelf", index, this.shelves[i]);
+    calculateDimensions(url) {
+      /**
+       * Calculates aproximated initial width and height
+       * of product in a shelf
+       */
+      const image = new Image();
+      image.src = url;
+      image.onload = () => {
+        return image.src;
+      };
+      let max_w = this.getPlanogramWidth / 10;
+      let max_h = this.shelf_item.maxHeight / 4;
+      let calculated_value = (max_h / image.height) * image.width;
+      this.calculatedProductWidth = max_w;
+      this.calculatedProductHeight = calculated_value;
+      if (calculated_value > max_h) {
+        calculated_value = (max_w / image.width) * image.height;
+        this.calculatedProductWidth = calculated_value;
+        this.calculatedProductHeight = max_h;
+      }
+      return Object.assign(
+        {},
+        {
+          w: this.calculatedProductWidth,
+          h: this.calculatedProductHeight,
+        }
+      );
     },
-    showMenu(e, product) {
-      console.log("MENU DATA: ", product);
+    sendToShelf(pos) {
+      //let i = index;
+      //console.log("sendToShelf", index, this.shelves[i]);
+      this.shelves[pos].storedProducts.push(this.productBeingStored);
+      console.log("shelves", this.shelves);
+    },
+    showMenu(e, product, pos) {
       this.menu = false;
       this.menu_x = e.clientX;
       this.menu_y = e.clientY;
+      this.productBeingStored = Object.assign({}, { ...product, index: pos });
       this.$nextTick(() => {
         this.menu = true;
       });
@@ -521,9 +556,11 @@ export default {
               {
                 color: this.shelf_item.baseColor,
                 max_height: this.shelf_item.maxHeight,
+                storedProducts: [],
               }
             )
           );
+          console.log("shelves", this.shelves);
         } else alert("No hay más espacio disponible.");
       } else
         alert(
@@ -580,6 +617,11 @@ export default {
 };
 </script>
 <style>
+.shelf_img {
+  max-width: 100%;
+  height: 100%;
+}
+
 .__background-small {
   position: relative;
   max-height: 20vh;

@@ -82,47 +82,8 @@
           No se encontraron estantes.
         </v-alert>
       </v-menu>
-      <!-- Product files list -->
-      <v-col cols="12" md="2">
-        <v-row class="d-flex flex-column" dense>
-          <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-3">
-              Archivos del producto
-            </v-sheet>
-          </v-col>
-          <v-col
-            v-for="(pf, index) in product.archivos"
-            :key="`productFile-${index}`"
-            cols="12"
-            class="d-flex flex-column"
-          >
-            <v-card color="333333" @click="showMenu($event, pf)">
-              <v-img
-                :lazy-src="require('@/assets/no-disponible.jpg')"
-                :src="pf.url || require('@/assets/no-disponible.jpg')"
-                alt=" "
-                :contain="true"
-                class="__background-small white--text mx-auto"
-              >
-                <template v-slot:placeholder>
-                  <v-row
-                    class="fill-height ma-0"
-                    align="center"
-                    justify="center"
-                  >
-                    <v-progress-circular
-                      indeterminate
-                      color="info"
-                    ></v-progress-circular>
-                  </v-row>
-                </template>
-              </v-img>
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-col>
 
-      <!-- Chosen files list -->
+      <!-- Product details -->
       <v-col cols="12" md="2">
         <v-row class="d-flex flex-column" dense>
           <v-col cols="12">
@@ -181,6 +142,53 @@
         </v-row>
       </v-col>
 
+      <!-- Product files list -->
+      <v-col cols="12" md="2">
+        <v-row class="d-flex flex-column" dense>
+          <v-col cols="12">
+            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+              Archivos del producto
+            </v-sheet>
+          </v-col>
+          <div
+            :style="{
+              'overflow-y': `scroll`,
+              height: `${getPlanogramHeight}px`,
+            }"
+          >
+            <v-col
+              v-for="(pf, index) in product.archivos"
+              :key="`productFile-${index}`"
+              cols="12"
+              class="d-flex flex-column"
+            >
+              <v-card color="333333" @click="showMenu($event, pf)">
+                <v-img
+                  :lazy-src="require('@/assets/no-disponible.jpg')"
+                  :src="pf.url || require('@/assets/no-disponible.jpg')"
+                  alt=" "
+                  :contain="true"
+                  class="__background-small white--text mx-auto"
+                >
+                  <template v-slot:placeholder>
+                    <v-row
+                      class="fill-height ma-0"
+                      align="center"
+                      justify="center"
+                    >
+                      <v-progress-circular
+                        indeterminate
+                        color="info"
+                      ></v-progress-circular>
+                    </v-row>
+                  </template>
+                </v-img>
+              </v-card>
+            </v-col>
+          </div>
+        </v-row>
+      </v-col>
+
       <!-- Planogram preview -->
       <v-col cols="12" md="3">
         <v-row class="d-flex flex-column" dense>
@@ -189,78 +197,86 @@
               Planograma
             </v-sheet>
           </v-col>
-          <v-col cols="12">
-            <div
-              v-bind:style="{
-                width: `${getPlanogramWidth}px`,
-                height: `${getPlanogramHeight}px`,
-                position: 'relative',
-                'z-index': 10,
-              }"
+          <v-col cols="12" class="d-flex justify-center">
+            <!-- Planogram -->
+            <vdr
+              :w="getPlanogramWidth"
+              :h="getPlanogramHeight"
+              :parent="false"
+              :debug="false"
+              :min-width="getPlanogramWidth"
+              :min-height="getPlanogramHeight"
+              :isConflictCheck="false"
+              :snap="false"
+              :draggable="false"
+              :resizable="false"
+              :z="100"
             >
               <object
                 :data="require('@/assets/fondo.jpg')"
                 :width="getPlanogramWidth"
                 :height="getPlanogramHeight"
                 style="position: absolute; z-index: 100 !important; top: 0; left; 0"
+                class="ma-0"
               >
                 <param name="wmode" value="transparent" />
               </object>
-
-              <vue-draggable-resizable
+              <!-- shelves  -->
+              <vdr
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
                 :w="getPlanogramWidth"
                 :h="+shelf.max_height"
-                axis="y"
                 :resizable="false"
                 :draggable="shelf_active"
                 :lock-aspect-ratio="false"
-                :grid="[grid.planogram.x, grid.planogram.y]"
-                :z="101"
+                :grid="[1, 1]"
                 :parent="true"
                 :active="shelf_active"
                 :handles="['tm', 'mr']"
                 class-name-dragging="shelf__dragging"
+                :debug="false"
+                :isConflictCheck="true"
+                :snap="false"
+                :z="101"
               >
+                <vdr
+                  v-for="(product, index) in 4"
+                  v-bind:key="`product-${index}`"
+                  :w="40"
+                  :h="40"
+                  :min-width="40"
+                  :min-height="40"
+                  :resizable="true"
+                  :draggable="true"
+                  :lock-aspect-ratio="true"
+                  :grid="[1, 1]"
+                  :parent="true"
+                  @activated="shelf_active = false"
+                  @deactivated="shelf_active = true"
+                  class-name-dragging="shelf__dragging"
+                  :isConflictCheck="true"
+                  :debug="false"
+                  :z="102"
+                  @resizing="onResize"
+                >
+                  <div
+                    class="d-flex justify-content-center ma-0"
+                    :style="{ height: `40px` }"
+                  >
+                    <v-img
+                      :src="require('@/assets/teatrical.jpg')"
+                      :contain="true"
+                      :height="height"
+                      :width="width"
+                    ></v-img>
+                  </div>
+                </vdr>
+                <!-- Shelf base -->
                 <div
-                  class="d-flex justify-content-center"
+                  class="d-flex ma-0"
                   :style="{ height: `${shelf.max_height}px` }"
                 >
-                  <!-- Shelf products -->
-                  <!-- <vue-draggable-resizable
-                    v-for="(product, index) in 4"
-                    v-bind:key="`product-${index}`"
-                    :w="40"
-                    :h="40"
-                    :min-width="40"
-                    :min-height="40"
-                    :resizable="true"
-                    :draggable="true"
-                    :lock-aspect-ratio="true"
-                    :grid="[grid.shelf.x, grid.shelf.y]"
-                    :z="102"
-                    :parent="true"
-                    @activated="shelf_active = false"
-                    @deactivated="shelf_active = true"
-                    class-name-dragging="shelf__dragging"
-                  >
-                    <div
-                      class="d-flex justify-content-center"
-                      :style="{ height: `40px` }"
-                    >
-                      <v-img
-                        :src="require('@/assets/no-disponible.jpg')"
-                        :contain="true"
-                        height="40"
-                        max-height="40"
-                        width="40"
-                        max-width="40"
-                      ></v-img>
-                    </div>
-                  </vue-draggable-resizable> -->
-
-                  <!-- Shelf base -->
                   <v-sheet
                     class="align-self-end"
                     :width="getPlanogramWidth"
@@ -268,8 +284,8 @@
                     :color="getRGBA(shelf.color)"
                   ></v-sheet>
                 </div>
-              </vue-draggable-resizable>
-            </div>
+              </vdr>
+            </vdr>
           </v-col>
         </v-row>
       </v-col>
@@ -282,135 +298,97 @@
               Configuración del planograma
             </v-sheet>
           </v-col>
-          <v-row dense>
-            <v-col cols="12" sm="4">
-              <v-color-picker
-                v-model="shelf_item.baseColor"
-                label="Color de la base"
-                dot-size="25"
-                hide-mode-switch
-                mode="rgba"
-              ></v-color-picker>
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-text-field
-                v-model="shelf_item.maxHeight"
-                label="Tamaño máximo manipulable (px)"
-                outlined
-                clearable
-                required
-                :disabled="true"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="4">
-              <v-btn @click="addShelf" color="#55AA99"> Agregar estante </v-btn>
-            </v-col>
-          </v-row>
+          <v-col cols="12">
+            <v-row>
+              <v-col cols="12" sm="4">
+                <v-color-picker
+                  v-model="shelf_item.baseColor"
+                  label="Color de la base"
+                  dot-size="25"
+                  hide-mode-switch
+                  mode="rgba"
+                ></v-color-picker>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <v-text-field
+                  v-model="shelf_item.maxHeight"
+                  label="Tamaño máximo manipulable (px)"
+                  outlined
+                  clearable
+                  required
+                  :disabled="true"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="4">
+                <v-btn @click="addShelf" color="#55AA99">
+                  Agregar estante
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="7">
+                <v-file-input
+                  v-model="file"
+                  counter
+                  label="Archivo (imagen o video)"
+                  accept=".jpg, .mp4"
+                  placeholder="Seleccione un archivo..."
+                  prepend-icon=""
+                  outlined
+                  :show-size="1000"
+                >
+                  <template v-slot:selection="{ index, text }">
+                    <v-chip v-if="index < 2" color="info" dark label small>
+                      {{ text }}
+                    </v-chip>
+                  </template>
+                </v-file-input>
+              </v-col>
+              <v-col cols="1">
+                <p class="text-h5 text-center">ó</p>
+              </v-col>
+              <v-col cols="4">
+                <v-btn
+                  block
+                  color="success"
+                  :disabled="loading"
+                  :loading="loading"
+                >
+                  <v-icon class="pr-2">fas fa-hand-pointer</v-icon>
+                  Elegir desde Galeria
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-spacer></v-spacer>
+              <v-col cols="4">
+                <v-btn
+                  large
+                  block
+                  color="success"
+                  :disabled="loading"
+                  :loading="loading"
+                >
+                  Guardar
+                </v-btn>
+              </v-col>
+            </v-row>
+          </v-col>
         </v-row>
       </v-col>
-    </v-row>
-
-    <v-row>
-      <!-- Planogram -->
-      <vdr
-        :w="getPlanogramWidth"
-        :h="getPlanogramHeight"
-        :parent="false"
-        :debug="false"
-        :min-width="getPlanogramWidth"
-        :min-height="getPlanogramHeight"
-        :isConflictCheck="false"
-        :snap="false"
-        :draggable="false"
-        :resizable="false"
-        :z="100"
-      >
-        <object
-          :data="require('@/assets/fondo.jpg')"
-          :width="getPlanogramWidth"
-          :height="getPlanogramHeight"
-          style="position: absolute; z-index: 100 !important; top: 0; left; 0"
-        >
-          <param name="wmode" value="transparent" />
-        </object>
-        <!-- shelves  -->
-        <vdr
-          v-for="(shelf, index) in shelves"
-          v-bind:key="`shelf-${index}`"
-          :w="getPlanogramWidth"
-          :h="+shelf.max_height"
-          :resizable="false"
-          :draggable="shelf_active"
-          :lock-aspect-ratio="false"
-          :grid="[grid.planogram.x, grid.planogram.y]"
-          :parent="true"
-          :active="shelf_active"
-          :handles="['tm', 'mr']"
-          class-name-dragging="shelf__dragging"
-          :debug="false"
-          :isConflictCheck="true"
-          :snap="false"
-          :z="101"
-        >
-          <vdr
-            v-for="(product, index) in 4"
-            v-bind:key="`product-${index}`"
-            :w="40"
-            :h="40"
-            :min-width="40"
-            :min-height="40"
-            :resizable="true"
-            :draggable="true"
-            :lock-aspect-ratio="true"
-            :grid="[grid.shelf.x, grid.shelf.y]"
-            :parent="true"
-            @activated="shelf_active = false"
-            @deactivated="shelf_active = true"
-            class-name-dragging="shelf__dragging"
-            :isConflictCheck="true"
-            :debug="false"
-            :z="102"
-          >
-            <div
-              class="d-flex justify-content-center"
-              :style="{ height: `40px` }"
-            >
-              <v-img
-                :src="require('@/assets/no-disponible.jpg')"
-                :contain="true"
-                height="40"
-                max-height="40"
-                width="40"
-                max-width="40"
-              ></v-img>
-            </div>
-          </vdr>
-          <!-- Shelf base -->
-          <div class="d-flex" :style="{ height: `${shelf.max_height}px` }">
-            <v-sheet
-              class="align-self-end"
-              :width="getPlanogramWidth"
-              :height="defaultShelfHeight"
-              :color="getRGBA(shelf.color)"
-            ></v-sheet>
-          </div>
-        </vdr>
-      </vdr>
     </v-row>
   </div>
 </template>
 
 <script>
-import VueDraggableResizable from "vue-draggable-resizable";
-import "vue-draggable-resizable/dist/VueDraggableResizable.css";
 // @ is an alias to /src
 
 export default {
   name: "Virtuals",
-  components: { VueDraggableResizable },
+  components: {},
   data: () => ({
-    width: 0,
-    height: 0,
+    width: 40,
+    height: 40,
     x: 0,
     y: 0,
     draggable: false,
@@ -467,10 +445,11 @@ export default {
       archivos: [],
     },
     planogramList: false,
-    showMenu: false,
+    _showMenu: false,
     menuItems: [{ title: "test 1" }],
     searchMode: false,
     search: "",
+    file: null,
   }),
   computed: {
     defaultShelfHeight() {
@@ -515,49 +494,23 @@ export default {
         image.width = w + 1;
         image.height = h + 1;
         image.onload = () => {
-          /* document.getElementById(
-            "planogram"
-          ).style.backgroundImage = `url('${image.src}')`; */
           return image.src;
         };
       } else if (type === "video") {
         console.log("is video");
       }
     },
-    handleImage: function (path) {
-      console.log("path", path);
-      let h = window.innerHeight * 0.75;
-      let w = (h / 16) * 9;
-      const asset = require("@/assets/no-disponible.jpg");
-      const image = new Image();
-      image.src = asset;
-      image.width = w + 1;
-      image.height = h + 1;
-      console.log("img", image);
-      image.onload = () => {
-        console.log("img loaded", image.width, image.height);
-      };
-    },
     onResize: function (x, y, width, height) {
-      /**
-       * Resizing event
-       */
       this.x = x;
       this.y = y;
       this.width = width;
       this.height = height;
     },
     onDrag: function (x, y) {
-      /**
-       * onDragging event used for vdr component from gorkys
-       */
       this.x = x;
       this.y = y;
     },
     addShelf() {
-      /**
-       * Add shelf to planogram, with computed dimentions
-       */
       if (this.shelf_item.maxHeight >= this.planogram.minimalShelfSpace) {
         if (this.planogram.availableSpace > this.planogram.minimalShelfSpace) {
           this.planogram.availableSpace =
@@ -622,7 +575,6 @@ export default {
       .finally(() => {
         this.loading = false;
       });
-    //this.handleImage();
     this.handleBackground("image");
   },
 };

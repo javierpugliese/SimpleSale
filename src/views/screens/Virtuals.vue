@@ -96,26 +96,6 @@
             cols="12"
             class="d-flex flex-column"
           >
-<<<<<<< HEAD
-            <v-img
-              :lazy-src="require('@/assets/no-disponible.jpg')"
-              :src="pf.url || require('@/assets/no-disponible.jpg')"
-              alt=" "
-              v-bind="attrs"
-              v-on="on"
-              :contain="true"
-              class="__background-small white--text my-2 mx-auto"
-            >
-              <template v-slot:placeholder>
-                <v-row class="fill-height ma-0" align="center" justify="center">
-                  <v-progress-circular
-                    indeterminate
-                    color="info"
-                  ></v-progress-circular>
-                </v-row>
-              </template>
-            </v-img>
-=======
             <v-card color="333333" @click="showMenu($event, pf)">
               <v-img
                 :lazy-src="require('@/assets/no-disponible.jpg')"
@@ -138,7 +118,6 @@
                 </template>
               </v-img>
             </v-card>
->>>>>>> b68eaa18d0271a993f2b1c25de28fb8debd7c905
           </v-col>
         </v-row>
       </v-col>

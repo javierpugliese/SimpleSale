@@ -218,13 +218,11 @@
               :draggable="false"
               :resizable="false"
               :z="100"
+              :handles="[]"
             >
               <object
                 :data="require('@/assets/fondo.jpg')"
-                :width="getPlanogramWidth"
-                :height="getPlanogramHeight"
-                style="position: absolute; z-index: 100 !important; top: 0; left; 0"
-                class="ma-0"
+                class="planogram__background ma-0 pa-0"
               >
                 <param name="wmode" value="transparent" />
               </object>
@@ -244,14 +242,15 @@
                 class-name-dragging="shelf__dragging"
                 :debug="false"
                 :isConflictCheck="true"
-                :snap="false"
                 :z="101"
+                :snap="true"
+                :snap-tolerance="4"
               >
                 <vdr
                   v-for="(product, index) in shelf.storedProducts"
                   v-bind:key="`product-${index}`"
-                  :w="calculateDimensions(product.url)[w]"
-                  :h="calculateDimensions(product.url)[h]"
+                  :w="product.size.w"
+                  :h="product.size.h"
                   :min-width="10"
                   :min-height="10"
                   :resizable="true"
@@ -267,6 +266,7 @@
                   :z="102"
                   :snap="true"
                   :snap-tolerance="2"
+                  :handles="['tl', 'tr', 'bl', 'br']"
                 >
                   <div
                     class="d-flex justify-content-center ma-0"
@@ -320,7 +320,7 @@
               <v-col cols="12" sm="4">
                 <v-text-field
                   v-model="shelf_item.maxHeight"
-                  label="Tamaño máximo manipulable (px)"
+                  label="Altura máxima manipulable"
                   outlined
                   clearable
                   required
@@ -472,38 +472,29 @@ export default {
     },
   },
   methods: {
-    calculateDimensions(url) {
-      /**
-       * Calculates aproximated initial width and height
-       * of product in a shelf
-       */
+    sendToShelf(pos) {
       const image = new Image();
-      image.src = url;
+      image.src = this.productBeingStored.url;
       image.onload = () => {
         return image.src;
       };
-      let max_w = this.getPlanogramWidth / 10;
-      let max_h = this.shelf_item.maxHeight / 4;
-      let calculated_value = (max_h / image.height) * image.width;
-      this.calculatedProductWidth = max_w;
-      this.calculatedProductHeight = calculated_value;
-      if (calculated_value > max_h) {
-        calculated_value = (max_w / image.width) * image.height;
-        this.calculatedProductWidth = calculated_value;
-        this.calculatedProductHeight = max_h;
+      let max_w = Math.floor(this.getPlanogramWidth / 10);
+      let max_h = Math.floor(this.shelf_item.maxHeight / 4);
+      let estimated_height = Math.ceil((max_w / image.width) * image.height);
+      let size = Object.assign({}, { w: max_w, h: estimated_height });
+      if (estimated_height > max_h) {
+        let estimated_width = Math.ceil((max_h / image.height) * image.width);
+        size = Object.assign({}, { w: estimated_width, h: max_h });
       }
-      return Object.assign(
-        {},
-        {
-          w: this.calculatedProductWidth,
-          h: this.calculatedProductHeight,
-        }
+      this.shelves[pos].storedProducts.push(
+        Object.assign(
+          {},
+          {
+            ...this.productBeingStored,
+            size,
+          }
+        )
       );
-    },
-    sendToShelf(pos) {
-      //let i = index;
-      //console.log("sendToShelf", index, this.shelves[i]);
-      this.shelves[pos].storedProducts.push(this.productBeingStored);
       console.log("shelves", this.shelves);
     },
     showMenu(e, product, pos) {
@@ -518,22 +509,6 @@ export default {
     getRGBA(rgba) {
       const color = rgba;
       return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
-    },
-    handleBackground(type, path = "") {
-      if (type === "image") {
-        const asset = require("@/assets/fondo.jpg" || path);
-        let h = window.innerHeight * 0.75;
-        let w = (h / 16) * 9;
-        const image = new Image();
-        image.src = asset;
-        image.width = w + 1;
-        image.height = h + 1;
-        image.onload = () => {
-          return image.src;
-        };
-      } else if (type === "video") {
-        console.log("is video");
-      }
     },
     onResize: function (x, y, width, height) {
       this.x = x;
@@ -612,11 +587,19 @@ export default {
       .finally(() => {
         this.loading = false;
       });
-    this.handleBackground("image");
   },
 };
 </script>
 <style>
+.planogram__background {
+  position: absolute;
+  z-index: 100 !important;
+  top: 0;
+  left: 0;
+  max-width: 100%;
+  height: 100%;
+}
+
 .shelf_img {
   max-width: 100%;
   height: 100%;

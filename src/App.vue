@@ -31,11 +31,40 @@
             <v-list-item-title>{{ item.title }}</v-list-item-title>
           </v-list-item-content>
         </v-list-item>
+        <v-list-group
+          v-for="group in groups"
+          :key="group.title"
+          active-class="group__active"
+          no-action
+        >
+          <template v-slot:activator>
+            <v-list-item-icon>
+              <v-icon class="mx-auto">{{ group.icon }}</v-icon>
+            </v-list-item-icon>
+            <v-list-item-content>
+              <v-list-item-title v-text="group.title"></v-list-item-title>
+            </v-list-item-content>
+          </template>
+
+          <v-list-item
+            v-for="child in group.items"
+            :key="child.title"
+            link
+            :to="child.link"
+            active-class="child__active"
+          >
+            <v-list-item-content>
+              <v-list-item-title v-text="child.title"></v-list-item-title>
+            </v-list-item-content>
+          </v-list-item>
+        </v-list-group>
       </v-list>
 
       <template v-slot:append>
         <div class="pa-2">
-          <v-btn color="red" large block> Cerrar sesión </v-btn>
+          <v-btn color="#E85111" to="/login/" large block>
+            Cerrar sesión
+          </v-btn>
         </div>
       </template>
     </v-navigation-drawer>
@@ -92,11 +121,29 @@ export default {
     items: [
       { title: "Galería", icon: "fas fa-image", link: "/" },
       { title: "Productos", icon: "fas fa-tag", link: "/productos" },
-      { title: "Pantallas", icon: "fas fa-mobile-alt", link: "/pantallas" },
       {
         title: "Mantenimiento de Tablas",
         icon: "fas fa-tools",
         link: "/mantenimiento-de-tablas",
+      },
+    ],
+    groups: [
+      {
+        title: "Pantallas",
+        icon: "fas fa-mobile-alt",
+        link: "/pantallas",
+        items: [
+          {
+            title: "Publicaciones",
+            icon: "",
+            link: "/pantallas/publicaciones",
+          },
+          {
+            title: "Planogramas",
+            icon: "",
+            link: "/pantallas/planogramas",
+          },
+        ],
       },
     ],
   }),
@@ -105,5 +152,14 @@ export default {
 <style>
 .table-cursor tbody tr:hover {
   cursor: pointer;
+}
+.group__active {
+  color: #fff !important;
+  caret-color: #fff !important;
+}
+.child__active {
+  color: #fff !important;
+  caret-color: #fff !important;
+  background-color: #666666;
 }
 </style>

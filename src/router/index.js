@@ -33,24 +33,17 @@ const routes = [
     }
   },
   {
-    path: "/pantallas",
-    name: "Screens",
-    component: function () {
-      return import(/* webpackChunkName: "screens" */ "../views/screens/Screens.vue");
-    }
-  },
-  {
     path: "/pantallas/publicaciones",
-    name: "AdScreens",
+    name: "Publications",
     component: function () {
-      return import(/* webpackChunkName: "ads" */ "../views/screens/Ads.vue");
+      return import(/* webpackChunkName: "publications" */ "../views/screens/Publications.vue");
     }
   },
   {
-    path: "/pantallas/gondolas",
-    name: "Virtuals",
+    path: "/pantallas/planogramas",
+    name: "Planograms",
     component: function () {
-      return import(/* webpackChunkName: "virtuals" */ "../views/screens/Virtuals.vue");
+      return import(/* webpackChunkName: "planograms" */ "../views/screens/Planograms.vue");
     }
   },
   {

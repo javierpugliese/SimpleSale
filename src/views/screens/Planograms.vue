@@ -1,5 +1,5 @@
 <template>
-  <div class="virtuals">
+  <div class="planograms">
     <!-- Toolbar -->
     <v-toolbar :color="!planogramList ? 'grey darken-4' : '#1F96A3'" dark>
       <v-scale-transition>
@@ -392,7 +392,7 @@
 // @ is an alias to /src
 
 export default {
-  name: "Virtuals",
+  name: "Planograms",
   components: {},
   data: () => ({
     width: 40,

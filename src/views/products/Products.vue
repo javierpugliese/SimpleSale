@@ -109,7 +109,7 @@
                           <div class="d-flex justify-center justify-sm-start">
                             <v-switch
                               v-model="editedItem.activo"
-                              label="¿Habilitar?"
+                              label="¿Habilitar producto?"
                             ></v-switch>
                           </div>
                         </v-col>
@@ -318,7 +318,7 @@
                           >
                             <v-img
                               v-for="(i, index) in filesURLs"
-                              v-bind:key="index"
+                              :key="`fileURL-${index}`"
                               :src="i || require('@/assets/no-disponible.jpg')"
                               alt=" "
                               :contain="true"
@@ -358,7 +358,7 @@
                           >
                             <v-img
                               v-for="(i, index) in editedItem.archivos"
-                              v-bind:key="index"
+                              :key="`productFile-${index}`"
                               :lazy-src="require('@/assets/no-disponible.jpg')"
                               :src="
                                 i.url || require('@/assets/no-disponible.jpg')
@@ -629,6 +629,10 @@ export default {
   },
 
   methods: {
+    /** Removes duplicate keys in array */
+    removeArrDuplicates(array) {
+      return [...new Set(array)];
+    },
     /* Parse Date to readable locale 'es' format*/
     parseDate(item) {
       if (item.modificado) return moment(item.modificado).format("LLL");
@@ -787,15 +791,29 @@ export default {
       this.editedIndex = this.products.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
-      this.editedItem.idTipo = item.tipoArticulo.id || -1;
-      this.editedItem.idFabricante = item.fabricante.id || -1;
-      this.editedItem.categorias = item.categorias.map((c) => c.id) || [];
-      this.editedItem.atributos = item.atributos.map((a) => a.id) || [];
-      try {
-        this.editedItem.codigosDeBarra = item.codigosDeBarra.map((b) => b.id);
-      } catch (error) {
-        this.editedItem.codigosDeBarra = [];
-      }
+      if (item.idTipo) {
+        this.editedItem.idTipo = item.tipoArticulo.id;
+      } else this.editedItem.idTipo = -1;
+      if (item.fabricante) {
+        this.editedItem.idFabricante = item.fabricante.id;
+      } else this.editedItem.idFabricante = -1;
+
+      // removeArrDuplicates prevents key duplicates in component render
+      if (item.categorias && item.categorias.length) {
+        this.editedItem.categorias = this.removeArrDuplicates(
+          item.categorias.map((c) => c.id)
+        );
+      } else this.editedItem.categorias = [];
+      if (item.atributos && item.atributos.length) {
+        this.editedItem.atributos = this.removeArrDuplicates(
+          item.atributos.map((a) => a.id)
+        );
+      } else this.editedItem.atributos = [];
+      if (item.codigosDeBarra && item.codigosDeBarra.length) {
+        this.editedItem.codigosDeBarra = this.removeArrDuplicates(
+          item.codigosDeBarra.map((b) => b.id)
+        );
+      } else this.editedItem.codigosDeBarra = [];
       this.dialog = true;
     },
 
@@ -845,6 +863,8 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.files = [];
+        this.filesURLs = [];
       });
     },
 
@@ -893,7 +913,7 @@ export default {
             this.loading = false;
           });
       } else {
-        this.loading = true;        
+        this.loading = true;
         await this.$http
           .post(
             "Articulos",

@@ -620,6 +620,12 @@ export default {
         val = 0;
       }
     },
+    editedIndex(val) {
+      console.log("editedIndex", val);
+    },
+    editedId(val) {
+      console.log("editedIndex", val);
+    },
   },
 
   computed: {
@@ -811,7 +817,7 @@ export default {
       } else this.editedItem.atributos = [];
       if (item.codigosDeBarra && item.codigosDeBarra.length) {
         this.editedItem.codigosDeBarra = this.removeArrDuplicates(
-          item.codigosDeBarra.map((b) => b.id)
+          item.codigosDeBarra.map((b) => b.ean)
         );
       } else this.editedItem.codigosDeBarra = [];
       this.dialog = true;
@@ -891,7 +897,7 @@ export default {
                 categorias: this.editedItem.categorias,
                 atributos: this.editedItem.atributos,
                 idFabricante: this.editedItem.idFabricante,
-                tipoArticulo: this.editedItem.tipoArticulo,
+                idTipo: this.editedItem.tipoArticulo,
               }
             )
           )
@@ -932,7 +938,7 @@ export default {
                 atributos: this.editedItem.atributos,
                 codigosDeBarra: this.editedItem.codigosDeBarra,
                 idFabricante: this.editedItem.idFabricante,
-                tipoArticulo: this.editedItem.tipoArticulo,
+                idTipo: this.editedItem.tipoArticulo,
               }
             )
           )
@@ -966,13 +972,14 @@ export default {
           let arr = this.files.length;
           for (i; i < arr; i++) {
             fd = new FormData();
+            console.log("asd", productId, this.editedId);
             if (productId > 0 && this.editedIndex < 0) {
               fd.set("idArticulo", productId);
-            } else if (productId <= 0 && this.editedIndex > -1) {
+            } else if (this.editedIndex > -1) {
               fd.set("idArticulo", this.editedId);
             }
 
-            fd.set("tipoArticulo", this.fileType);
+            fd.set("idTipo", this.fileType);
             fd.set("Small", false);
             fd.set("Medium", false);
             fd.set("Large", false);

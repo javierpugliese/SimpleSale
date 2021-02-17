@@ -85,19 +85,17 @@
             </v-dialog>
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
-                <v-card-title class="headline"
-                  >¿Está seguro de que quiere eliminar esta
-                  localidad?</v-card-title
-                >
+                <v-card-title class="headline">
+                  ¿Está seguro de que quiere eliminar esta localidad?
+                </v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="closeDelete"
-                    >Cancelar</v-btn
-                  >
-                  <v-btn color="blue darken-1" @click="deleteItemConfirm"
-                    >Aceptar</v-btn
-                  >
-                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeDelete">
+                    Cancelar
+                  </v-btn>
+                  <v-btn color="blue darken-1" @click="deleteItemConfirm">
+                    Aceptar
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -127,9 +125,8 @@ export default {
   data: () => ({
     breadcrumbs: [
       {
-        text: "Mantenimiento de Tablas",
-        disabled: false,
-        href: "/mantenimiento-de-tablas",
+        text: "Tablas",
+        disabled: true,
       },
       { text: "Localidades", disabled: true },
     ],
@@ -239,7 +236,7 @@ export default {
         .delete(`Localidades/${this.editedId}`, this.editedItem)
         .then((res) => {
           if (res) {
-            this.snackbarText = "Se eliminó la localidad exitosamente.";
+            this.snackbarText = "Operación realizada exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
@@ -247,7 +244,7 @@ export default {
         .catch((err) => {
           if (err) {
             console.log(err);
-            this.snackbarText = "¡ERROR! No se pudo eliminar la localidad.";
+            this.snackbarText = "¡ERROR! Operación cancelada.";
             this.snackbarColor = "danger";
             this.snackbar = true;
           }
@@ -287,14 +284,14 @@ export default {
           .put(`Localidades/${this.editedId}`, this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText = "Se actualizó la localidad exitosamente.";
+              this.snackbarText = "Operación realizada exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
           .catch((err) => {
             if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar la localidad.";
+              this.snackbarText = "¡ERROR! Operación cancelada.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
@@ -307,7 +304,7 @@ export default {
           .post("Localidades", this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText = "Se agregó la localidad exitosamente.";
+              this.snackbarText = "Operación realizada exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
@@ -315,7 +312,7 @@ export default {
           .catch((err) => {
             console.log(err);
             if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar la localidad.";
+              this.snackbarText = "¡ERROR! Operación cancelada.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }

@@ -47,13 +47,6 @@ const routes = [
     }
   },
   {
-    path: "/mantenimiento-de-tablas",
-    name: "TableMaintenance",
-    component: function () {
-      return import(/* webpackChunkName: "table-maintenance" */ "../views/table_maintenance/TableMaintenance.vue");
-    }
-  },
-  {
     path: "/mantenimiento-de-tablas/fabricantes",
     name: "Manufacturers",
     component: function () {
@@ -135,6 +128,13 @@ const routes = [
     name: "Attributes",
     component: function () {
       return import(/* webpackChunkName: "attributes" */ "../views/table_maintenance/Attributes.vue");
+    }
+  },
+  {
+    path: "/mantenimiento-de-tablas/regiones",
+    name: "Regions",
+    component: function () {
+      return import(/* webpackChunkName: "regions" */ "../views/table_maintenance/Regions.vue");
     }
   }
   //{

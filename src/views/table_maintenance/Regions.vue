@@ -1,5 +1,5 @@
 <template>
-  <div class="attribute-types">
+  <div class="regions">
     <v-container>
       <v-row>
         <v-col cols="12">
@@ -21,7 +21,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="attributeTypes"
+        :items="regions"
         :loading="loading"
         :items-per-page="-1"
         loading-text="Cargando..."
@@ -30,7 +30,7 @@
       >
         <template v-slot:top>
           <v-toolbar flat>
-            <v-toolbar-title>Lista de Tipos de Atributo</v-toolbar-title>
+            <v-toolbar-title>Lista de Regiones</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
             <v-dialog v-model="dialog" max-width="500px">
@@ -42,7 +42,7 @@
                   v-bind="attrs"
                   v-on="on"
                 >
-                  Nuevo Tipo de Atributo
+                  Nuevo Región
                 </v-btn>
               </template>
               <v-card>
@@ -56,7 +56,7 @@
                       <v-col cols="12">
                         <v-text-field
                           v-model="editedItem.nombre"
-                          label="Nombre del Tipo de Atributo"
+                          label="Nombre de la Región"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -75,7 +75,7 @@
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
                 <v-card-title class="headline">
-                  ¿Está seguro de que quiere eliminar este tipo de atributo?
+                  ¿Está seguro de que quiere eliminar esta región?
                 </v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -109,7 +109,7 @@
 <script>
 // @ is an alias to /src
 export default {
-  name: "FileTypes",
+  name: "Zones",
   components: {},
   data: () => ({
     breadcrumbs: [
@@ -117,7 +117,7 @@ export default {
         text: "Tablas",
         disabled: true,
       },
-      { text: "Tipos de Atributo", disabled: true },
+      { text: "Regiones", disabled: true },
     ],
     headers: [
       {
@@ -129,7 +129,7 @@ export default {
       { text: "Acciones", value: "actions", align: "end", sortable: false },
     ],
     loading: false,
-    attributeTypes: [],
+    regions: [],
 
     dialog: false,
     dialogDelete: false,
@@ -148,9 +148,7 @@ export default {
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1
-        ? "Nuevo Tipo de Atributo"
-        : "Editar Tipo de Atributo";
+      return this.editedIndex === -1 ? "Nuevo Región" : "Editar Región";
     },
   },
 
@@ -169,12 +167,12 @@ export default {
 
   methods: {
     async initialize() {
-      this.attributeTypes = [];
+      this.regions = [];
       this.loading = true;
       await this.$http
-        .get("TiposDeAtributo")
+        .get("Regiones")
         .then((res) => {
-          if (res && res.data) this.attributeTypes = res.data;
+          if (res && res.data) this.regions = res.data;
         })
         .catch((err) => console.log(err))
         .then(() => {
@@ -183,14 +181,14 @@ export default {
     },
 
     editItem(item) {
-      this.editedIndex = this.attributeTypes.indexOf(item);
+      this.editedIndex = this.regions.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialog = true;
     },
 
     deleteItem(item) {
-      this.editedIndex = this.attributeTypes.indexOf(item);
+      this.editedIndex = this.regions.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialogDelete = true;
@@ -199,7 +197,7 @@ export default {
     async deleteItemConfirm() {
       this.loading = true;
       await this.$http
-        .delete(`TiposDeAtributo/${this.editedId}`, this.editedItem)
+        .delete(`Regiones/${this.editedId}`, this.editedItem)
         .then((res) => {
           if (res) {
             this.snackbarText = "Operación realizada exitosamente.";
@@ -243,9 +241,9 @@ export default {
     async save() {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
-        Object.assign(this.attributeTypes[this.editedIndex], this.editedItem);
+        Object.assign(this.regions[this.editedIndex], this.editedItem);
         await this.$http
-          .put(`TiposDeAtributo/${this.editedId}`, this.editedItem)
+          .put(`Regiones/${this.editedId}`, this.editedItem)
           .then((res) => {
             if (res) {
               this.snackbarText = "Operación realizada exitosamente.";
@@ -265,7 +263,7 @@ export default {
           });
       } else {
         await this.$http
-          .post("TiposDeAtributo", this.editedItem)
+          .post("Regiones", this.editedItem)
           .then((res) => {
             if (res) {
               this.snackbarText = "Operación realizada exitosamente.";

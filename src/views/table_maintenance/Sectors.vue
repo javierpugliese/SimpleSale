@@ -74,19 +74,17 @@
             </v-dialog>
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
-                <v-card-title class="headline"
-                  >¿Está seguro de que quiere eliminar este
-                  sector?</v-card-title
-                >
+                <v-card-title class="headline">
+                  ¿Está seguro de que quiere eliminar este sector?
+                </v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="closeDelete"
-                    >Cancelar</v-btn
-                  >
-                  <v-btn color="blue darken-1" @click="deleteItemConfirm"
-                    >Aceptar</v-btn
-                  >
-                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeDelete">
+                    Cancelar
+                  </v-btn>
+                  <v-btn color="blue darken-1" @click="deleteItemConfirm">
+                    Aceptar
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -116,9 +114,8 @@ export default {
   data: () => ({
     breadcrumbs: [
       {
-        text: "Mantenimiento de Tablas",
-        disabled: false,
-        href: "/mantenimiento-de-tablas",
+        text: "Tablas",
+        disabled: true,
       },
       { text: "Sectores", disabled: true },
     ],

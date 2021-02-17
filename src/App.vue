@@ -121,13 +121,9 @@ export default {
     items: [
       { title: "Galería", icon: "fas fa-image", link: "/" },
       { title: "Productos", icon: "fas fa-tag", link: "/productos" },
-      {
-        title: "Mantenimiento de Tablas",
-        icon: "fas fa-tools",
-        link: "/mantenimiento-de-tablas",
-      },
     ],
     groups: [
+      /** Screens */
       {
         title: "Pantallas",
         icon: "fas fa-mobile-alt",
@@ -142,6 +138,79 @@ export default {
             title: "Planogramas",
             icon: "",
             link: "/pantallas/planogramas",
+          },
+        ],
+      },
+      /** Table maintenance */
+      {
+        title: "Tablas",
+        icon: "fas fa-tools",
+        link: "/mantenimiento-de-tablas",
+        items: [
+          {
+            title: "Atributos",
+            icon: "",
+            link: "/mantenimiento-de-tablas/atributos",
+          },
+          {
+            title: "Tipos de Atributo",
+            icon: "",
+            link: "/mantenimiento-de-tablas/tipos-de-atributo",
+          },
+          {
+            title: "Categorías",
+            icon: "",
+            link: "/mantenimiento-de-tablas/categorias",
+          },
+          {
+            title: "Tipos de Archivo",
+            icon: "",
+            link: "/mantenimiento-de-tablas/tipos-de-archivo",
+          },
+          {
+            title: "Localidades",
+            icon: "",
+            link: "/mantenimiento-de-tablas/localidades",
+          },
+          {
+            title: "Fabricantes",
+            icon: "",
+            link: "/mantenimiento-de-tablas/fabricantes",
+          },
+          {
+            title: "Barrios",
+            icon: "",
+            link: "/mantenimiento-de-tablas/barrios",
+          },
+          {
+            title: "Tipos de Producto",
+            icon: "",
+            link: "/mantenimiento-de-tablas/tipos-de-producto",
+          },
+          {
+            title: "Provincias",
+            icon: "",
+            link: "/mantenimiento-de-tablas/provincias",
+          },
+          {
+            title: "Regiones",
+            icon: "",
+            link: "/mantenimiento-de-tablas/regiones",
+          },
+          {
+            title: "Tipos de Pantalla",
+            icon: "",
+            link: "/mantenimiento-de-tablas/tipos-de-pantalla",
+          },
+          {
+            title: "Sectores",
+            icon: "",
+            link: "/mantenimiento-de-tablas/sectores",
+          },
+          {
+            title: "Zonas",
+            icon: "",
+            link: "/mantenimiento-de-tablas/zonas",
           },
         ],
       },

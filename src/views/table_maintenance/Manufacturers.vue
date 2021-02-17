@@ -68,27 +68,23 @@
                   <v-btn color="blue darken-1" text @click="close">
                     Cancelar
                   </v-btn>
-                  <v-btn color="success" @click="save">
-                    Guardar
-                  </v-btn>
+                  <v-btn color="success" @click="save"> Guardar </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
-                <v-card-title class="headline"
-                  >¿Está seguro de que quiere eliminar este
-                  fabricante?</v-card-title
-                >
+                <v-card-title class="headline">
+                  ¿Está seguro de que quiere eliminar este fabricante?
+                </v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="closeDelete"
-                    >Cancelar</v-btn
-                  >
-                  <v-btn color="blue darken-1" @click="deleteItemConfirm"
-                    >Aceptar</v-btn
-                  >
-                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeDelete">
+                    Cancelar
+                  </v-btn>
+                  <v-btn color="blue darken-1" @click="deleteItemConfirm">
+                    Aceptar
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -103,9 +99,7 @@
           </v-icon>
         </template>
         <template v-slot:no-data>
-          <v-btn color="primary" @click="initialize">
-            Recargar
-          </v-btn>
+          <v-btn color="primary" @click="initialize"> Recargar </v-btn>
         </template>
       </v-data-table>
     </v-container>
@@ -120,20 +114,19 @@ export default {
   data: () => ({
     breadcrumbs: [
       {
-        text: "Mantenimiento de Tablas",
-        disabled: false,
-        href: "/mantenimiento-de-tablas"
+        text: "Tablas",
+        disabled: true,
       },
-      { text: "Fabricantes", disabled: true }
+      { text: "Fabricantes", disabled: true },
     ],
     headers: [
       {
         text: "Nombre",
         align: "start",
         sortable: true,
-        value: "nombre"
+        value: "nombre",
       },
-      { text: "Acciones", value: "actions", align: "end", sortable: false }
+      { text: "Acciones", value: "actions", align: "end", sortable: false },
     ],
     loading: false,
     manufacturers: [],
@@ -142,21 +135,21 @@ export default {
     dialogDelete: false,
     editedIndex: -1,
     editedItem: {
-      nombre: ""
+      nombre: "",
     },
     editedId: -1,
     defaultItem: {
-      nombre: ""
+      nombre: "",
     },
     snackbar: false,
     snackbarText: "",
-    snackbarColor: "black"
+    snackbarColor: "black",
   }),
 
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo Fabricante" : "Editar Fabricante";
-    }
+    },
   },
 
   watch: {
@@ -165,7 +158,7 @@ export default {
     },
     dialogDelete(val) {
       val || this.closeDelete();
-    }
+    },
   },
 
   created() {
@@ -178,10 +171,10 @@ export default {
       this.loading = true;
       await this.$http
         .get("fabricantes")
-        .then(res => {
+        .then((res) => {
           if (res && res.data) this.manufacturers = res.data;
         })
-        .catch(err => console.log(err))
+        .catch((err) => console.log(err))
         .then(() => {
           this.loading = false;
         });
@@ -205,14 +198,14 @@ export default {
       this.loading = true;
       await this.$http
         .delete(`fabricantes/${this.editedId}`, this.editedItem)
-        .then(res => {
+        .then((res) => {
           if (res) {
             this.snackbarText = "Se eliminó el fabricante exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
         })
-        .catch(err => {
+        .catch((err) => {
           if (err) {
             console.log(err);
             this.snackbarText = "¡ERROR! No se pudo eliminar al fabricante.";
@@ -251,14 +244,14 @@ export default {
         Object.assign(this.manufacturers[this.editedIndex], this.editedItem);
         await this.$http
           .put(`fabricantes/${this.editedId}`, this.editedItem)
-          .then(res => {
+          .then((res) => {
             if (res) {
               this.snackbarText = "Se actualizó el fabricante exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
-          .catch(err => {
+          .catch((err) => {
             if (err) {
               this.snackbarText = "¡ERROR! No se pudo guardar el fabricante.";
               this.snackbarColor = "danger";
@@ -271,14 +264,14 @@ export default {
       } else {
         await this.$http
           .post("fabricantes", this.editedItem)
-          .then(res => {
+          .then((res) => {
             if (res) {
               this.snackbarText = "Se agregó el fabricante exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
-          .catch(err => {
+          .catch((err) => {
             console.log(err);
             if (err) {
               this.snackbarText = "¡ERROR! No se pudo guardar el fabricante.";
@@ -292,7 +285,7 @@ export default {
       }
       this.close();
       this.initialize();
-    }
-  }
+    },
+  },
 };
 </script>

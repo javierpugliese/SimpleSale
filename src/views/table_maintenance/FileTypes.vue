@@ -79,13 +79,12 @@
                 </v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
-                  <v-btn color="blue darken-1" text @click="closeDelete"
-                    >Cancelar</v-btn
-                  >
-                  <v-btn color="blue darken-1" @click="deleteItemConfirm"
-                    >Aceptar</v-btn
-                  >
-                  <v-spacer></v-spacer>
+                  <v-btn color="blue darken-1" text @click="closeDelete">
+                    Cancelar
+                  </v-btn>
+                  <v-btn color="blue darken-1" @click="deleteItemConfirm">
+                    Aceptar
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </v-dialog>
@@ -115,9 +114,8 @@ export default {
   data: () => ({
     breadcrumbs: [
       {
-        text: "Mantenimiento de Tablas",
-        disabled: false,
-        href: "/mantenimiento-de-tablas",
+        text: "Tablas",
+        disabled: true,
       },
       { text: "Tipos de Archivo", disabled: true },
     ],
@@ -204,7 +202,7 @@ export default {
         .delete(`TipoArchivos/${this.editedId}`, this.editedItem)
         .then((res) => {
           if (res) {
-            this.snackbarText = "Se eliminó el tipo de archivo exitosamente.";
+            this.snackbarText = "Operación realizada exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
@@ -212,8 +210,7 @@ export default {
         .catch((err) => {
           if (err) {
             console.log(err);
-            this.snackbarText =
-              "¡ERROR! No se pudo eliminar al tipo de archivo.";
+            this.snackbarText = "¡ERROR! Operación cancelada.";
             this.snackbarColor = "danger";
             this.snackbar = true;
           }
@@ -251,16 +248,14 @@ export default {
           .put(`TipoArchivos/${this.editedId}`, this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText =
-                "Se actualizó el tipo de archivo exitosamente.";
+              this.snackbarText = "Operación realizada exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
           .catch((err) => {
             if (err) {
-              this.snackbarText =
-                "¡ERROR! No se pudo guardar el tipo de archivo.";
+              this.snackbarText = "¡ERROR! Operación cancelada.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
@@ -273,7 +268,7 @@ export default {
           .post("TipoArchivos", this.editedItem)
           .then((res) => {
             if (res) {
-              this.snackbarText = "Se agregó el tipo de archivo exitosamente.";
+              this.snackbarText = "Operación realizada exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
@@ -281,8 +276,7 @@ export default {
           .catch((err) => {
             console.log(err);
             if (err) {
-              this.snackbarText =
-                "¡ERROR! No se pudo guardar el tipo de archivo.";
+              this.snackbarText = "¡ERROR! Operación cancelada.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }

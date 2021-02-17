@@ -153,7 +153,7 @@
                       <v-row>
                         <v-col cols="12" sm="4">
                           <v-autocomplete
-                            v-model="editedItem.idTipo"
+                            v-model="editedItem.tipoArticulo"
                             :items="productTypes"
                             label="Tipo"
                             maxlength="50"
@@ -574,7 +574,7 @@ export default {
       prospecto: "",
       categorias: [],
       idFabricante: -1,
-      idTipo: -1,
+      tipoArticulo: -1,
       atributos: [],
       codigosDeBarra: [],
       archivos: [],
@@ -591,7 +591,7 @@ export default {
       prospecto: "",
       categorias: [],
       idFabricante: -1,
-      idTipo: -1,
+      tipoArticulo: -1,
       atributos: [],
       codigosDeBarra: [],
       archivos: [],
@@ -791,9 +791,9 @@ export default {
       this.editedIndex = this.products.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
-      if (item.idTipo) {
-        this.editedItem.idTipo = item.tipoArticulo.id;
-      } else this.editedItem.idTipo = -1;
+      if (item.tipoArticulo) {
+        this.editedItem.tipoArticulo = item.tipoArticulo.id;
+      } else this.editedItem.tipoArticulo = -1;
       if (item.fabricante) {
         this.editedItem.idFabricante = item.fabricante.id;
       } else this.editedItem.idFabricante = -1;
@@ -891,7 +891,7 @@ export default {
                 categorias: this.editedItem.categorias,
                 atributos: this.editedItem.atributos,
                 idFabricante: this.editedItem.idFabricante,
-                idTipo: this.editedItem.idTipo,
+                tipoArticulo: this.editedItem.tipoArticulo,
               }
             )
           )
@@ -932,7 +932,7 @@ export default {
                 atributos: this.editedItem.atributos,
                 codigosDeBarra: this.editedItem.codigosDeBarra,
                 idFabricante: this.editedItem.idFabricante,
-                idTipo: this.editedItem.idTipo,
+                tipoArticulo: this.editedItem.tipoArticulo,
               }
             )
           )
@@ -972,7 +972,7 @@ export default {
               fd.set("idArticulo", this.editedId);
             }
 
-            fd.set("idTipo", this.fileType);
+            fd.set("tipoArticulo", this.fileType);
             fd.set("Small", false);
             fd.set("Medium", false);
             fd.set("Large", false);
@@ -985,7 +985,7 @@ export default {
                 onUploadProgress: (progressEvent) => {
                   this.fileName = filename;
                   this.fileTotalProgress = parseInt(
-                    Math.round(
+                    Math.ceil(
                       (progressEvent.loaded / progressEvent.total) * 100
                     )
                   );

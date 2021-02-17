@@ -115,7 +115,7 @@
                 <v-list-item-content>
                   <v-list-item-title>Precio</v-list-item-title>
                   <v-list-item-subtitle>
-                    $ {{ product.precio }}
+                    {{ product.precio ? `$${product.precio}` : `No asignado.` }}
                   </v-list-item-subtitle>
                 </v-list-item-content>
               </v-list-item>
@@ -547,7 +547,11 @@ export default {
       if (this.productId) {
         let endpoint = `Articulos/${this.productId}`;
         await this.$http
-          .get(endpoint)
+          .get(endpoint, {
+            headers: {
+              "Access-Control-Allow-Origin": "*",
+            },
+          })
           .then((res) => {
             if (res && res.data) {
               let product = res.data;

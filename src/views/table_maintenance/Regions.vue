@@ -109,7 +109,7 @@
 <script>
 // @ is an alias to /src
 export default {
-  name: "Zones",
+  name: "Regions",
   components: {},
   data: () => ({
     breadcrumbs: [

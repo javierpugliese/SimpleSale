@@ -48,7 +48,7 @@
             <v-card-text>
               <v-container>
                 <v-row>
-                  <v-col cols="12" sm="6">
+                  <v-col cols="12" sm="4">
                     <v-text-field
                       v-model="searchItem.nombre"
                       label="Nombre"
@@ -59,7 +59,7 @@
                       required
                     ></v-text-field>
                   </v-col>
-                  <v-col cols="12" sm="6">
+                  <v-col cols="12" sm="4">
                     <v-autocomplete
                       v-model="searchItem.idTipo"
                       :items="fileTypes"
@@ -69,6 +69,47 @@
                       outlined
                       small-chips
                     ></v-autocomplete>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <v-dialog
+                      ref="dialog"
+                      v-model="dialogDates"
+                      :return-value.sync="searchDates"
+                      persistent
+                      width="290px"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          :value="computedDateFormattedMomentjs"
+                          clearable
+                          label="Rango de Fechas"
+                          readonly
+                          prepend-icon="fas fa-calendar-alt"
+                          no-title
+                          outlined
+                          v-bind="attrs"
+                          v-on="on"
+                          @click:clear="searchDates = []"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker v-model="searchDates" scrollable range>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                          text
+                          color="primary"
+                          @click="dialogDates = false"
+                        >
+                          Cancelar
+                        </v-btn>
+                        <v-btn
+                          text
+                          color="primary"
+                          @click="$refs.dialog.save(searchDates)"
+                        >
+                          Aceptar
+                        </v-btn>
+                      </v-date-picker>
+                    </v-dialog>
                   </v-col>
                 </v-row>
               </v-container>
@@ -624,6 +665,7 @@
 </template>
 
 <script>
+import moment from "moment";
 // @ is an alias to /src
 export default {
   name: "Gallery",
@@ -650,6 +692,8 @@ export default {
     dialogDelete: false,
     dialogSearch: false,
     dialogUploading: false,
+    dialogDates: false,
+    searchDates: [],
     editedIndex: -1,
     editedId: -1,
     snackbar: false,
@@ -695,14 +739,18 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo Fondo" : "Editar Fondo";
     },
-    bgHeight() {
-      return Math.ceil(window.innerHeight * 0.65);
-    },
-    bgWidth() {
-      return Math.ceil((this.bgHeight / 16) * 9);
-    },
-    modalWidth() {
-      return Math.ceil(window.innerWidth / 0.8);
+    computedDateFormattedMomentjs() {
+      if (this.searchDates) {
+        let dates = [...this.searchDates];
+        let date = 0;
+        let arr = dates.length;
+        for (date; date < arr; date++) {
+          let formattedDate = moment(dates[date]).format("DD/MM/YYYY");
+          dates[date] = formattedDate;
+        }
+        return dates.join(" ~ ");
+      }
+      return [];
     },
   },
 

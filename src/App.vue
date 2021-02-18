@@ -118,11 +118,31 @@ export default {
   data: () => ({
     drawer: false,
     mini: true,
-    items: [
-      { title: "Galería", icon: "fas fa-image", link: "/" },
-      { title: "Productos", icon: "fas fa-tag", link: "/productos" },
-    ],
+    items: [{ title: "Galería", icon: "fas fa-image", link: "/" }],
     groups: [
+      /** Products (sponsors, promos) */
+      {
+        title: "Productos",
+        icon: "fas fa-tag",
+        link: "/pantallas",
+        items: [
+          {
+            title: "Listado",
+            icon: "",
+            link: "/productos",
+          },
+          {
+            title: "Promociones",
+            icon: "",
+            link: "/promociones",
+          },
+          {
+            title: "Sponsors",
+            icon: "",
+            link: "/sponsors",
+          },
+        ],
+      },
       /** Screens */
       {
         title: "Pantallas",

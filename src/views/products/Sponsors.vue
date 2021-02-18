@@ -14,7 +14,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="products"
+        :items="[]"
         :loading="loading"
         @click:row="editItem"
         loading-text="Cargando..."

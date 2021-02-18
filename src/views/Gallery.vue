@@ -19,9 +19,80 @@
         </v-toolbar-title>
       </v-scroll-y-transition>
       <v-spacer></v-spacer>
-      <v-scale-transition>
+      <v-scale-transition v-if="!multiSelect">
+        <v-dialog
+          v-model="dialogSearch"
+          width="50%"
+          overlay-color="blue"
+          overlay-opacity="0.2"
+          scrollable
+          persistent
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="secondary"
+              dark
+              class="mx-2"
+              v-bind="attrs"
+              v-on="on"
+              :loading="loading"
+            >
+              <v-icon class="mr-2">fas fa-search</v-icon>
+              Buscar
+            </v-btn>
+          </template>
+          <v-card height="auto">
+            <v-card-title>
+              <span class="headline">Opciones de búsqueda</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col cols="12" sm="6">
+                    <v-text-field
+                      v-model="searchItem.nombre"
+                      label="Nombre"
+                      counter="50"
+                      maxlength="50"
+                      outlined
+                      clearable
+                      required
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="6">
+                    <v-autocomplete
+                      v-model="searchItem.idTipo"
+                      :items="fileTypes"
+                      label="Tipo de archivo"
+                      maxlength="50"
+                      clearable
+                      outlined
+                      small-chips
+                    ></v-autocomplete>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="info" text large @click="dialogSearch = false">
+                Cerrar
+              </v-btn>
+              <v-btn
+                color="success"
+                large
+                @click="dialogSearch = false"
+                :disabled="loading"
+              >
+                Aplicar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-scale-transition>
+      <v-scale-transition v-if="!multiSelect">
         <v-btn
-          v-if="!multiSelect && !searchMode"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
           @click="dialog = true"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
@@ -34,9 +105,8 @@
           {{ !$vuetify.breakpoint.xsOnly ? "Subir archivo" : "" }}
         </v-btn>
       </v-scale-transition>
-      <v-scale-transition>
+      <v-scale-transition v-if="!multiSelect">
         <v-btn
-          v-if="!multiSelect && !searchMode"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#FFA440'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           @click="
@@ -52,9 +122,8 @@
           {{ !$vuetify.breakpoint.xsOnly ? "Selección Múltiple" : "" }}
         </v-btn>
       </v-scale-transition>
-      <v-scale-transition>
+      <v-scale-transition v-if="multiSelect">
         <v-btn
-          v-if="multiSelect"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#E85111'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
@@ -67,9 +136,8 @@
           {{ !$vuetify.breakpoint.xsOnly ? "Marcar todos" : "" }}
         </v-btn>
       </v-scale-transition>
-      <v-scale-transition>
+      <v-scale-transition v-if="multiSelect">
         <v-btn
-          v-if="multiSelect"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#F31E01'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
@@ -80,30 +148,6 @@
             fas fa-trash-alt
           </v-icon>
           {{ !$vuetify.breakpoint.xsOnly ? "Eliminar" : "" }}
-        </v-btn>
-      </v-scale-transition>
-      <v-expand-x-transition>
-        <v-text-field
-          v-show="searchMode"
-          v-model="search"
-          class="mt-auto mx-1"
-          placeholder="Buscar"
-          filled
-          outlined
-          clearable
-          :disabled="loading"
-        ></v-text-field>
-      </v-expand-x-transition>
-      <v-scale-transition>
-        <v-btn
-          class="mx-1"
-          @click="searchMode = !searchMode"
-          :icon="!searchMode"
-          :fab="searchMode"
-          :outlined="searchMode"
-          :disabled="loading || !backgrounds.length"
-        >
-          <v-icon>fas fa-search</v-icon>
         </v-btn>
       </v-scale-transition>
     </v-toolbar>
@@ -266,12 +310,15 @@
 
     <v-dialog
       v-model="dialog"
-      :max-width="`80vh`"
+      width="40%"
       :fullscreen="$vuetify.breakpoint.xsOnly"
-      hide-overlay
+      :hide-overlay="$vuetify.breakpoint.xsOnly"
       scrollable
+      overlay-color="blue"
+      overlay-opacity="0.2"
+      persistent
     >
-      <v-card>
+      <v-card height="auto">
         <v-card-title>
           <span class="headline">{{ formTitle }}</span>
         </v-card-title>
@@ -526,7 +573,7 @@
             @click="close"
             :disabled="loading || uploading"
           >
-            Cancelar
+            Cerrar
           </v-btn>
           <v-btn
             color="red"
@@ -589,17 +636,34 @@ export default {
     loading: false,
     uploading: false,
     multiSelect: false,
-    searchMode: false,
     search: "",
     selection: [],
     fileType: -1,
+    fileTypes: [
+      { text: "Imagen", value: 0 },
+      { text: "Video", value: 1 },
+    ],
     backgrounds: [],
     file: null,
     files: [],
     dialog: false,
     dialogDelete: false,
+    dialogSearch: false,
+    dialogUploading: false,
     editedIndex: -1,
     editedId: -1,
+    snackbar: false,
+    snackbarText: "",
+    snackbarColor: "black",
+    fileName: "",
+    fileTotalProgress: 0,
+    filesURLs: [],
+    fileURL: "",
+    fileAlerts: [],
+    fileUploadDetailsAlert: true,
+    videoFiles: [],
+    videoAlerts: [],
+    videoURLs: [],
     itemsPerPageItems: [
       { text: "5 fondos", value: 5 },
       { text: "10 fondos", value: 10 },
@@ -617,18 +681,14 @@ export default {
       url: "",
       idArchivoOriginal: -1,
     },
-    snackbar: false,
-    snackbarText: "",
-    snackbarColor: "black",
-    fileName: "",
-    fileTotalProgress: 0,
-    filesURLs: [],
-    fileURL: "",
-    fileAlerts: [],
-    fileUploadDetailsAlert: true,
-    videoFiles: [],
-    videoAlerts: [],
-    videoURLs: [],
+    searchItem: {
+      nombre: "",
+      idTipo: -1,
+    },
+    searchItemDefault: {
+      nombre: "",
+      idTipo: -1,
+    },
   }),
 
   computed: {

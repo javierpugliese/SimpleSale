@@ -718,7 +718,7 @@ export default {
   data: () => ({
     page: 1,
     pages: 1,
-    itemsPerPage: 5,
+    itemsPerPage: 25,
     totalRecords: 0,
     loading: false,
     uploading: false,

@@ -124,9 +124,10 @@
             </v-scale-transition>
             <v-dialog
               v-model="dialog"
-              fullscreen
-              hide-overlay
-              transition="dialog-bottom-transition"
+              width="60%"
+              persistent
+              overlay-color="blue"
+              overlay-opacity="0.2"
               scrollable
             >
               <template v-slot:activator="{ on, attrs }">
@@ -140,10 +141,10 @@
                   :loading="loading"
                 >
                   <v-icon class="mr-2">fas fa-plus</v-icon>
-                  Nueva promoción
+                  Nueva publicación
                 </v-btn>
               </template>
-              <v-card>
+              <v-card height="auto">
                 <v-card-title>
                   <span class="headline">{{ formTitle }}</span>
                 </v-card-title>
@@ -152,9 +153,9 @@
                   <v-container>
                     <v-row>
                       <!-- Form -->
-                      <v-col cols="6">
+                      <v-col cols="12">
                         <v-row>
-                          <v-col cols="6">
+                          <v-col cols="4">
                             <v-text-field
                               v-model="editedItem.nombre"
                               label="Nombre"
@@ -165,43 +166,58 @@
                               required
                             ></v-text-field>
                           </v-col>
-                          <v-col
-                            cols="6"
-                            class="d-flex justify-center justify-sm-start"
-                          >
-                            <v-switch
-                              v-model="editedItem.hastaAgotarStock"
-                              label="¿Válida hasta agotar stock?"
+                          <v-col cols="4">
+                            <v-file-input
+                              v-model="file"
+                              counter
+                              label="Archivo (imagen o video)"
+                              accept=".jpg, .mp4"
+                              placeholder="Seleccione archivos..."
+                              prepend-icon=""
+                              outlined
+                              :show-size="1000"
+                              @change="onFileUpload"
                             >
-                            </v-switch>
+                              <template v-slot:selection="{ index, text }">
+                                <v-chip
+                                  v-if="index < 2"
+                                  color="info"
+                                  dark
+                                  label
+                                  small
+                                >
+                                  {{ text }}
+                                </v-chip>
+                              </template>
+                            </v-file-input>
+                          </v-col>
+                          <v-col cols="4">
+                            <v-btn color="success" large class="mt-1" block>
+                              <v-icon class="mx-1" icon
+                                >fas fa-location-arrow</v-icon
+                              >
+                              Elegir archivo desde galeria
+                            </v-btn>
                           </v-col>
                         </v-row>
                         <v-row>
-                          <v-col cols="6">
+                          <v-col cols="8">
                             <v-autocomplete
                               v-model="editedItem.tipoPromocion"
-                              :items="promoTypes"
-                              label="Tipo"
+                              :items="[]"
+                              label="Planograma"
                               maxlength="50"
                               clearable
                               outlined
                               small-chips
                             ></v-autocomplete>
                           </v-col>
-                          <v-col cols="6">
-                            <v-text-field
-                              v-model.number="promoTypeValue"
-                              label="Valor de descuento"
-                              value="0.00"
-                              outlined
-                              clearable
-                              required
-                            >
-                            </v-text-field>
-                          </v-col>
                         </v-row>
                         <v-row>
-                          <v-col cols="6">
+                          <v-col cols="12">
+                            <div class="text-h6">Programar publicación</div>
+                          </v-col>
+                          <v-col cols="12">
                             <v-dialog
                               ref="dialog"
                               v-model="modal"
@@ -213,10 +229,11 @@
                                 <v-text-field
                                   :value="computedDateFormattedMomentjs"
                                   clearable
-                                  label="Fecha de inicio ~ Fecha de finalización"
+                                  label="Rango de Fechas"
                                   readonly
                                   prepend-icon="fas fa-calendar-alt"
                                   no-title
+                                  outlined
                                   v-bind="attrs"
                                   v-on="on"
                                   @click:clear="dates = []"
@@ -241,22 +258,91 @@
                               </v-date-picker>
                             </v-dialog>
                           </v-col>
-                          <v-col cols="6">
-                            <v-text-field
-                              v-model.number="editedItem.cantidadMinima"
-                              label="Cantidad mínima de entidades aplicables"
-                              outlined
-                              clearable
-                              required
+                          <v-col cols="12" sm="6">
+                            <v-dialog
+                              ref="dialog2"
+                              v-model="modal2"
+                              :return-value.sync="time"
+                              persistent
+                              width="290px"
                             >
-                            </v-text-field>
+                              <template v-slot:activator="{ on, attrs }">
+                                <v-text-field
+                                  v-model="time"
+                                  label="Hora de Inicio"
+                                  prepend-icon="fas fa-clock"
+                                  outlined
+                                  readonly
+                                  v-bind="attrs"
+                                  v-on="on"
+                                ></v-text-field>
+                              </template>
+                              <v-time-picker
+                                v-if="modal2"
+                                v-model="time"
+                                full-width
+                              >
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                  text
+                                  color="primary"
+                                  @click="modal2 = false"
+                                >
+                                  Cancelar
+                                </v-btn>
+                                <v-btn
+                                  text
+                                  color="primary"
+                                  @click="$refs.dialog2.save(time)"
+                                >
+                                  Aceptar
+                                </v-btn>
+                              </v-time-picker>
+                            </v-dialog>
                           </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col cols="12">
-                            <div class="text-h6">Entidades aplicables</div>
+                          <v-col cols="12" sm="6">
+                            <v-dialog
+                              ref="dialog3"
+                              v-model="modal3"
+                              :return-value.sync="time1"
+                              persistent
+                              width="290px"
+                            >
+                              <template v-slot:activator="{ on, attrs }">
+                                <v-text-field
+                                  v-model="time1"
+                                  label="Hora de Fin"
+                                  prepend-icon="fas fa-clock"
+                                  readonly
+                                  outlined
+                                  v-bind="attrs"
+                                  v-on="on"
+                                ></v-text-field>
+                              </template>
+                              <v-time-picker
+                                v-if="modal3"
+                                v-model="time1"
+                                full-width
+                              >
+                                <v-spacer></v-spacer>
+                                <v-btn
+                                  text
+                                  color="primary"
+                                  @click="modal3 = false"
+                                >
+                                  Cancel
+                                </v-btn>
+                                <v-btn
+                                  text
+                                  color="primary"
+                                  @click="$refs.dialog3.save(time1)"
+                                >
+                                  Aceptar
+                                </v-btn>
+                              </v-time-picker>
+                            </v-dialog>
                           </v-col>
-                          <v-col cols="6">
+                          <!-- <v-col cols="6">
                             <v-autocomplete
                               v-model="applicableManufacturers"
                               :items="manufacturers"
@@ -279,17 +365,19 @@
                               outlined
                               small-chips
                             ></v-autocomplete>
-                          </v-col>
+                          </v-col> -->
                         </v-row>
                         <v-row>
                           <v-col cols="12">
-                            <div class="text-h6">Destinatarios aplicables</div>
+                            <div class="text-h6">
+                              Destinos aplicables a programación
+                            </div>
                           </v-col>
                           <v-col cols="6">
                             <v-autocomplete
                               v-model="applicableProvinces"
-                              :items="provinces"
-                              label="Provincias"
+                              :items="[]"
+                              label="Provincia"
                               maxlength="50"
                               multiple
                               clearable
@@ -299,8 +387,20 @@
                           </v-col>
                           <v-col cols="6">
                             <v-autocomplete
-                              v-model="applicableRegions"
-                              :items="regions"
+                              v-model="applicableProvinces"
+                              :items="[]"
+                              label="Localidad"
+                              maxlength="50"
+                              multiple
+                              clearable
+                              outlined
+                              small-chips
+                            ></v-autocomplete>
+                          </v-col>
+                          <v-col cols="4">
+                            <v-autocomplete
+                              v-model="applicableProvinces"
+                              :items="[]"
                               label="Regiones"
                               maxlength="50"
                               multiple
@@ -309,13 +409,11 @@
                               small-chips
                             ></v-autocomplete>
                           </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col cols="6">
+                          <v-col cols="4">
                             <v-autocomplete
-                              v-model="applicableClients"
-                              :items="clients"
-                              label="Farmacías"
+                              v-model="applicableRegions"
+                              :items="[]"
+                              label="Zonas"
                               maxlength="50"
                               multiple
                               clearable
@@ -323,11 +421,11 @@
                               small-chips
                             ></v-autocomplete>
                           </v-col>
-                          <v-col cols="6">
+                          <v-col cols="4">
                             <v-autocomplete
-                              v-model="applicableClientGroups"
-                              :items="clientGroups"
-                              label="Grupos de farmacias"
+                              v-model="applicableRegions"
+                              :items="[]"
+                              label="Sectores"
                               maxlength="50"
                               multiple
                               clearable
@@ -337,8 +435,6 @@
                           </v-col>
                         </v-row>
                       </v-col>
-                      <!-- Choosen products or entities -->
-                      <v-col cols="6"> </v-col>
                     </v-row>
                   </v-container>
                 </v-card-text>
@@ -485,7 +581,14 @@ export default {
     snackbarText: "",
     snackbarColor: "black",
     promoTypeValue: 0,
+    screenBackgroundSrc: "",
+    file: null,
+    files: [],
     dates: [],
+    modal2: false,
+    modal3: false,
+    time: "",
+    time1: "",
   }),
 
   watch: {
@@ -525,6 +628,16 @@ export default {
   },
 
   methods: {
+    onFileUpload(file_obj) {
+      try {
+        let url = URL.createObjectURL(file_obj);
+        if (url) this.screenBackgroundSrc = url.toString();
+      } catch (error) {
+        console.log("Error reading file:", error);
+        this.screenBackgroundSrc = "";
+      }
+      if (!this.file) this.screenBackgroundSrc = "";
+    },
     /** Removes duplicate keys in array */
     removeArrDuplicates(array) {
       return [...new Set(array)];

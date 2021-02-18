@@ -47,9 +47,16 @@ const routes = [{
   },
   {
     path: "/pantallas/planogramas",
-    name: "Planograms",
+    name: "PlanogramList",
     component: function () {
-      return import( /* webpackChunkName: "planograms" */ "../views/screens/Planograms.vue");
+      return import( /* webpackChunkName: "planogram-list" */ "../views/screens/PlanogramList.vue");
+    }
+  },
+  {
+    path: "/pantallas/planogramas/editor",
+    name: "PlanogramEditor",
+    component: function () {
+      return import( /* webpackChunkName: "planogram-editor" */ "../views/screens/PlanogramEditor.vue");
     }
   },
   {

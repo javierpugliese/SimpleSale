@@ -1,14 +1,11 @@
 <template>
-  <div class="planograms">
+  <div class="planogram-editor">
     <!-- Toolbar -->
-    <v-toolbar :color="!planogramList ? 'grey darken-4' : '#1F96A3'" dark>
+    <v-toolbar color="grey-darken-1" dark>
       <v-scale-transition>
-        <v-app-bar-nav-icon v-if="!planogramList">
+        <v-app-bar-nav-icon>
           <v-icon>fas fa-mobile-alt</v-icon>
         </v-app-bar-nav-icon>
-        <v-btn v-else-if="planogramList" @click="planogramList = false" icon>
-          <v-icon>fas fa-times</v-icon>
-        </v-btn>
       </v-scale-transition>
       <v-scroll-y-transition>
         <v-toolbar-title> Gestión de Planogramas </v-toolbar-title>
@@ -32,12 +29,12 @@
       <v-spacer></v-spacer>
       <v-scale-transition>
         <v-btn
-          v-if="!planogramList && !searchMode"
+          v-if="!searchMode"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
-          @click="planogramList = true"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
           :disabled="loading"
+          to="/pantallas/planogramas"
         >
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-th-list
@@ -48,10 +45,7 @@
     </v-toolbar>
 
     <!-- Planogram management -->
-    <v-row
-      v-bind:style="{ position: `sticky`, top: `80px` }"
-      v-if="!planogramList"
-    >
+    <v-row v-bind:style="{ position: `sticky`, top: `80px` }">
       <v-menu
         v-model="menu"
         :close-on-content-click="false"
@@ -158,9 +152,12 @@
             </v-sheet>
           </v-col>
           <div
+            class="mx-auto"
             :style="{
               'overflow-y': `scroll`,
               height: `${getPlanogramHeight}px`,
+              width: 'calc(100% - 8px)',
+              border: 'solid 1px #fff',
             }"
           >
             <v-col
@@ -221,7 +218,7 @@
               :handles="[]"
             >
               <object
-                :data="require('@/assets/fondo.jpg')"
+                :data="planogramSrc"
                 class="planogram__background ma-0 pa-0"
               >
                 <param name="wmode" value="transparent" />
@@ -320,11 +317,11 @@
               <v-col cols="12" sm="4">
                 <v-text-field
                   v-model="shelf_item.maxHeight"
-                  label="Altura máxima manipulable"
+                  label="Altura máxima del estante"
                   outlined
                   clearable
                   required
-                  :disabled="true"
+                  :disabled="false"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="4">
@@ -338,12 +335,13 @@
                 <v-file-input
                   v-model="file"
                   counter
-                  label="Archivo (imagen o video)"
+                  label="Archivo de fondo"
                   accept=".jpg, .mp4"
                   placeholder="Seleccione un archivo..."
                   prepend-icon=""
                   outlined
                   :show-size="1000"
+                  @change="onFileUpload"
                 >
                   <template v-slot:selection="{ index, text }">
                     <v-chip v-if="index < 2" color="info" dark label small>
@@ -392,7 +390,7 @@
 // @ is an alias to /src
 
 export default {
-  name: "Planograms",
+  name: "PlanogramEditor",
   components: {},
   data: () => ({
     width: 40,
@@ -447,7 +445,6 @@ export default {
       categorias: [],
       archivos: [],
     },
-    planogramList: false,
     _showMenu: false,
     menuItems: [{ title: "test 1" }],
     searchMode: false,
@@ -455,6 +452,7 @@ export default {
     file: null,
     calculatedProductWidth: 0,
     calculatedProductHeight: 0,
+    planogramSrc: "",
   }),
   computed: {
     defaultShelfHeight() {
@@ -472,6 +470,16 @@ export default {
     },
   },
   methods: {
+    onFileUpload(file_obj) {
+      try {
+        let url = URL.createObjectURL(file_obj);
+        if (url) this.planogramSrc = url.toString();
+      } catch (error) {
+        console.log("Error reading file:", error);
+        this.planogramSrc = "";
+      }
+      if (!this.file) this.planogramSrc = "";
+    },
     sendToShelf(pos) {
       const image = new Image();
       image.src = this.productBeingStored.url;

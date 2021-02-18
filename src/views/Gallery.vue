@@ -412,22 +412,22 @@
               <v-col cols="12">
                 <v-alert
                   v-model="fileUploadDetailsAlert"
-                  class="text-caption py-1 px-5"
-                  outlined
-                  type="warning"
-                  prominent
-                  dismissible
+                  dense
                   border="left"
-                  style="text-align: justify; text-justify: inter-word"
+                  type="info"
                 >
-                  <p class="text-overline">
-                    - Imagenes 4k verticales (2160x3840), máximo 10MB (cada
-                    individual), en formato JPG.
-                  </p>
-                  <p class="text-overline">
-                    - Videos en formato MP4, máximo 250MB.
-                  </p>
-                  <p class="text-overline">- Máximo 10 archivos.</p>
+                  Imagenes <strong>4K</strong> verticales (2160x3840), máximo
+                  <strong>10MB</strong> por imagen, formato
+                  <strong>JPG</strong>.
+                </v-alert>
+                <v-alert
+                  v-model="fileUploadDetailsAlert"
+                  dense
+                  border="left"
+                  type="info"
+                >
+                  Videos en formato <strong>MP4</strong>, máximo
+                  <strong>250MB</strong> por video.
                 </v-alert>
               </v-col>
               <v-col :cols="editedIndex > -1 ? 8 : 12" class="d-flex">

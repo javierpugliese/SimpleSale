@@ -76,6 +76,141 @@
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
             <v-dialog
+              v-model="dialogSearch"
+              width="60%"
+              overlay-color="blue"
+              overlay-opacity="0.2"
+              scrollable
+              persistent
+            >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn
+                  color="secondary"
+                  dark
+                  class="mx-2"
+                  v-bind="attrs"
+                  v-on="on"
+                  large
+                  :loading="loading"
+                >
+                  <v-icon class="mr-2">fas fa-search</v-icon>
+                  Buscar
+                </v-btn>
+              </template>
+              <v-card height="auto">
+                <v-card-title>
+                  <span class="headline">Opciones de búsqueda</span>
+                </v-card-title>
+
+                <v-card-text>
+                  <v-container>
+                    <v-row>
+                      <v-col cols="12" sm="4">
+                        <v-text-field
+                          v-model="searchItem.nombre"
+                          label="Nombre"
+                          counter="50"
+                          maxlength="50"
+                          outlined
+                          clearable
+                          required
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="4">
+                        <v-text-field
+                          v-model="searchItem.sku"
+                          :disabled="editedId > -1"
+                          label="SKU"
+                          counter="50"
+                          maxlength="50"
+                          outlined
+                          clearable
+                          required
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="4">
+                        <v-text-field
+                          v-model="searchItem.ean"
+                          label="Código EAN"
+                          counter="13"
+                          maxlength="13"
+                          outlined
+                          clearable
+                          required
+                        ></v-text-field>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="12" sm="4">
+                        <v-autocomplete
+                          v-model="searchItem.idTipoArticulo"
+                          :items="productTypes"
+                          label="Tipo"
+                          maxlength="50"
+                          clearable
+                          outlined
+                          small-chips
+                        ></v-autocomplete>
+                      </v-col>
+                      <v-col cols="12" sm="4">
+                        <v-autocomplete
+                          v-model="searchItem.idFabricante"
+                          :items="manufacturers"
+                          label="Fabricante"
+                          maxlength="50"
+                          clearable
+                          outlined
+                          small-chips
+                        ></v-autocomplete>
+                      </v-col>
+                      <v-col cols="12" sm="4">
+                        <v-autocomplete
+                          v-model="searchItem.idCategoria"
+                          :items="categories"
+                          label="Categoría"
+                          maxlength="50"
+                          clearable
+                          outlined
+                          small-chips
+                        ></v-autocomplete>
+                      </v-col>
+                    </v-row>
+                    <v-row>
+                      <v-col cols="12" sm="4">
+                        <v-autocomplete
+                          v-model="searchItem.atributos"
+                          :items="attributes"
+                          label="Atributos"
+                          maxlength="50"
+                          multiple
+                          clearable
+                          outlined
+                          small-chips
+                        >
+                        </v-autocomplete>
+                      </v-col>
+                    </v-row>
+                  </v-container>
+                </v-card-text>
+
+                <v-card-actions>
+                  <v-spacer></v-spacer>
+                  <v-btn color="info" text large @click="dialogSearch = false">
+                    Cerrar
+                  </v-btn>
+                  <v-btn
+                    color="success"
+                    large
+                    @click="dialogSearch = false"
+                    :disabled="loading"
+                  >
+                    Aplicar
+                  </v-btn>
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
+            <!-- Modal form product -->
+            <v-dialog
               v-model="dialog"
               fullscreen
               hide-overlay
@@ -86,7 +221,7 @@
                 <v-btn
                   color="primary"
                   dark
-                  class="my-3"
+                  class="mx-2"
                   v-bind="attrs"
                   v-on="on"
                   large
@@ -562,7 +697,9 @@ export default {
     delimiters: [",", ".", "-", "/", " "],
     dialog: false,
     dialogDelete: false,
+    dialogSearch: false,
     editedIndex: -1,
+    editedId: -1,
     editedItem: {
       nombre: "",
       sku: "",
@@ -579,7 +716,6 @@ export default {
       codigosDeBarra: [],
       archivos: [],
     },
-    editedId: -1,
     defaultItem: {
       nombre: "",
       sku: "",
@@ -595,6 +731,24 @@ export default {
       atributos: [],
       codigosDeBarra: [],
       archivos: [],
+    },
+    searchItem: {
+      nombre: "",
+      sku: "",
+      ean: "",
+      idFabricante: -1,
+      idCategoria: -1,
+      idTipoArticulo: -1,
+      atributos: [],
+    },
+    searchItemDefault: {
+      nombre: "",
+      sku: "",
+      ean: "",
+      idFabricante: -1,
+      idCategoria: -1,
+      idTipoArticulo: -1,
+      atributos: [],
     },
     snackbar: false,
     snackbarText: "",

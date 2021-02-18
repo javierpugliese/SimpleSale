@@ -10,29 +10,83 @@
       <v-scroll-y-transition>
         <v-toolbar-title> Gestión de Planogramas </v-toolbar-title>
       </v-scroll-y-transition>
-      <v-autocomplete
-        v-model="productId"
-        :items="products"
-        label="Producto"
-        maxlength="50"
-        class="mt-6"
-        clearable
-        outlined
-        small-chips
-        :allow-overflow="false"
-        :autofocus="true"
-        :cache-items="true"
-        @change="getProduct"
-        :loading="loading"
-        :disabled="loading"
-      ></v-autocomplete>
       <v-spacer></v-spacer>
+      <v-scale-transition>
+        <v-dialog
+          v-model="dialogSearch"
+          width="30%"
+          overlay-color="blue"
+          overlay-opacity="0.2"
+          scrollable
+          persistent
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="secondary"
+              dark
+              large
+              class="mx-2"
+              v-bind="attrs"
+              v-on="on"
+              :loading="loading"
+            >
+              <v-icon class="mr-2">fas fa-search</v-icon>
+              Buscar producto
+            </v-btn>
+          </template>
+          <v-card height="auto">
+            <v-card-title>
+              <span class="headline">Opciones de búsqueda</span>
+            </v-card-title>
+            <v-card-text>
+              <v-container>
+                <v-row>
+                  <v-col cols="12">
+                    <v-autocomplete
+                      v-model="productId"
+                      :items="products"
+                      label="Producto"
+                      maxlength="50"
+                      class="mt-6"
+                      clearable
+                      outlined
+                      small-chips
+                      :allow-overflow="false"
+                      :autofocus="true"
+                      :cache-items="true"
+                      @change="getProduct"
+                      :loading="loading"
+                      :disabled="loading"
+                    ></v-autocomplete>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="info" text large @click="dialogSearch = false">
+                Cerrar
+              </v-btn>
+              <v-btn
+                color="success"
+                large
+                @click="dialogSearch = false"
+                :disabled="loading"
+              >
+                Aplicar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-scale-transition>
       <v-scale-transition>
         <v-btn
           v-if="!searchMode"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
+          large
           :disabled="loading"
           to="/pantallas/planogramas"
         >
@@ -453,6 +507,7 @@ export default {
     calculatedProductWidth: 0,
     calculatedProductHeight: 0,
     planogramSrc: "",
+    dialogSearch: false,
   }),
   computed: {
     defaultShelfHeight() {

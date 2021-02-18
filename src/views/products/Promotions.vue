@@ -36,6 +36,73 @@
             <v-toolbar-title>Lista de Promociones</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
+            <v-scale-transition>
+              <v-dialog
+                v-model="dialogSearch"
+                width="30%"
+                overlay-color="blue"
+                overlay-opacity="0.2"
+                scrollable
+                persistent
+              >
+                <template v-slot:activator="{ on, attrs }">
+                  <v-btn
+                    color="secondary"
+                    dark
+                    large
+                    class="mx-2"
+                    v-bind="attrs"
+                    v-on="on"
+                    :loading="loading"
+                  >
+                    <v-icon class="mr-2">fas fa-search</v-icon>
+                    Buscar
+                  </v-btn>
+                </template>
+                <v-card height="auto">
+                  <v-card-title>
+                    <span class="headline">Opciones de búsqueda</span>
+                  </v-card-title>
+                  <v-card-text>
+                    <v-container>
+                      <v-row>
+                        <v-col cols="12">
+                          <v-text-field
+                            v-model="searchItem.nombre"
+                            label="Nombre"
+                            counter="50"
+                            maxlength="50"
+                            outlined
+                            clearable
+                            required
+                          ></v-text-field>
+                        </v-col>
+                      </v-row>
+                    </v-container>
+                  </v-card-text>
+
+                  <v-card-actions>
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      color="info"
+                      text
+                      large
+                      @click="dialogSearch = false"
+                    >
+                      Cerrar
+                    </v-btn>
+                    <v-btn
+                      color="success"
+                      large
+                      @click="dialogSearch = false"
+                      :disabled="loading"
+                    >
+                      Aplicar
+                    </v-btn>
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+            </v-scale-transition>
             <v-dialog
               v-model="dialog"
               fullscreen
@@ -361,6 +428,7 @@ export default {
     delimiters: [",", ".", "-", "/", " "],
     dialog: false,
     dialogDelete: false,
+    dialogSearch: false,
     modal: false,
     editedIndex: -1,
     editedId: -1,
@@ -390,6 +458,10 @@ export default {
       items: [],
       destinatarios: [],
     },
+    searchItem: {
+      nombre: "",
+    },
+    searchItemDefault: { nombre: "" },
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",

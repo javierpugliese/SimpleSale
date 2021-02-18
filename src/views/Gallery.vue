@@ -193,6 +193,7 @@
       </v-scale-transition>
     </v-toolbar>
 
+    <!-- Snackbar http status messages -->
     <v-scale-transition>
       <v-snackbar v-model="snackbar" :color="snackbarColor" top right>
         {{ snackbarText }}
@@ -205,6 +206,7 @@
       </v-snackbar>
     </v-scale-transition>
 
+    <!-- Snackbar for file upload progress -->
     <v-scale-transition>
       <v-snackbar
         v-model="uploading"
@@ -231,6 +233,45 @@
         </v-progress-linear>
       </v-snackbar>
     </v-scale-transition>
+
+    <!-- Dialog for file upload alert -->
+    <v-dialog
+      v-model="dialogUploading"
+      width="50%"
+      overlay-color="blue"
+      overlay-opacity="0.2"
+      scrollable
+      persistent
+    >
+      <v-card height="auto">
+        <v-card-title>
+          <span class="headline">Subiendo archivos</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <div class="text-h3 text-center mb-3">
+                  No cierre esta ventana o el navegador.
+                </div>
+                <v-progress-linear
+                  striped
+                  indeterminate
+                  color="info"
+                ></v-progress-linear>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="info" text large @click="dialogUploading = false">
+            Entendido
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <v-row dense>
       <v-col class="d-flex flex-row flex-wrap flex-grow-1 mb-16">
@@ -666,6 +707,9 @@
 
 <script>
 import moment from "moment";
+window.onbeforeunload = () => {
+  return "Asegúrese de que los archivos hayan terminado de cargarse antes de cerrar esta ventana.";
+};
 // @ is an alias to /src
 export default {
   name: "Gallery",
@@ -735,6 +779,29 @@ export default {
     },
   }),
 
+  watch: {
+    /* 
+    dialog(val) {
+      val || this.close();
+    }, */
+    dialogDelete(val) {
+      val || this.closeDelete();
+    },
+    itemsPerPage() {
+      this.initialize();
+    },
+    fileTotalProgress(val) {
+      if (val >= 100) {
+        this.fileName = "Finalizando...";
+        val = 0;
+      }
+    },
+    uploading(val) {
+      if (val === true) this.dialogUploading = true;
+      else this.dialogUploading = false;
+    },
+  },
+
   computed: {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo Fondo" : "Editar Fondo";
@@ -752,28 +819,6 @@ export default {
       }
       return [];
     },
-  },
-
-  watch: {
-    dialog(val) {
-      val || this.close();
-    },
-    dialogDelete(val) {
-      val || this.closeDelete();
-    },
-    itemsPerPage() {
-      this.initialize();
-    },
-    fileTotalProgress(val) {
-      if (val >= 100) {
-        this.fileName = "Finalizando...";
-        val = 0;
-      }
-    },
-  },
-
-  mounted() {
-    this.initialize();
   },
 
   methods: {
@@ -1174,6 +1219,9 @@ export default {
         let postFormData;
         let f = 0;
         let files = this.files.length;
+        this.uploading = true;
+        this.loading = true;
+        this.dialog = false;
         if (files) {
           //this.close();
           for (f; f < files; f++) {
@@ -1185,8 +1233,6 @@ export default {
             postFormData.append("descripcion", "any");
             postFormData.append("file", this.files[f]);
             let filename = this.files[f].name;
-            this.uploading = true;
-            this.loading = true;
             await this.$http
               .post("Archivos", postFormData, {
                 onUploadProgress: (progressEvent) => {
@@ -1208,6 +1254,9 @@ export default {
       this.close();
       this.initialize();
     },
+  },
+  mounted() {
+    this.initialize();
   },
 };
 </script>

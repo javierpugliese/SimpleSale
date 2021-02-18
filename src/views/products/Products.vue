@@ -623,6 +623,9 @@
 
 <script>
 import moment from "moment";
+window.onbeforeunload = () => {
+  return "Asegúrese de que los archivos hayan terminado de cargarse antes de cerrar esta ventana.";
+};
 // @ is an alias to /src
 export default {
   name: "Products",

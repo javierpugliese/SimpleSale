@@ -590,6 +590,7 @@
                 :hide-details="true"
                 :loading="loading"
                 :disabled="loading"
+                @change="page = 1"
               ></v-select>
             </v-col>
             <v-col cols="12" sm="4" class="d-flex justify-center align-center">

@@ -14,7 +14,7 @@
 
       <v-data-table
         :headers="headers"
-        :items="[]"
+        :items="sponsors"
         :loading="loading"
         @click:row="editItem"
         loading-text="Cargando..."
@@ -31,15 +31,20 @@
           {{ parseDate(item.fechaInicio) }}
         </template>
 
+        <template v-slot:item.modificado="{ item }">
+          {{ parseDate(item.modificado) }}
+        </template>
+
         <template v-slot:top>
           <v-toolbar flat>
             <v-toolbar-title>Lista de Sponsors</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
+            <!-- Search dialog -->
             <v-scale-transition>
               <v-dialog
                 v-model="dialogSearch"
-                width="30%"
+                width="60%"
                 overlay-color="blue"
                 overlay-opacity="0.2"
                 scrollable
@@ -66,7 +71,7 @@
                   <v-card-text>
                     <v-container>
                       <v-row>
-                        <v-col cols="12">
+                        <v-col cols="12" sm="4">
                           <v-text-field
                             v-model="searchItem.nombre"
                             label="Nombre"
@@ -76,6 +81,28 @@
                             clearable
                             required
                           ></v-text-field>
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                          <v-autocomplete
+                            v-model="searchItem.idFabricante"
+                            :items="manufacturers"
+                            label="Fabricante"
+                            maxlength="50"
+                            clearable
+                            outlined
+                            small-chips
+                          ></v-autocomplete>
+                        </v-col>
+                        <v-col cols="12" sm="4">
+                          <v-autocomplete
+                            v-model="searchItem.idArticulo"
+                            :items="products"
+                            label="Producto"
+                            maxlength="50"
+                            clearable
+                            outlined
+                            small-chips
+                          ></v-autocomplete>
                         </v-col>
                       </v-row>
                     </v-container>
@@ -136,7 +163,7 @@
                   <v-container>
                     <v-sheet class="pa-5" color="blue-grey darken-4">
                       <v-row>
-                        <v-col cols="6">
+                        <v-col cols="12" sm="6">
                           <v-text-field
                             v-model="editedItem.nombre"
                             label="Nombre"
@@ -147,6 +174,8 @@
                             required
                           ></v-text-field>
                         </v-col>
+                      </v-row>
+                      <v-row>
                         <v-col cols="12" sm="6">
                           <v-autocomplete
                             v-model="editedItem.idFabricante"
@@ -157,49 +186,6 @@
                             outlined
                             small-chips
                           ></v-autocomplete>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12" sm="6">
-                          <v-dialog
-                            ref="dialog"
-                            v-model="modal"
-                            :return-value.sync="dates"
-                            persistent
-                            width="290px"
-                          >
-                            <template v-slot:activator="{ on, attrs }">
-                              <v-text-field
-                                :value="computedDateFormattedMomentjs"
-                                clearable
-                                label="Rango de Fechas"
-                                readonly
-                                prepend-icon="fas fa-calendar-alt"
-                                no-title
-                                outlined
-                                v-bind="attrs"
-                                v-on="on"
-                                @click:clear="dates = []"
-                              ></v-text-field>
-                            </template>
-                            <v-date-picker v-model="dates" scrollable range>
-                              <v-spacer></v-spacer>
-                              <v-btn
-                                text
-                                color="primary"
-                                @click="modal = false"
-                              >
-                                Cancelar
-                              </v-btn>
-                              <v-btn
-                                text
-                                color="primary"
-                                @click="$refs.dialog.save(dates)"
-                              >
-                                Aceptar
-                              </v-btn>
-                            </v-date-picker>
-                          </v-dialog>
                         </v-col>
                         <v-col cols="12" sm="6">
                           <v-autocomplete
@@ -216,6 +202,94 @@
                       <v-row>
                         <v-col cols="12" sm="6">
                           <v-dialog
+                            ref="dialogInitDate"
+                            v-model="modalInitDate"
+                            :return-value.sync="editedItem.fechaInicio"
+                            persistent
+                            width="290px"
+                          >
+                            <template v-slot:activator="{ on, attrs }">
+                              <v-text-field
+                                :value="moment_initDateFormatted"
+                                label="Fecha de inicio"
+                                readonly
+                                outlined
+                                v-bind="attrs"
+                                v-on="on"
+                              ></v-text-field>
+                            </template>
+                            <v-date-picker
+                              v-model="editedItem.fechaInicio"
+                              scrollable
+                            >
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                text
+                                color="primary"
+                                @click="modalInitDate = false"
+                              >
+                                Cancelar
+                              </v-btn>
+                              <v-btn
+                                text
+                                color="primary"
+                                @click="
+                                  $refs.dialogInitDate.save(
+                                    editedItem.fechaInicio
+                                  )
+                                "
+                              >
+                                Aceptar
+                              </v-btn>
+                            </v-date-picker>
+                          </v-dialog>
+                        </v-col>
+                        <v-col cols="12" sm="6">
+                          <v-dialog
+                            ref="dialogEndDate"
+                            v-model="modalEndDate"
+                            :return-value.sync="editedItem.fechaFin"
+                            persistent
+                            width="290px"
+                          >
+                            <template v-slot:activator="{ on, attrs }">
+                              <v-text-field
+                                :value="moment_endDateFormatted"
+                                label="Fecha de finalización"
+                                readonly
+                                outlined
+                                v-bind="attrs"
+                                v-on="on"
+                              ></v-text-field>
+                            </template>
+                            <v-date-picker
+                              v-model="editedItem.fechaFin"
+                              scrollable
+                            >
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                text
+                                color="primary"
+                                @click="modalEndDate = false"
+                              >
+                                Cancelar
+                              </v-btn>
+                              <v-btn
+                                text
+                                color="primary"
+                                @click="
+                                  $refs.dialogEndDate.save(editedItem.fechaFin)
+                                "
+                              >
+                                Aceptar
+                              </v-btn>
+                            </v-date-picker>
+                          </v-dialog>
+                        </v-col>
+                      </v-row>
+                      <v-row>
+                        <v-col cols="12" sm="6">
+                          <v-dialog
                             ref="dialog2"
                             v-model="modal2"
                             :return-value.sync="time"
@@ -225,8 +299,7 @@
                             <template v-slot:activator="{ on, attrs }">
                               <v-text-field
                                 v-model="time"
-                                label="Hora de Inicio"
-                                prepend-icon="fas fa-clock"
+                                label="Hora de inicio"
                                 outlined
                                 readonly
                                 v-bind="attrs"
@@ -267,8 +340,7 @@
                             <template v-slot:activator="{ on, attrs }">
                               <v-text-field
                                 v-model="time1"
-                                label="Hora de Fin"
-                                prepend-icon="fas fa-clock"
+                                label="Hora de finalización"
                                 readonly
                                 outlined
                                 v-bind="attrs"
@@ -367,18 +439,6 @@ export default {
         value: "nombre",
       },
       {
-        text: "Fabricante",
-        align: "start",
-        sortable: true,
-        value: "fabricante.nombre",
-      },
-      {
-        text: "Producto",
-        align: "start",
-        sortable: true,
-        value: "producto.nombre",
-      },
-      {
         text: "Fecha de inicio",
         align: "start",
         sortable: true,
@@ -402,25 +462,17 @@ export default {
         sortable: true,
         value: "horaFin",
       },
+      {
+        text: "Fecha de modificación",
+        align: "start",
+        sortable: true,
+        value: "modificado",
+      },
     ],
-    products: [],
-    productTypes: [],
-    attributes: [],
-    attributeTypes: [],
-    promoTypes: [],
 
-    applicableManufacturers: [],
+    sponsors: [],
+    products: [],
     manufacturers: [],
-    applicableCategories: [],
-    categories: [],
-    applicableProvinces: [],
-    provinces: [],
-    applicableRegions: [],
-    regions: [],
-    applicableClients: [],
-    clients: [],
-    applicableClientGroups: [],
-    clientGroups: [],
 
     delimiters: [",", ".", "-", "/", " "],
     dialog: false,
@@ -431,35 +483,35 @@ export default {
 
     editedItem: {
       nombre: "",
-      fechaInicio: moment().format("L"),
-      fechaFin: moment().format("L"),
-      horaInicio: moment().format("LT"),
-      horaFin: moment().format("LT"),
+      fechaInicio: "",
+      fechaFin: "",
+      horaInicio: "",
+      horaFin: "",
       idArticulo: -1,
       idFabricante: -1,
     },
     defaultItem: {
       nombre: "",
-      fechaInicio: moment().format("L"),
-      fechaFin: moment().format("L"),
-      horaInicio: moment().format("LT"),
-      horaFin: moment().format("LT"),
+      fechaInicio: "",
+      fechaFin: "",
+      horaInicio: "",
+      horaFin: "",
       idArticulo: -1,
       idFabricante: -1,
     },
-    searchItem: {
-      nombre: "",
-    },
-    searchItemDefault: { nombre: "" },
+    searchItem: { nombre: "", idArticulo: -1, idFabricante: -1 },
+    searchItemDefault: { nombre: "", idArticulo: -1, idFabricante: -1 },
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
-    promoTypeValue: 0,
-    sponsors: [],
     dates: [],
     modal: false,
     modal2: false,
     modal3: false,
+    modalInitDate: false,
+    initDate: "",
+    modalEndDate: false,
+    endDate: "",
     time: "",
     time1: "",
   }),
@@ -483,18 +535,15 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo Sponsor" : "Editar Sponsor";
     },
-    computedDateFormattedMomentjs() {
-      if (this.dates) {
-        let dates = [...this.dates];
-        let date = 0;
-        let arr = dates.length;
-        for (date; date < arr; date++) {
-          let formattedDate = moment(dates[date]).format("DD/MM/YYYY");
-          dates[date] = formattedDate;
-        }
-        return dates.join(" ~ ");
-      }
-      return [];
+    moment_initDateFormatted() {
+      return this.editedItem.fechaInicio
+        ? moment(this.editedItem.fechaInicio).format("DD/MM/YYYY")
+        : "";
+    },
+    moment_endDateFormatted() {
+      return this.editedItem.fechaFin
+        ? moment(this.editedItem.fechaFin).format("DD/MM/YYYY")
+        : "";
     },
   },
 
@@ -511,84 +560,40 @@ export default {
     /* Init */
     async initialize() {
       this.loading = true;
+      this.sponsors = [];
       this.products = [];
       this.manufacturers = [];
-      this.categories = [];
-      this.attributeTypes = [];
 
-      const products = this.$http.get("Articulos", {
-        params: { pageNumber: this.page, pageSize: this.itemsPerPage },
+      const sponsors = this.$http.get("Sponsoreos");
+      const products = this.$http.get("Simple", {
+        params: { pageNumber: 1, pageSize: 100000 },
       });
       const manufacturers = this.$http.get("Fabricantes");
-      const productTypes = this.$http.get("TiposArticulo");
-      const categories = this.$http.get("CategoriasArticulo");
-      const attributeTypes = this.$http.get("TiposDeAtributo");
 
-      const promises = [
-        products,
-        manufacturers,
-        productTypes,
-        categories,
-        attributeTypes,
-      ];
+      const promises = [sponsors, products, manufacturers];
 
       await this.$http
         .all(promises)
         .then(
           this.$http.spread((...responses) => {
-            const productsRes = responses[0];
-            const manufacturersRes = responses[1];
-            const productTypesRes = responses[2];
-            const categoriesRes = responses[3];
-            const attrTypesRes = responses[4];
+            const sponsorsRes = responses[0];
+            const productsRes = responses[1];
+            const manufacturersRes = responses[2];
+
+            if (sponsorsRes && sponsorsRes.data)
+              this.sponsors = sponsorsRes.data;
 
             if (productsRes && productsRes.data.list) {
-              this.products = productsRes.data.list;
-              this.pages = productsRes.data.totalPages;
-              this.totalRecords = productsRes.data.totalRecords;
+              this.products = productsRes.data.list.map((p) =>
+                Object.assign({}, { text: p.nombre, value: p.id })
+              );
             }
+
             if (manufacturersRes && manufacturersRes.data) {
               this.manufacturers = manufacturersRes.data.map((m) => ({
                 text: m.nombre,
                 value: m.id,
               }));
-            }
-            if (productTypesRes && productTypesRes.data) {
-              this.productTypes = productTypesRes.data.map((pt) => ({
-                text: pt.nombre,
-                value: pt.id,
-              }));
-            }
-            if (categoriesRes && categoriesRes.data) {
-              this.categories = categoriesRes.data.map((c) => ({
-                text: c.nombre,
-                value: c.id,
-              }));
-            }
-            if (attrTypesRes && attrTypesRes.data) {
-              let list = attrTypesRes.data;
-              let attributes = [];
-
-              for (let at of list) {
-                if (at.atributos && at.atributos.length > 0) {
-                  attributes.push(
-                    Object.assign({}, { header: at.nombre.toUpperCase() })
-                  );
-                  attributes.push(Object.assign({}, { divider: true }));
-                  for (let a of at.atributos) {
-                    attributes.push(
-                      Object.assign(
-                        {},
-                        {
-                          text: a.nombre,
-                          value: a.id,
-                        }
-                      )
-                    );
-                  }
-                }
-              }
-              this.attributes = attributes;
             }
           })
         )
@@ -601,32 +606,9 @@ export default {
     },
 
     editItem(item) {
-      this.editedIndex = this.products.indexOf(item);
+      this.editedIndex = this.sponsors.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
-      if (item.tipoArticulo) {
-        this.editedItem.tipoArticulo = item.tipoArticulo.id;
-      } else this.editedItem.tipoArticulo = -1;
-      if (item.fabricante) {
-        this.editedItem.idFabricante = item.fabricante.id;
-      } else this.editedItem.idFabricante = -1;
-
-      // removeArrDuplicates prevents key duplicates in component render
-      if (item.categorias && item.categorias.length) {
-        this.editedItem.categorias = this.removeArrDuplicates(
-          item.categorias.map((c) => c.id)
-        );
-      } else this.editedItem.categorias = [];
-      if (item.atributos && item.atributos.length) {
-        this.editedItem.atributos = this.removeArrDuplicates(
-          item.atributos.map((a) => a.id)
-        );
-      } else this.editedItem.atributos = [];
-      if (item.codigosDeBarra && item.codigosDeBarra.length) {
-        this.editedItem.codigosDeBarra = this.removeArrDuplicates(
-          item.codigosDeBarra.map((b) => b.ean)
-        );
-      } else this.editedItem.codigosDeBarra = [];
       this.dialog = true;
     },
 
@@ -635,7 +617,7 @@ export default {
       this.dialog = false;
       this.dialogDelete = false;
       await this.$http
-        .delete(`Articulos/${this.editedId}`)
+        .delete(`Sponsoreos/${this.editedId}`)
         .then((res) => {
           if (res) {
             this.snackbarText = "Operación realizada exitosamente.";
@@ -683,24 +665,8 @@ export default {
         this.loading = true;
         await this.$http
           .put(
-            `Articulos/${this.editedId}`,
-            Object.assign(
-              {},
-              {
-                nombre: this.editedItem.nombre,
-                sku: this.editedItem.sku,
-                precio: this.editedItem.precio,
-                activo: this.editedItem.activo,
-                etiquetas: this.editedItem.etiquetas,
-                descripcion: this.editedItem.descripcion,
-                descripcionLarga: this.editedItem.descripcionLarga,
-                prospecto: this.editedItem.prospecto,
-                categorias: this.editedItem.categorias,
-                atributos: this.editedItem.atributos,
-                idFabricante: this.editedItem.idFabricante,
-                idTipo: this.editedItem.tipoArticulo,
-              }
-            )
+            `Sponsoreos/${this.editedId}`,
+            Object.assign({}, this.editedItem)
           )
           .then((res) => {
             if (res) {
@@ -723,25 +689,20 @@ export default {
         this.loading = true;
         await this.$http
           .post(
-            "Articulos",
+            "Sponsoreos",
             Object.assign(
               {},
               {
                 nombre: this.editedItem.nombre,
-                sku: this.editedItem.sku,
-                precio: this.editedItem.precio,
-                activo: this.editedItem.activo,
-                etiquetas: this.editedItem.etiquetas,
-                descripcion: this.editedItem.descripcion,
-                descripcionLarga: this.editedItem.descripcionLarga,
-                prospecto: this.editedItem.prospecto,
-                categorias: this.editedItem.categorias,
-                atributos: this.editedItem.atributos,
-                codigosDeBarra: this.editedItem.codigosDeBarra,
+                fechaInicio: this.editedItem.fechaInicio, // needs formatting
+                fechaFin: this.editedItem.fechaFin, // idem
+                horaInicio: this.editedItem.horaInicio,
+                horaFin: this.editedItem.horaFin,
+                idArticulo: this.editedItem.idArticulo,
                 idFabricante: this.editedItem.idFabricante,
-                idTipo: this.editedItem.tipoArticulo,
               }
             )
+            /* Object.assign({}, this.editedItem) */
           )
           .then((res) => {
             if (res) {

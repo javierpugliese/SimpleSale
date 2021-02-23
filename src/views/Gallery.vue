@@ -135,7 +135,10 @@
       <v-scale-transition v-if="!multiSelect">
         <v-btn
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
-          @click="dialog = true"
+          @click="
+            dialog = true;
+            showFileInput = true;
+          "
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
           :disabled="loading"
@@ -393,7 +396,7 @@
 
     <v-dialog
       v-model="dialog"
-      width="40%"
+      width="50%"
       :fullscreen="$vuetify.breakpoint.xsOnly"
       :hide-overlay="$vuetify.breakpoint.xsOnly"
       scrollable
@@ -432,20 +435,7 @@
               </v-col>
               <v-col :cols="editedIndex > -1 ? 8 : 12" class="d-flex">
                 <v-row dense>
-                  <v-col cols="12" v-if="editedIndex > -1">
-                    <v-text-field
-                      v-model="editedItem.nombre"
-                      label="Nombre"
-                      counter="50"
-                      maxlength="50"
-                      class="my-auto"
-                      outlined
-                      clearable
-                      required
-                    >
-                    </v-text-field>
-                  </v-col>
-                  <v-col cols="12" class="align-self-end">
+                  <v-col cols="12" sm="6" class="align-self-end">
                     <v-alert
                       v-if="fileAlerts.length"
                       outlined
@@ -476,156 +466,79 @@
                         - {{ alert }}
                       </div>
                     </v-alert>
-                    <v-file-input
-                      v-if="editedIndex > -1"
-                      v-model="file"
-                      counter
-                      label="Archivo (imagen o video)"
-                      accept=".jpg, .mp4"
-                      placeholder="Seleccione archivos..."
-                      prepend-icon=""
-                      outlined
-                      :show-size="1000"
-                      @change="onFileUpload"
-                    >
-                      <template v-slot:selection="{ index, text }">
-                        <v-chip v-if="index < 2" color="info" dark label small>
-                          {{ text }}
-                        </v-chip>
-                      </template>
-                    </v-file-input>
-                    <div v-else>
-                      <!-- Image files -->
-                      <v-file-input
-                        v-model="files"
-                        counter
-                        label="Archivos (imagenes)"
-                        accept=".jpg"
-                        prepend-icon=""
-                        outlined
-                        multiple
-                        @change="onFileUploadMultiple"
-                        :disabled="loading || uploading"
-                        :show-size="1000"
-                      >
-                        <template v-slot:selection="{ index, text }">
-                          <v-chip
-                            v-if="index < 2"
-                            color="info"
-                            dark
-                            label
-                            small
-                          >
-                            {{ text }}
-                          </v-chip>
-
-                          <span
-                            v-else-if="index === 2"
-                            class="overline text--darken-3 mx-2"
-                          >
-                            +{{ files.length - 2 }} Archivo(s)
-                          </span>
-                        </template>
-                      </v-file-input>
-
-                      <!-- Preview before upload -->
-                      <div
-                        class="d-flex flex-wrap justify-start"
-                        style="align-items: flex-start"
-                      >
-                        <v-img
-                          v-for="(i, index) in filesURLs"
-                          :key="index"
-                          :src="i || require('@/assets/no-disponible.jpg')"
-                          alt=" "
-                          :contain="true"
-                          class="white--text ma-2 __background-small"
-                          gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-                        >
-                          <v-btn
-                            icon
-                            large
-                            style="position: absolute; top: 0; right: 0"
-                            :disabled="loading || uploading"
-                            @click="removeFile(index)"
-                          >
-                            <v-icon color="red"> fas fa-times </v-icon>
-                          </v-btn>
-                        </v-img>
-                      </div>
-
-                      <!-- Video files -->
-                      <v-file-input
-                        v-model="videoFiles"
-                        counter
-                        label="Archivos (videos)"
-                        accept=".mp4"
-                        prepend-icon=""
-                        outlined
-                        multiple
-                        @change="onVideoUploadMultiple"
-                        :disabled="loading || uploading"
-                        :show-size="1000"
-                      >
-                        <template v-slot:selection="{ index, text }">
-                          <v-chip
-                            v-if="index < 2"
-                            color="info"
-                            dark
-                            label
-                            small
-                          >
-                            {{ text }}
-                          </v-chip>
-
-                          <span
-                            v-else-if="index === 2"
-                            class="overline text--darken-3 mx-2"
-                          >
-                            +{{ videoFiles.length - 2 }} Archivo(s)
-                          </span>
-                        </template>
-                      </v-file-input>
-
-                      <!-- Preview videos before upload -->
-                      <!-- <div
-                        class="d-flex flex-wrap justify-start"
-                        style="align-items: flex-start"
-                      >
-                        <v-img
-                          v-for="(i, index) in videoURLs"
-                          :key="index"
-                          :src="i || require('@/assets/no-disponible.jpg')"
-                          alt=" "
-                          :contain="true"
-                          class="white--text ma-2 __background-small"
-                          gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-                        >
-                          <v-btn
-                            icon
-                            large
-                            style="position: absolute; top: 0; right: 0"
-                            :disabled="loading || uploading"
-                            @click="removeVideoFile(index)"
-                          >
-                            <v-icon color="red"> fas fa-times </v-icon>
-                          </v-btn>
-                        </v-img>
-                      </div> -->
-                    </div>
                   </v-col>
                 </v-row>
               </v-col>
-              <v-col cols="4" v-if="editedIndex > -1">
-                <v-img
-                  v-if="editedIndex > -1 && editedItem.url.endsWith('.jpg')"
-                  :src="fileURL || `${editedItem.url}?${new Date()}`"
-                  :lazy-src="require('@/assets/no-disponible.jpg')"
-                  :aspect-ratio="16 / 9"
-                  class="d-block mx-auto grey lighten-2 __background-medium"
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="8">
+                <v-text-field
+                  v-model="editedItem.nombre"
+                  label="Nombre"
+                  counter="50"
+                  maxlength="50"
+                  outlined
+                  clearable
+                  single-line
+                  dense
                 >
+                </v-text-field>
+                <v-file-input
+                  v-show="showFileInput"
+                  v-model="file"
+                  counter
+                  label="Archivo"
+                  accept=".jpg, .mp4"
+                  placeholder="Elegir archivo..."
+                  prepend-icon=""
+                  outlined
+                  single-line
+                  dense
+                  :show-size="1000"
+                  @change="onFileUpload"
+                >
+                  <template v-slot:selection="{ index, text }">
+                    <v-chip v-if="index < 2" color="info" dark label small>
+                      {{ text }}
+                    </v-chip>
+                  </template>
+                </v-file-input>
+              </v-col>
+              <v-col cols="12" sm="4" class="d-flex justify-center">
+                <v-img
+                  :src="fileURL || `${editedItem.url}?${new Date()}`"
+                  alt=" "
+                  :contain="true"
+                  :aspect-ratio="16 / 9"
+                  class="d-block grey-lighten-2 white--text ma-0 p-0 __background-small"
+                  gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                  style="border: 1px solid white"
+                >
+                  <div style="position: absolute; top: 0; right: 0">
+                    <v-btn
+                      v-if="editedIndex > -1 && editedId > -1 && !showFileInput"
+                      icon
+                      :disabled="loading || uploading"
+                      @click="showFileInput = true"
+                    >
+                      <v-icon color="warning"> fas fa-pencil-alt </v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="!(editedIndex > -1 && editedId > -1) && fileURL"
+                      icon
+                      :disabled="loading || uploading"
+                      @click="
+                        file = null;
+                        fileURL = null;
+                      "
+                    >
+                      <v-icon color="red"> fas fa-times </v-icon>
+                    </v-btn>
+                  </div>
+
                   <template v-slot:placeholder>
                     <v-row
+                      v-if="fileURL"
                       class="fill-height ma-0"
                       align="center"
                       justify="center"
@@ -635,14 +548,9 @@
                         color="info"
                       ></v-progress-circular>
                     </v-row>
+                    <div class="text-overline text-center">Vista previa</div>
                   </template>
                 </v-img>
-                <!-- Show video here #######TODO -->
-                <div v-else-if="!editedIndex > 0">
-                  <v-btn @click="alert('Ver original')" icon>
-                    <v-icon>fas fa-paperclip</v-icon>
-                  </v-btn>
-                </div>
               </v-col>
             </v-row>
           </v-sheet>
@@ -671,11 +579,7 @@
             color="success"
             @click="save"
             :loading="loading"
-            :disabled="
-              loading ||
-              (editedIndex > -1 && !file) ||
-              (editedIndex < 0 && !files.length && !videoFiles.length)
-            "
+            :disabled="loading || (editedIndex > -1 && !file)"
           >
             <v-icon class="mr-2"> fas fa-save </v-icon>
             Guardar
@@ -708,10 +612,6 @@
 
 <script>
 import moment from "moment";
-window.onbeforeunload = () => {
-  return "Asegúrese de que los archivos hayan terminado de cargarse antes de cerrar esta ventana.";
-};
-// @ is an alias to /src
 export default {
   name: "Gallery",
   components: {},
@@ -732,7 +632,7 @@ export default {
     ],
     backgrounds: [],
     file: null,
-    files: [],
+    showFileInput: true,
     dialog: false,
     dialogDelete: false,
     dialogSearch: false,
@@ -746,13 +646,10 @@ export default {
     snackbarColor: "black",
     fileName: "",
     fileTotalProgress: 0,
-    filesURLs: [],
     fileURL: "",
     fileAlerts: [],
     fileUploadDetailsAlert: true,
-    videoFiles: [],
     videoAlerts: [],
-    videoURLs: [],
     itemsPerPageItems: [
       { text: "5 fondos", value: 5 },
       { text: "10 fondos", value: 10 },
@@ -781,10 +678,6 @@ export default {
   }),
 
   watch: {
-    /* 
-    dialog(val) {
-      val || this.close();
-    }, */
     dialogDelete(val) {
       val || this.closeDelete();
     },
@@ -800,6 +693,15 @@ export default {
     uploading(val) {
       if (val === true) this.dialogUploading = true;
       else this.dialogUploading = false;
+    },
+    editedId(val) {
+      console.log("editedId", val);
+    },
+    editedIndex(val) {
+      console.log("editedIndex", val);
+    },
+    fileType(val) {
+      console.log("fileType", val);
     },
   },
 
@@ -868,6 +770,7 @@ export default {
             }
           };
         } else if (this.file.name.match(/.(mp4)$/i)) {
+          this.fileURL = null;
           if (this.file.size > 250000000) {
             this.fileAlerts(`El archivo ${this.file.name} supera los 250MB.`);
             this.file = null;
@@ -885,154 +788,6 @@ export default {
         this.file = null;
       }
     },
-    onFileUploadMultiple(files) {
-      this.files = files;
-      this.filesURLs = [];
-      this.fileAlerts = [];
-      let arr = this.files.length;
-
-      if (arr < 11) {
-        for (var i = arr - 1; i >= 0; i--) {
-          var index = this.files.indexOf(this.files[i]);
-          if (this.files[i]) {
-            let url = URL.createObjectURL(this.files[i]);
-            if (this.files[i].name.match(/.(jpg|jpeg)$/i)) {
-              if (this.files[i].size > 10000000) {
-                this.fileAlerts.push(
-                  `El archivo ${this.files[i].name} supera los 10MB.`
-                );
-                this.files.splice(index, 1);
-                URL.revokeObjectURL(this.files[i]);
-                continue;
-              }
-              let image = new Image();
-              image.src = url;
-              let filename = this.files[i].name;
-              image.onload = () => {
-                if (image.width == 2160 && image.height == 3840) {
-                  this.filesURLs.push(url);
-                } else {
-                  this.fileAlerts.push(
-                    `El archivo ${filename} no es una imagen 4k vertical (2160x3840).`
-                  );
-                  this.files.splice(index, 1);
-                  URL.revokeObjectURL(this.files[i]);
-                }
-              };
-            } else if (this.files[i].name.match(/.(mp4)$/i)) {
-              if (this.files[i].size > 250000000) {
-                this.fileAlerts(
-                  `El archivo ${this.files[i].name} supera los 250MB.`
-                );
-                this.files.splice(index, 1);
-                URL.revokeObjectURL(this.files[i]);
-                continue;
-              }
-            } else {
-              this.fileAlerts.push(
-                `El archivo ${this.files[i].name} no coincide con los formatos soportados.`
-              );
-              this.files.splice(index, 1);
-              URL.revokeObjectURL(this.files[i]);
-            }
-          }
-        }
-      } else {
-        this.files = [];
-        this.filesURLs = [];
-        this.fileAlerts.push(`Máximo 10 archivos.`);
-      }
-    },
-    onVideoUploadMultiple(files) {
-      this.videoFiles = files;
-      this.videoURLs = [];
-      this.videoAlerts = [];
-      let arr = this.videoFiles.length;
-
-      if (arr < 4) {
-        for (var i = arr - 1; i >= 0; i--) {
-          var index = this.videoFiles.indexOf(this.videoFiles[i]);
-          if (this.videoFiles[i]) {
-            //let url = URL.createObjectURL(this.videoFiles[i]);
-            if (this.videoFiles[i].name.match(/.(mp4)$/i)) {
-              if (this.videoFiles[i].size > 250000000) {
-                this.videoAlerts.push(
-                  `El archivo ${this.videoFiles[i].name} supera los 250MB.`
-                );
-                this.videoFiles.splice(index, 1);
-                URL.revokeObjectURL(this.videoFiles[i]);
-                continue;
-              }
-
-              /*
-              // VIDEO METADATA
-              
-              var mime = this.videoFiles[i].type;
-              var rd = new FileReader();
-
-              rd.onload = (e) => {
-                var blob = new Blob([e.target.result], {
-                  type: mime,
-                });
-                var url = URL.createObjectURL(blob);
-                var video = document.createElement("video");
-
-                video.preload = "metadata";
-
-                video.addEventListener("loadedmetadata", () => {
-                  if (video.duration <= 90) {
-                    if (video.videoWidth >= 1080 && video.videoHeight >= 1920) {
-                      this.videoURLs.push(url);
-                    } else if (
-                      video.videoWidth > 2160 ||
-                      video.videoHeight > 3840
-                    ) {
-                      this.videoAlerts.push(
-                        `El archivo ${this.videoFiles[i].name} supera las dimensiones máximas soportadas (2160x3840).`
-                      );
-                      this.videoFiles.splice(index, 1);
-                    } else {
-                      this.videoAlerts.push(
-                        `El archivo ${this.videoFiles[i].name} no supera las dimensiones mínimas soportadas (1080x1920).`
-                      );
-                      this.videoFiles.splice(index, 1);
-                    }
-                  } else {
-                    this.videoAlerts.push(
-                      `El archivo ${this.videoFiles[i].name} tiene una duración superior a 90 segundos.`
-                    );
-                    this.videoFiles.splice(index, 1);
-                  }
-                  URL.revokeObjectURL(url);
-                });
-                video.src = url;
-              };
-
-              var chunk = this.videoFiles[i].slice(0, 500000);
-              rd.readAsArrayBuffer(chunk); */
-            } else {
-              this.videoAlerts.push(
-                `El archivo ${this.videoFiles[i].name} no coincide con los formatos soportados.`
-              );
-              this.videoFiles.splice(index, 1);
-              URL.revokeObjectURL(this.videoFiles[i]);
-            }
-          }
-        }
-      } else {
-        this.videoFiles = [];
-        this.videoURLs = [];
-        this.videoAlerts.push(`Máximo 3 videos.`);
-      }
-    },
-    removeFile(pos) {
-      this.files.splice(pos, 1);
-      this.filesURLs.splice(pos, 1);
-    },
-    removeVideoFile(pos) {
-      this.videoFiles.splice(pos, 1);
-      this.videoURLs.splice(pos, 1);
-    },
     truncateString(str, n) {
       return str.length > n ? str.substr(0, n - 1) + "&hellip;" : str;
     },
@@ -1042,8 +797,6 @@ export default {
       this.loading = true;
       this.uploading = false;
       this.file = null;
-      this.files = [];
-      this.filesURLs = [];
       this.fileTotalProgress = 0;
       this.fileUploadDetailsAlert = true;
 
@@ -1085,6 +838,7 @@ export default {
       this.editedId = item.idArchivoOriginal || -1;
       this.file = null;
       this.fileUploadDetailsAlert = true;
+      this.showFileInput = false;
       this.dialog = true;
     },
 
@@ -1095,7 +849,7 @@ export default {
         .delete(`Archivos/${this.editedId}`)
         .then((res) => {
           if (res) {
-            this.snackbarText = "Se eliminó el fondo exitosamente.";
+            this.snackbarText = "Operación realizada exitosamente.";
             this.snackbarColor = "success";
             this.snackbar = true;
           }
@@ -1103,7 +857,7 @@ export default {
         .catch((err) => {
           if (err) {
             console.log(err);
-            this.snackbarText = "¡ERROR! No se pudo eliminar el fondo.";
+            this.snackbarText = "¡ERROR! Operación cancelada.";
             this.snackbarColor = "danger";
             this.snackbar = true;
           }
@@ -1155,11 +909,9 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
-        this.files = [];
         this.file = null;
-        this.fileAlerts = [];
-        this.filesURLs = [];
         this.fileURL = "";
+        this.fileAlerts = [];
       });
     },
 
@@ -1170,11 +922,9 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
-        this.files = [];
         this.file = null;
-        this.fileAlerts = [];
-        this.filesURLs = [];
         this.fileURL = "";
+        this.fileAlerts = [];
       });
     },
 
@@ -1184,7 +934,6 @@ export default {
         let putFd = new FormData();
         putFd.append("idTipo", +this.fileType);
         putFd.append("nombre", this.editedItem.nombre);
-        putFd.append("descripcion", "any"); // delete later
         putFd.append("file", this.file);
         let filename = this.file.name;
         this.uploading = true;
@@ -1200,14 +949,14 @@ export default {
           })
           .then((res) => {
             if (res) {
-              this.snackbarText = "Se actualizó el fondo exitosamente.";
+              this.snackbarText = "Operación realizada exitosamente.";
               this.snackbarColor = "success";
               this.snackbar = true;
             }
           })
           .catch((err) => {
             if (err) {
-              this.snackbarText = "¡ERROR! No se pudo guardar el fondo.";
+              this.snackbarText = "¡ERROR! Operación cancelada.";
               this.snackbarColor = "danger";
               this.snackbar = true;
             }
@@ -1217,40 +966,30 @@ export default {
             this.loading = false;
           });
       } else {
-        let postFormData;
-        let f = 0;
-        let files = this.files.length;
         this.uploading = true;
         this.loading = true;
         this.dialog = false;
-        if (files) {
-          //this.close();
-          for (f; f < files; f++) {
-            postFormData = new FormData();
-            postFormData.append("idTipo", +this.fileType);
-            postFormData.append("small", true);
-            postFormData.append("medium", true);
-            postFormData.append("large", false);
-            postFormData.append("descripcion", "any");
-            postFormData.append("file", this.files[f]);
-            let filename = this.files[f].name;
-            await this.$http
-              .post("Archivos", postFormData, {
-                onUploadProgress: (progressEvent) => {
-                  this.fileName = filename;
-                  this.fileTotalProgress = parseInt(
-                    Math.round(
-                      (progressEvent.loaded / progressEvent.total) * 100
-                    )
-                  );
-                },
-              })
-              .finally(() => {
-                this.uploading = false;
-                this.loading = false;
-              });
-          }
-        }
+        const fd = new FormData();
+        fd.append("idTipo", +this.fileType);
+        fd.append("nombre", this.editedItem.nombre);
+        fd.append("small", true);
+        fd.append("medium", true);
+        fd.append("large", true);
+        fd.append("file", this.file);
+        let filename = this.file.name;
+        await this.$http
+          .post("Archivos", fd, {
+            onUploadProgress: (pEvt) => {
+              this.fileName = filename;
+              this.fileTotalProgress = parseInt(
+                Math.round((pEvt.loaded / pEvt.total) * 100)
+              );
+            },
+          })
+          .finally(() => {
+            this.uploading = false;
+            this.loading = false;
+          });
       }
       this.close();
       this.initialize();
@@ -1272,9 +1011,9 @@ export default {
 }
 .__background-small {
   position: relative;
-  max-height: 20vh;
+  max-height: 170px;
   max-width: 20vh;
-  min-height: 20vh;
+  min-height: 170px;
   min-width: 20vh;
 }
 .__background-medium {

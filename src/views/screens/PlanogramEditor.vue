@@ -139,7 +139,7 @@
       </v-menu>
 
       <!-- Product details -->
-      <v-col cols="12" md="2">
+      <!-- <v-col cols="12" md="2">
         <v-row class="d-flex flex-column" dense>
           <v-col cols="12">
             <v-sheet color="secondary" class="text-h6 text-center pa-3">
@@ -195,10 +195,10 @@
             </v-list>
           </v-col>
         </v-row>
-      </v-col>
+      </v-col> -->
 
       <!-- Product files list -->
-      <v-col cols="12" md="2">
+      <!-- <v-col cols="12" md="2">
         <v-row class="d-flex flex-column" dense>
           <v-col cols="12">
             <v-sheet color="secondary" class="text-h6 text-center pa-3">
@@ -245,10 +245,84 @@
             </v-col>
           </div>
         </v-row>
-      </v-col>
+      </v-col> -->
 
+      <v-col cols="12" sm="4">
+        <v-row dense>
+          <v-col cols="12">
+            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+              Plantillas y productos
+            </v-sheet>
+          </v-col>
+        </v-row>
+        <v-row dense>
+          <v-col cols="12">
+            <v-autocomplete
+              :items="[]"
+              label="Plantilla"
+              maxlength="50"
+              clearable
+              outlined
+              small-chips
+            ></v-autocomplete>
+          </v-col>
+        </v-row>
+        <v-row dense>
+          <v-col cols="12">
+            <v-text-field
+              v-model="searchProduct.nombre"
+              label="Nombre"
+              counter="50"
+              maxlength="50"
+              outlined
+              clearable
+              required
+              @input="searchProducts"
+            ></v-text-field>
+          </v-col>
+        </v-row>
+        <v-row>
+          <v-col cols="12">
+            <div style="height: 55vh; border: 1px solid white">
+              <v-sheet
+                color="#000"
+                class="text-h6 text-center pa-3 fill-height"
+              >
+                <!-- Product list from search -->
+                <v-card
+                  v-for="(product, index) in products"
+                  :key="`product-${index}-${product.id}`"
+                  height="48"
+                >
+                  <v-card-title v-text="product.nombre"></v-card-title>
+                  <v-card-subtitle v-text="product.sku"></v-card-subtitle>
+                  <v-card-text>
+                    <v-container>
+                      <div class="d-flex flex-column">
+                        <div
+                          v-for="(file, index) in product.archivos"
+                          :key="`pFile-${index}-${file.id}`"
+                        >
+                          <v-img
+                            v-if="file.url"
+                            :src="
+                              file.url || require('@/assets/no-disponible.jpg')
+                            "
+                          >
+                          </v-img>
+                        </div>
+                      </div>
+                    </v-container>
+                  </v-card-text>
+                  <v-card-actions></v-card-actions>
+                </v-card>
+              </v-sheet>
+            </div>
+          </v-col>
+        </v-row>
+      </v-col>
       <!-- Planogram preview -->
-      <v-col cols="12" md="3">
+      <v-col cols="12" sm="3">
         <v-row class="d-flex flex-column" dense>
           <v-col cols="12">
             <v-sheet color="secondary" class="text-h6 text-center pa-3">
@@ -476,6 +550,8 @@ export default {
     shelf_active: true,
     productId: -1,
     loading: false,
+    loadingSearch: false,
+    searchTimeout: null,
 
     menu: false,
     menu_x: 0,
@@ -508,6 +584,24 @@ export default {
     calculatedProductHeight: 0,
     planogramSrc: "",
     dialogSearch: false,
+    searchProduct: {
+      nombre: "",
+      sku: "",
+      ean: "",
+      idFabricante: -1,
+      idCategoria: -1,
+      idTipoArticulo: -1,
+      atributos: [],
+    },
+    searchProductDefault: {
+      nombre: "",
+      sku: "",
+      ean: "",
+      idFabricante: -1,
+      idCategoria: -1,
+      idTipoArticulo: -1,
+      atributos: [],
+    },
   }),
   computed: {
     defaultShelfHeight() {
@@ -525,6 +619,26 @@ export default {
     },
   },
   methods: {
+    async searchProducts() {
+      clearTimeout(this.searchTimeout);
+      this.products = [];
+      let endpoint = `Articulos/Filtrados`;
+      this.searchTimeout = setTimeout(() => {
+        this.$http
+          .post(endpoint, Object.assign({}, this.searchProduct))
+          .then((res) => {
+            if (res && res.data && res.data.length) {
+              this.products = res.data;
+            }
+          })
+          .catch((err) => {
+            console.log("error", err);
+          })
+          .finally(() => {
+            this.loading = false;
+          });
+      }, 1250);
+    },
     onFileUpload(file_obj) {
       try {
         let url = URL.createObjectURL(file_obj);
@@ -641,7 +755,8 @@ export default {
   mounted: async function () {
     this.loading = true;
     this.products = [];
-    await this.$http
+    this.loading = false;
+    /* await this.$http
       .get("Simple")
       .then((res) => {
         if (res && res.data.list) {
@@ -653,7 +768,7 @@ export default {
       .catch((err) => console.log(err))
       .finally(() => {
         this.loading = false;
-      });
+      }); */
   },
 };
 </script>

@@ -278,6 +278,7 @@
                           dense
                           single-line
                           :hide-details="true"
+                          class="required"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="3">
@@ -286,6 +287,7 @@
                           :disabled="editedId > -1"
                           label="SKU"
                           maxlength="50"
+                          class="required"
                           outlined
                           clearable
                           dense
@@ -297,6 +299,7 @@
                         <v-autocomplete
                           v-model="editedItem.tipoArticulo"
                           :items="productTypes"
+                          class="required"
                           label="Tipo"
                           maxlength="50"
                           clearable
@@ -310,6 +313,7 @@
                       <v-col cols="12" sm="3">
                         <v-autocomplete
                           v-model="editedItem.idFabricante"
+                          class="required"
                           :items="manufacturers"
                           label="Fabricante"
                           maxlength="50"
@@ -351,20 +355,57 @@
                         </v-checkbox>
                       </v-col>
                       <v-col cols="12" sm="3">
-                        <v-autocomplete
-                          v-model="editedItem.categorias"
-                          :items="categories"
-                          label="Categorías"
-                          maxlength="50"
-                          multiple
-                          clearable
-                          readonly
-                          outlined
-                          small-chips
-                          dense
-                          single-line
-                          :hide-details="true"
-                        ></v-autocomplete>
+                        <v-dialog
+                          v-model="dialogCategory"
+                          width="60%"
+                          overlay-color="blue"
+                          overlay-opacity="0.2"
+                          scrollable
+                          persistent
+                        >
+                          <template v-slot:activator="{ on, attrs }">
+                            <v-autocomplete
+                              v-model="editedItem.categorias"
+                              :items="categories"
+                              v-bind="attrs"
+                              v-on="on"
+                              label="Categorías"
+                              maxlength="50"
+                              multiple
+                              clearable
+                              outlined
+                              small-chips
+                              dense
+                              single-line
+                              :hide-details="true"
+                            ></v-autocomplete>
+                          </template>
+                          <v-card height="auto">
+                            <v-card-title>
+                              <span class="headline">Asignar categorías</span>
+                            </v-card-title>
+                            <v-divider></v-divider>
+                            <v-card-text>
+                              <CategoryTree @onSelected="getSelectedCategories">
+                              </CategoryTree>
+                            </v-card-text>
+                            <v-divider></v-divider>
+                            <v-card-actions>
+                              <v-spacer></v-spacer>
+                              <v-btn
+                                color="info"
+                                text
+                                large
+                                @click="dialogCategory = false"
+                              >
+                                Cerrar
+                              </v-btn>
+                              <v-btn color="success" large :disabled="loading">
+                                Aplicar
+                              </v-btn>
+                            </v-card-actions>
+                          </v-card>
+                        </v-dialog>
                       </v-col>
                       <v-col cols="12" sm="3">
                         <v-autocomplete
@@ -630,13 +671,6 @@
                             </template>
                           </v-img>
                         </div>
-                      </v-col>
-                    </v-row>
-                    <v-row dense>
-                      <v-col cols="12">
-                        <CategoryTree
-                          @on-selected="getSelectedCategories"
-                        ></CategoryTree>
                       </v-col>
                     </v-row>
                   </v-container>
@@ -907,6 +941,9 @@ export default {
     editedId(val) {
       console.log("editedIndex", val);
     },
+    categories(val) {
+      console.log("categories", val);
+    },
   },
 
   computed: {
@@ -916,7 +953,9 @@ export default {
   },
 
   methods: {
+    // needs fix
     getSelectedCategories(array) {
+      console.log("getSelectedCategories array", array);
       let t = 0;
       let arr = array.length;
       this.categories = [];
@@ -925,7 +964,7 @@ export default {
           Object.assign(
             {},
             {
-              name: array[t].name,
+              text: array[t].name,
               value: array[t].id,
             }
           )

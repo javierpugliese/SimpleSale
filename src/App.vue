@@ -254,4 +254,7 @@ export default {
 tbody tr:nth-of-type(odd) {
   background-color: rgba(255, 255, 255, 0.05);
 }
+.required label::after {
+  content: "*";
+}
 </style>

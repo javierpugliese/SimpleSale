@@ -28,6 +28,19 @@
       </v-scale-transition>
     </v-toolbar>
 
+    <!-- Snackbar http status messages -->
+    <v-scale-transition>
+      <v-snackbar v-model="snackbar" :color="snackbarColor" top right>
+        {{ snackbarText }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+            Cerrar
+          </v-btn>
+        </template>
+      </v-snackbar>
+    </v-scale-transition>
+
     <!-- Planogram management -->
     <v-row v-bind:style="{ position: `sticky`, top: `80px` }">
       <v-menu
@@ -377,6 +390,30 @@
               Configuración del planograma
             </v-sheet>
           </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="editedItem.nombre"
+              label="Nombre"
+              maxlength="50"
+              outlined
+              clearable
+              dense
+              single-line
+              :hide-details="true"
+            ></v-text-field>
+          </v-col>
+          <v-col cols="12" sm="6" v-show="false">
+            <v-text-field
+              v-model="editedItem.titulo"
+              label="Título"
+              maxlength="50"
+              outlined
+              clearable
+              dense
+              single-line
+              :hide-details="true"
+            ></v-text-field>
+          </v-col>
           <v-col cols="12">
             <v-row>
               <v-col cols="12" sm="4">
@@ -497,6 +534,7 @@
                   color="success"
                   :disabled="loading"
                   :loading="loading"
+                  @click="save"
                 >
                   Guardar
                 </v-btn>
@@ -583,6 +621,16 @@ export default {
     dialogGallery: false,
     backgroundId: -1,
     backgroundData: {},
+    editedItem: {
+      nombre: "",
+      titulo: "",
+      idFondo: -1,
+    },
+    defaultItem: {
+      nombre: "",
+      titulo: "",
+      idFondo: -1,
+    },
     searchProduct: {
       nombre: "",
       sku: "",
@@ -601,6 +649,9 @@ export default {
       idTipoArticulo: -1,
       atributos: [],
     },
+    snackbar: false,
+    snackbarText: "",
+    snackbarColor: "black",
   }),
   computed: {
     defaultShelfHeight() {
@@ -629,6 +680,37 @@ export default {
     getBackground(val) {
       console.log("backgroundId", val);
       if (val > 0) this.backgroundId = +val;
+    },
+    async save() {
+      this.loading = true;
+      await this.$http
+        .post(
+          "Gondolas",
+          Object.assign(
+            {},
+            {
+              nombre: this.editedItem.nombre,
+              titulo: this.editedItem.nombre,
+              idFondo: this.backgroundId,
+            }
+          )
+        )
+        .then((res) => {
+          if (res) {
+            this.snackbar = true;
+            this.snackbarColor = "success";
+            this.snackbarText = "Operación realizada exitosamente.";
+          }
+        })
+        .catch((err) => {
+          console.log("error", err);
+          this.snackbar = true;
+          this.snackbarColor = "black";
+          this.snackbarText = "Operación cancelada.";
+        })
+        .finally(() => {
+          this.loading = false;
+        });
     },
     async getBackgroundData() {
       this.requesting = true;

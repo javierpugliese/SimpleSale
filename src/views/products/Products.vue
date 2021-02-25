@@ -358,6 +358,7 @@
                           maxlength="50"
                           multiple
                           clearable
+                          readonly
                           outlined
                           small-chips
                           dense
@@ -631,6 +632,13 @@
                         </div>
                       </v-col>
                     </v-row>
+                    <v-row dense>
+                      <v-col cols="12">
+                        <CategoryTree
+                          @on-selected="getSelectedCategories"
+                        ></CategoryTree>
+                      </v-col>
+                    </v-row>
                   </v-container>
                 </v-card-text>
                 <v-divider></v-divider>
@@ -729,15 +737,16 @@
 
 <script>
 import moment from "moment";
+import CategoryTree from "../../components/CategoryTree";
 export default {
   name: "Products",
-  components: {},
+  components: { CategoryTree },
   data: () => ({
     loading: false,
     uploading: false,
     page: 1,
     pages: 1,
-    itemsPerPage: 5,
+    itemsPerPage: 25,
     totalRecords: 0,
     search: "",
     headers: [
@@ -811,6 +820,7 @@ export default {
     dialog: false,
     dialogDelete: false,
     dialogSearch: false,
+    dialogCategory: false,
     editedIndex: -1,
     editedId: -1,
     editedItem: {
@@ -906,6 +916,22 @@ export default {
   },
 
   methods: {
+    getSelectedCategories(array) {
+      let t = 0;
+      let arr = array.length;
+      this.categories = [];
+      for (t; t < arr; t++) {
+        this.categories.push(
+          Object.assign(
+            {},
+            {
+              name: array[t].name,
+              value: array[t].id,
+            }
+          )
+        );
+      }
+    },
     /** Removes duplicate keys in array */
     removeArrDuplicates(array) {
       return [...new Set(array)];
@@ -985,16 +1011,9 @@ export default {
       });
       const manufacturers = this.$http.get("Fabricantes");
       const productTypes = this.$http.get("TiposArticulo");
-      const categories = this.$http.get("CategoriasArticulo");
       const attributeTypes = this.$http.get("TiposDeAtributo");
 
-      const promises = [
-        products,
-        manufacturers,
-        productTypes,
-        categories,
-        attributeTypes,
-      ];
+      const promises = [products, manufacturers, productTypes, attributeTypes];
 
       await this.$http
         .all(promises)
@@ -1003,7 +1022,6 @@ export default {
             const productsRes = responses[0];
             const manufacturersRes = responses[1];
             const productTypesRes = responses[2];
-            const categoriesRes = responses[3];
             const attrTypesRes = responses[4];
 
             if (productsRes && productsRes.data.list) {
@@ -1021,12 +1039,6 @@ export default {
               this.productTypes = productTypesRes.data.map((pt) => ({
                 text: pt.nombre,
                 value: pt.id,
-              }));
-            }
-            if (categoriesRes && categoriesRes.data) {
-              this.categories = categoriesRes.data.map((c) => ({
-                text: c.nombre,
-                value: c.id,
               }));
             }
             if (attrTypesRes && attrTypesRes.data) {

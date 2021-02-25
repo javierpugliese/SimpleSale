@@ -51,9 +51,10 @@
             <v-card-title>
               <span class="headline">Opciones de búsqueda</span>
             </v-card-title>
+            <v-divider></v-divider>
             <v-card-text>
-              <v-container>
-                <v-row>
+              <v-container fluid>
+                <v-row dense>
                   <v-col cols="12" sm="4">
                     <v-text-field
                       v-model="searchItem.nombre"
@@ -63,6 +64,7 @@
                       outlined
                       clearable
                       dense
+                      :hide-details="true"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="4">
@@ -75,6 +77,7 @@
                       outlined
                       small-chips
                       dense
+                      :hide-details="true"
                     ></v-autocomplete>
                   </v-col>
                   <v-col cols="12" sm="4">
@@ -122,7 +125,7 @@
                 </v-row>
               </v-container>
             </v-card-text>
-
+            <v-divider></v-divider>
             <v-card-actions>
               <v-spacer></v-spacer>
               <v-btn color="info" text large @click="dialogSearch = false">

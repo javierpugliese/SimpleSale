@@ -49,7 +49,6 @@
                   <v-btn
                     color="secondary"
                     dark
-                    large
                     class="mx-2"
                     v-bind="attrs"
                     v-on="on"
@@ -105,10 +104,11 @@
             </v-scale-transition>
             <v-dialog
               v-model="dialog"
-              fullscreen
-              hide-overlay
-              transition="dialog-bottom-transition"
+              width="60%"
+              overlay-color="blue"
+              overlay-opacity="0.2"
               scrollable
+              persistent
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -117,44 +117,41 @@
                   class="my-3"
                   v-bind="attrs"
                   v-on="on"
-                  large
                   :loading="loading"
                 >
                   <v-icon class="mr-2">fas fa-plus</v-icon>
                   Nueva promoción
                 </v-btn>
               </template>
-              <v-card>
+              <v-card height="auto">
                 <v-card-title>
                   <span class="headline">{{ formTitle }}</span>
                 </v-card-title>
-
+                <v-divider></v-divider>
                 <v-card-text>
-                  <v-container>
+                  <v-container fluid>
                     <v-row>
-                      <!-- Form -->
-                      <v-col cols="6">
+                      <v-col cols="12" sm="4">
+                        <v-text-field
+                          v-model="editedItem.nombre"
+                          label="Nombre"
+                          maxlength="50"
+                          outlined
+                          clearable
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-text-field>
+                      </v-col>
+                      <!-- <v-col cols="12" sm="4">
                         <v-row>
                           <v-col cols="6">
-                            <v-text-field
-                              v-model="editedItem.nombre"
-                              label="Nombre"
-                              counter="50"
-                              maxlength="50"
-                              outlined
-                              clearable
-                              required
-                            ></v-text-field>
+                            
                           </v-col>
                           <v-col
                             cols="6"
                             class="d-flex justify-center justify-sm-start"
-                          >
-                            <v-switch
-                              v-model="editedItem.hastaAgotarStock"
-                              label="¿Válida hasta agotar stock?"
-                            >
-                            </v-switch>
+                          >                           
                           </v-col>
                         </v-row>
                         <v-row>
@@ -167,6 +164,9 @@
                               clearable
                               outlined
                               small-chips
+                              dense
+                              single-line
+                              :hide-details="true"
                             ></v-autocomplete>
                           </v-col>
                           <v-col cols="6">
@@ -176,7 +176,9 @@
                               value="0.00"
                               outlined
                               clearable
-                              required
+                              dense
+                              single-line
+                              :hide-details="true"
                             >
                             </v-text-field>
                           </v-col>
@@ -198,6 +200,9 @@
                                   readonly
                                   prepend-icon="fas fa-calendar-alt"
                                   no-title
+                                  dense
+                                  single-line
+                                  :hide-details="true"
                                   v-bind="attrs"
                                   v-on="on"
                                   @click:clear="dates = []"
@@ -228,7 +233,9 @@
                               label="Cantidad mínima de entidades aplicables"
                               outlined
                               clearable
-                              required
+                              dense
+                              single-line
+                              :hide-details="true"
                             >
                             </v-text-field>
                           </v-col>
@@ -247,6 +254,9 @@
                               clearable
                               outlined
                               small-chips
+                              dense
+                              single-line
+                              :hide-details="true"
                             ></v-autocomplete>
                           </v-col>
                           <v-col cols="6">
@@ -259,6 +269,9 @@
                               clearable
                               outlined
                               small-chips
+                              dense
+                              single-line
+                              :hide-details="true"
                             ></v-autocomplete>
                           </v-col>
                         </v-row>
@@ -276,6 +289,9 @@
                               clearable
                               outlined
                               small-chips
+                              dense
+                              single-line
+                              :hide-details="true"
                             ></v-autocomplete>
                           </v-col>
                           <v-col cols="6">
@@ -288,42 +304,28 @@
                               clearable
                               outlined
                               small-chips
+                              dense
+                              single-line
+                              :hide-details="true"
                             ></v-autocomplete>
                           </v-col>
                         </v-row>
-                        <v-row>
-                          <v-col cols="6">
-                            <v-autocomplete
-                              v-model="applicableClients"
-                              :items="clients"
-                              label="Farmacías"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                          <v-col cols="6">
-                            <v-autocomplete
-                              v-model="applicableClientGroups"
-                              :items="clientGroups"
-                              label="Grupos de farmacias"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                        </v-row>
-                      </v-col>
-                      <!-- Choosen products or entities -->
-                      <v-col cols="6"> </v-col>
+                      </v-col> -->
+                      <v-col cols="12" sm="4"></v-col>
+                      <v-col cols="12" sm="4"></v-col>
+                      <v-col cols="12" sm="4"></v-col>
                     </v-row>
+                    <v-checkbox
+                      v-model="editedItem.hastaAgotarStock"
+                      label="¿Válida hasta agotar stock?"
+                      dense
+                      single-line
+                      :hide-details="true"
+                    >
+                    </v-checkbox>
                   </v-container>
                 </v-card-text>
-
+                <v-divider></v-divider>
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn color="info" text @click="close"> Cancelar </v-btn>

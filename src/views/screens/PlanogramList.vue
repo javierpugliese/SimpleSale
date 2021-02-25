@@ -35,7 +35,7 @@
             <v-scale-transition>
               <v-dialog
                 v-model="dialogSearch"
-                width="60%"
+                width="30%"
                 overlay-color="blue"
                 overlay-opacity="0.2"
                 scrollable
@@ -45,7 +45,6 @@
                   <v-btn
                     color="secondary"
                     dark
-                    large
                     class="mx-2"
                     v-bind="attrs"
                     v-on="on"
@@ -70,7 +69,8 @@
                             maxlength="50"
                             outlined
                             clearable
-                            required
+                            single-line
+                            dense
                           ></v-text-field>
                         </v-col>
                       </v-row>
@@ -114,7 +114,6 @@
                   class="my-3"
                   v-bind="attrs"
                   v-on="on"
-                  large
                   :loading="loading"
                   to="/pantallas/planogramas/editor"
                 >

@@ -251,4 +251,7 @@ export default {
   caret-color: #fff !important;
   background-color: #666666;
 }
+tbody tr:nth-of-type(odd) {
+  background-color: rgba(255, 255, 255, 0.05);
+}
 </style>

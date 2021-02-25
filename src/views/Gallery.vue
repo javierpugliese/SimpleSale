@@ -1,25 +1,31 @@
 <template>
   <div class="gallery">
-    <v-toolbar :color="!multiSelect ? 'grey darken-4' : '#1F96A3'" dark>
+    <v-toolbar :color="!selectTool ? 'grey darken-4' : '#1F96A3'" dark>
       <v-scale-transition>
-        <v-app-bar-nav-icon v-if="!multiSelect">
+        <v-app-bar-nav-icon v-if="!selectTool">
           <v-icon>fas fa-image</v-icon>
         </v-app-bar-nav-icon>
-        <v-btn v-else-if="multiSelect" @click="multiSelect = false" icon>
+        <v-btn v-else-if="selectTool" @click="selectTool = false" icon>
           <v-icon>fas fa-times</v-icon>
         </v-btn>
       </v-scale-transition>
       <v-scroll-y-transition>
         <v-toolbar-title>
           {{
-            multiSelect
+            selectTool
               ? `${selection.length} seleccionado(s)`
               : "Galería de Fondos de Pantalla"
           }}
         </v-toolbar-title>
       </v-scroll-y-transition>
       <v-spacer></v-spacer>
-      <v-scale-transition v-if="!multiSelect">
+      <v-scale-transition v-if="selectTool">
+        <v-radio-group class="mt-5" v-model="multiSelect" row>
+          <v-radio label="Simple" color="red" :value="false"></v-radio>
+          <v-radio label="Múltiple" color="red" :value="true"></v-radio>
+        </v-radio-group>
+      </v-scale-transition>
+      <v-scale-transition v-if="!selectTool">
         <v-dialog
           v-model="dialogSearch"
           width="50%"
@@ -56,7 +62,7 @@
                       maxlength="50"
                       outlined
                       clearable
-                      required
+                      dense
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" sm="4">
@@ -68,6 +74,7 @@
                       clearable
                       outlined
                       small-chips
+                      dense
                     ></v-autocomplete>
                   </v-col>
                   <v-col cols="12" sm="4">
@@ -87,6 +94,7 @@
                           prepend-icon="fas fa-calendar-alt"
                           no-title
                           outlined
+                          dense
                           v-bind="attrs"
                           v-on="on"
                           @click:clear="searchDates = []"
@@ -132,7 +140,7 @@
           </v-card>
         </v-dialog>
       </v-scale-transition>
-      <v-scale-transition v-if="!multiSelect">
+      <v-scale-transition v-if="!selectTool">
         <v-btn
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
           @click="
@@ -149,13 +157,13 @@
           {{ !$vuetify.breakpoint.xsOnly ? "Subir archivo" : "" }}
         </v-btn>
       </v-scale-transition>
-      <v-scale-transition v-if="!multiSelect">
+      <v-scale-transition v-if="!selectTool">
         <v-btn
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#FFA440'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           @click="
             selection = [];
-            multiSelect = true;
+            selectTool = true;
           "
           class="mx-1"
           :disabled="loading || !backgrounds.length"
@@ -163,16 +171,16 @@
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-object-group
           </v-icon>
-          {{ !$vuetify.breakpoint.xsOnly ? "Selección Múltiple" : "" }}
+          {{ !$vuetify.breakpoint.xsOnly ? "Herramienta de Selección" : "" }}
         </v-btn>
       </v-scale-transition>
-      <v-scale-transition v-if="multiSelect">
+      <v-scale-transition v-if="selectTool">
         <v-btn
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#E85111'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
           @click="selectAll"
-          :disabled="loading"
+          :disabled="loading || !multiSelect"
         >
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-check-double
@@ -180,7 +188,7 @@
           {{ !$vuetify.breakpoint.xsOnly ? "Marcar todos" : "" }}
         </v-btn>
       </v-scale-transition>
-      <v-scale-transition v-if="multiSelect">
+      <v-scale-transition v-if="selectTool">
         <v-btn
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#F31E01'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
@@ -193,6 +201,9 @@
           </v-icon>
           {{ !$vuetify.breakpoint.xsOnly ? "Eliminar" : "" }}
         </v-btn>
+      </v-scale-transition>
+      <v-scale-transition v-if="!selectTool">
+        <slot name="toolbar"></slot>
       </v-scale-transition>
     </v-toolbar>
 
@@ -315,82 +326,92 @@
             </v-btn>
           </v-sheet>
         </div>
-        <v-img
-          v-else
-          v-for="file in backgrounds"
-          :key="`background-${file.id}`"
-          class="ma-3 background"
-          :lazy-src="require('@/assets/no-disponible.jpg')"
-          :src="file.url || require('@/assets/no-disponible.jpg')"
-          :height="240"
-          :width="135"
-          :max-height="240"
-          :max-width="135"
-          @click="multiSelect ? undefined : editItem(file)"
-          style="position: relative; z-index: 0"
-        >
-          <template v-slot:placeholder>
-            <v-row class="fill-height ma-0" align="center" justify="center">
-              <v-progress-circular
-                indeterminate
-                color="info"
-              ></v-progress-circular>
-            </v-row>
-          </template>
+        <v-radio-group v-else v-model="selected" row>
+          <v-img
+            v-for="file in backgrounds"
+            :key="`background-${file.id}`"
+            class="ma-3 background"
+            :lazy-src="require('@/assets/no-disponible.jpg')"
+            :src="file.url || require('@/assets/no-disponible.jpg')"
+            :height="240"
+            :width="135"
+            :max-height="240"
+            :max-width="135"
+            @click="selectTool ? undefined : editItem(file)"
+            style="position: relative; z-index: 0"
+          >
+            <template v-slot:placeholder>
+              <v-row class="fill-height ma-0" align="center" justify="center">
+                <v-progress-circular
+                  indeterminate
+                  color="info"
+                ></v-progress-circular>
+              </v-row>
+            </template>
 
-          <v-checkbox
-            v-show="multiSelect"
-            v-model="selection"
-            color="whitesmoke"
-            label=""
-            :value="file.id"
-            style="position: absolute; z-index: 1; top: 0; right: 0"
-          ></v-checkbox>
-        </v-img>
+            <v-checkbox
+              v-if="selectTool && multiSelect"
+              v-model="selection"
+              color="whitesmoke"
+              label=""
+              :value="file.idArchivoOriginal"
+              style="position: absolute; z-index: 1; top: 0; right: 0"
+            ></v-checkbox>
+
+            <v-radio
+              v-else-if="selectTool && !multiSelect"
+              label=""
+              color="whitesmoke"
+              class="mt-4"
+              style="position: absolute; z-index: 2; top: 0; right: 0"
+              :value="file.idArchivoOriginal"
+            ></v-radio>
+          </v-img>
+        </v-radio-group>
       </v-col>
-      <v-col cols="12" class="__pagination">
-        <v-row
-          class="pa-2"
-          no-gutters
+    </v-row>
+    <v-row
+      :class="paginationFixed ? '__pagination pa-2' : '__bg-pagination pa-2'"
+      no-gutters
+      dense
+      style="border-top: 1px solid #343434"
+    >
+      <v-col cols="12" sm="4" class="d-flex justify-start align-center">
+        <v-select
+          v-model="itemsPerPage"
+          :items="itemsPerPageItems"
+          filled
+          outlined
           dense
-          style="border-top: 1px solid #343434"
+          label="Fondos por página"
+          :hide-details="true"
+          :loading="loading"
+          :disabled="loading"
+          @change="page = 1"
+        ></v-select>
+      </v-col>
+      <v-col cols="12" sm="4" class="d-flex justify-center align-center">
+        <v-pagination
+          v-model="page"
+          :length="pages"
+          :total-visible="7"
+          @input="goToPage"
+          elevation="3"
+          color="#343434"
+          width="30"
+        ></v-pagination>
+      </v-col>
+      <v-col cols="12" sm="4" class="d-flex justify-end align-center">
+        <p
+          v-show="!loading && backgrounds.length"
+          class="text-overline text-dark my-auto pr-3"
         >
-          <v-col cols="12" sm="4" class="d-flex justify-start align-center">
-            <v-select
-              v-model="itemsPerPage"
-              :items="itemsPerPageItems"
-              filled
-              outlined
-              label="Fondos por página"
-              :hide-details="true"
-              :loading="loading"
-              :disabled="loading"
-              @change="page = 1"
-            ></v-select>
-          </v-col>
-          <v-col cols="12" sm="4" class="d-flex justify-center align-center">
-            <v-pagination
-              v-model="page"
-              :length="pages"
-              :total-visible="7"
-              @input="goToPage"
-              elevation="3"
-              color="#343434"
-            ></v-pagination>
-          </v-col>
-          <v-col cols="12" sm="4" class="d-flex justify-end align-center">
-            <p
-              v-show="!loading && backgrounds.length"
-              class="text-overline text-dark my-auto pr-3"
-            >
-              {{
-                itemsPerPage > totalRecords
-                  ? `Mostrando ${totalRecords} resultados.`
-                  : `Mostrando ${itemsPerPage} de ${totalRecords} resultados.`
-              }}
-            </p>
-          </v-col>
-        </v-row>
+          {{
+            itemsPerPage > totalRecords
+              ? `Mostrando ${totalRecords} resultados.`
+              : `Mostrando ${itemsPerPage} de ${totalRecords} resultados.`
+          }}
+        </p>
       </v-col>
     </v-row>
 
@@ -599,7 +620,7 @@
           >
           <v-btn
             color="blue darken-1"
-            @click="multiSelect ? deleteItems() : deleteItemConfirm()"
+            @click="selectTool ? deleteItems() : deleteItemConfirm()"
             :loading="loading"
           >
             Aceptar
@@ -615,6 +636,13 @@ import moment from "moment";
 export default {
   name: "Gallery",
   components: {},
+  props: {
+    // prop to control pagination style class
+    paginationFixed: {
+      type: Boolean,
+      default: true,
+    },
+  },
   data: () => ({
     page: 1,
     pages: 1,
@@ -622,9 +650,11 @@ export default {
     totalRecords: 0,
     loading: false,
     uploading: false,
-    multiSelect: false,
+    selectTool: false,
     search: "",
     selection: [],
+    multiSelect: true,
+    selected: -1,
     fileType: -1,
     fileTypes: [
       { text: "Imagen", value: 0 },
@@ -703,6 +733,21 @@ export default {
     fileType(val) {
       console.log("fileType", val);
     },
+    selected(val) {
+      console.log("selected", val);
+      if (val && typeof val === "number") {
+        this.selection.splice(this.selection.indexOf(val), 1);
+        this.selection.push(val);
+        // send event to parent
+        this.$emit("selected", val);
+      }
+    },
+    selection(val) {
+      console.log("selection", val);
+    },
+    multiSelect(val) {
+      if (val == false) this.selection = [];
+    },
   },
 
   computed: {
@@ -739,7 +784,7 @@ export default {
     },
     selectAll() {
       this.selection = [];
-      this.selection = [...this.backgrounds.map((bg) => +bg.id)];
+      this.selection = [...this.backgrounds.map((bg) => +bg.idArchivoOriginal)];
     },
     onFileUpload(file) {
       this.file = file;
@@ -882,7 +927,7 @@ export default {
           this.loading = true;
           this.closeDelete();
           this.selection = [];
-          this.multiSelect = false;
+          this.selectTool = false;
           await this.$http
             .all(promises)
             .then(
@@ -1007,6 +1052,10 @@ export default {
 .__pagination {
   position: fixed;
   bottom: 0;
+  width: 100%;
+  background-color: #333333;
+}
+.__bg-pagination {
   background-color: #333333;
 }
 .__background-small {

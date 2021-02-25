@@ -14,19 +14,28 @@
 
       <v-data-table
         :headers="headers"
-        :items="[]"
+        :items="publications"
         :loading="loading"
         @click:row="editItem"
         loading-text="Cargando..."
         sort-by="nombre"
         class="elevation-1 table-cursor"
+        striped
+        dense
+        :fixed-header="true"
+        :calculate-widths="true"
         :disable-pagination="true"
         :hide-default-footer="true"
       >
         <template v-slot:item.archivo="{ item }">
           <v-img
             :lazy-src="require('@/assets/no-disponible.jpg')"
-            class="__background-small my-2"
+            class="__datatable_img my-2"
+            alt=" "
+            :contain="true"
+            :aspect-ratio="16 / 9"
+            gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+            style="border: 1px solid white"
             :src="
               getProductImage(item) || require('@/assets/no-disponible.jpg')
             "
@@ -42,12 +51,12 @@
           </v-img>
         </template>
 
-        <template v-slot:item.modificado="{ item }">
-          {{ parseDate(item.modificado) }}
-        </template>
-
         <template v-slot:item.creado="{ item }">
           {{ parseDate(item.creado) }}
+        </template>
+
+        <template v-slot:item.modificado="{ item }">
+          {{ parseDate(item.modificado) }}
         </template>
 
         <template v-slot:top>
@@ -68,7 +77,6 @@
                   <v-btn
                     color="secondary"
                     dark
-                    large
                     class="mx-2"
                     v-bind="attrs"
                     v-on="on"
@@ -93,7 +101,8 @@
                             maxlength="50"
                             outlined
                             clearable
-                            required
+                            dense
+                            single-line
                           ></v-text-field>
                         </v-col>
                       </v-row>
@@ -137,7 +146,6 @@
                   class="my-3"
                   v-bind="attrs"
                   v-on="on"
-                  large
                   :loading="loading"
                 >
                   <v-icon class="mr-2">fas fa-plus</v-icon>
@@ -148,297 +156,159 @@
                 <v-card-title>
                   <span class="headline">{{ formTitle }}</span>
                 </v-card-title>
-
+                <v-divider></v-divider>
                 <v-card-text>
                   <v-container>
-                    <v-row>
-                      <!-- Form -->
-                      <v-col cols="12">
-                        <v-row>
-                          <v-col cols="4">
-                            <v-text-field
-                              v-model="editedItem.nombre"
-                              label="Nombre"
-                              counter="50"
-                              maxlength="50"
-                              outlined
-                              clearable
-                              required
-                            ></v-text-field>
-                          </v-col>
-                          <v-col cols="4">
-                            <v-file-input
-                              v-model="file"
-                              counter
-                              label="Archivo (imagen o video)"
-                              accept=".jpg, .mp4"
-                              placeholder="Seleccione archivos..."
-                              prepend-icon=""
-                              outlined
-                              :show-size="1000"
-                              @change="onFileUpload"
-                            >
-                              <template v-slot:selection="{ index, text }">
-                                <v-chip
-                                  v-if="index < 2"
-                                  color="info"
-                                  dark
-                                  label
-                                  small
-                                >
-                                  {{ text }}
-                                </v-chip>
-                              </template>
-                            </v-file-input>
-                          </v-col>
-                          <v-col cols="4">
-                            <v-btn color="success" large class="mt-1" block>
-                              <v-icon class="mx-1" icon
-                                >fas fa-location-arrow</v-icon
-                              >
-                              Elegir archivo desde galeria
-                            </v-btn>
-                          </v-col>
-                        </v-row>
-                        <v-row>
-                          <v-col cols="8">
-                            <v-autocomplete
-                              v-model="editedItem.tipoPromocion"
-                              :items="[]"
-                              label="Planograma"
-                              maxlength="50"
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                        </v-row>
+                    <v-row dense no-gutters>
+                      <v-col cols="12" sm="6">
                         <v-row>
                           <v-col cols="12">
-                            <div class="text-h6">Programar publicación</div>
+                            <div class="text-h6">Datos de la publicación</div>
                           </v-col>
-                          <v-col cols="12">
-                            <v-dialog
-                              ref="dialog"
-                              v-model="modal"
-                              :return-value.sync="dates"
-                              persistent
-                              width="290px"
-                            >
-                              <template v-slot:activator="{ on, attrs }">
+                        </v-row>
+                        <v-row no-gutters dense>
+                          <v-col cols="12" sm="6">
+                            <!-- Form publication -->
+                            <v-row dense no-gutters>
+                              <v-col cols="12">
                                 <v-text-field
-                                  :value="computedDateFormattedMomentjs"
+                                  v-model="editedItem.nombre"
+                                  label="Nombre"
+                                  maxlength="50"
+                                  outlined
                                   clearable
-                                  label="Rango de Fechas"
-                                  readonly
-                                  prepend-icon="fas fa-calendar-alt"
-                                  no-title
-                                  outlined
-                                  v-bind="attrs"
-                                  v-on="on"
-                                  @click:clear="dates = []"
+                                  dense
+                                  single-line
+                                  hide-details
                                 ></v-text-field>
-                              </template>
-                              <v-date-picker v-model="dates" scrollable range>
-                                <v-spacer></v-spacer>
-                                <v-btn
-                                  text
-                                  color="primary"
-                                  @click="modal = false"
+                              </v-col>
+                              <v-col cols="12">
+                                <v-radio-group v-model="publishType">
+                                  <v-radio
+                                    label="Publicar fondo"
+                                    color="primary"
+                                    :value="true"
+                                  ></v-radio>
+                                  <v-radio
+                                    label="Publicar planograma"
+                                    color="primary"
+                                    :value="false"
+                                  ></v-radio
+                                ></v-radio-group>
+                              </v-col>
+                              <v-col cols="12">
+                                <!-- Gallery dialog -->
+                                <v-dialog
+                                  v-if="publishType"
+                                  v-model="dialogGallery"
+                                  width="85%"
+                                  overlay-color="blue"
+                                  overlay-opacity="0.2"
+                                  scrollable
+                                  persistent
                                 >
-                                  Cancelar
-                                </v-btn>
-                                <v-btn
-                                  text
-                                  color="primary"
-                                  @click="$refs.dialog.save(dates)"
-                                >
-                                  Aceptar
-                                </v-btn>
-                              </v-date-picker>
-                            </v-dialog>
+                                  <template v-slot:activator="{ on, attrs }">
+                                    <v-btn
+                                      color="success"
+                                      dark
+                                      block
+                                      v-bind="attrs"
+                                      v-on="on"
+                                      :disabled="loading"
+                                      :loading="loading"
+                                    >
+                                      <v-icon class="pr-2">
+                                        fas fa-mouse-pointer
+                                      </v-icon>
+                                      Elegir fondo
+                                    </v-btn>
+                                  </template>
+
+                                  <v-card height="auto">
+                                    <v-card-title>
+                                      Asignar un fondo a la publicación
+                                    </v-card-title>
+                                    <v-card-text>
+                                      <Gallery
+                                        :paginationFixed="false"
+                                        @selected="getBackground"
+                                      >
+                                      </Gallery>
+                                    </v-card-text>
+                                    <v-card-actions>
+                                      <v-spacer></v-spacer>
+                                      <v-btn
+                                        color="info"
+                                        text
+                                        @click="
+                                          dialogGallery = false;
+                                          backgroundId = -1;
+                                          backgroundData = {};
+                                        "
+                                        :disabled="loading || requesting"
+                                        :loading="loading || requesting"
+                                      >
+                                        Cancelar
+                                      </v-btn>
+                                      <v-btn
+                                        color="success"
+                                        :disabled="loading || requesting"
+                                        :loading="loading || requesting"
+                                        @click="getBackgroundData"
+                                      >
+                                        Aplicar
+                                      </v-btn>
+                                    </v-card-actions>
+                                  </v-card>
+                                </v-dialog>
+                              </v-col>
+                              <v-col cols="12">
+                                <v-autocomplete
+                                  v-if="!publishType"
+                                  v-model="editedItem.tipoPromocion"
+                                  :items="[]"
+                                  label="Planograma"
+                                  maxlength="50"
+                                  clearable
+                                  outlined
+                                  small-chips
+                                  dense
+                                  single-line
+                                ></v-autocomplete>
+                              </v-col>
+                            </v-row>
                           </v-col>
+                          <!-- Preview background -->
                           <v-col cols="12" sm="6">
-                            <v-dialog
-                              ref="dialog2"
-                              v-model="modal2"
-                              :return-value.sync="time"
-                              persistent
-                              width="290px"
+                            <v-img
+                              width="135"
+                              height="240"
+                              :contain="true"
+                              class="mx-auto"
+                              :src="backgroundData.url"
+                              alt=" "
+                              style="
+                                border: 1px solid whitesmoke;
+                                background-color: #d3d3d3;
+                              "
                             >
-                              <template v-slot:activator="{ on, attrs }">
-                                <v-text-field
-                                  v-model="time"
-                                  label="Hora de Inicio"
-                                  prepend-icon="fas fa-clock"
-                                  outlined
-                                  readonly
-                                  v-bind="attrs"
-                                  v-on="on"
-                                ></v-text-field>
-                              </template>
-                              <v-time-picker
-                                v-if="modal2"
-                                v-model="time"
-                                full-width
+                              <v-btn
+                                v-if="backgroundData.url"
+                                icon
+                                style="position: absolute; top: 0; right: 0"
+                                @click="clearBackground"
                               >
-                                <v-spacer></v-spacer>
-                                <v-btn
-                                  text
-                                  color="primary"
-                                  @click="modal2 = false"
-                                >
-                                  Cancelar
-                                </v-btn>
-                                <v-btn
-                                  text
-                                  color="primary"
-                                  @click="$refs.dialog2.save(time)"
-                                >
-                                  Aceptar
-                                </v-btn>
-                              </v-time-picker>
-                            </v-dialog>
-                          </v-col>
-                          <v-col cols="12" sm="6">
-                            <v-dialog
-                              ref="dialog3"
-                              v-model="modal3"
-                              :return-value.sync="time1"
-                              persistent
-                              width="290px"
-                            >
-                              <template v-slot:activator="{ on, attrs }">
-                                <v-text-field
-                                  v-model="time1"
-                                  label="Hora de Fin"
-                                  prepend-icon="fas fa-clock"
-                                  readonly
-                                  outlined
-                                  v-bind="attrs"
-                                  v-on="on"
-                                ></v-text-field>
-                              </template>
-                              <v-time-picker
-                                v-if="modal3"
-                                v-model="time1"
-                                full-width
-                              >
-                                <v-spacer></v-spacer>
-                                <v-btn
-                                  text
-                                  color="primary"
-                                  @click="modal3 = false"
-                                >
-                                  Cancel
-                                </v-btn>
-                                <v-btn
-                                  text
-                                  color="primary"
-                                  @click="$refs.dialog3.save(time1)"
-                                >
-                                  Aceptar
-                                </v-btn>
-                              </v-time-picker>
-                            </v-dialog>
-                          </v-col>
-                          <!-- <v-col cols="6">
-                            <v-autocomplete
-                              v-model="applicableManufacturers"
-                              :items="manufacturers"
-                              label="Fabricantes"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                          <v-col cols="6">
-                            <v-autocomplete
-                              v-model="applicableCategories"
-                              :items="categories"
-                              label="Categorías"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col> -->
-                        </v-row>
-                        <v-row>
-                          <v-col cols="12">
-                            <div class="text-h6">
-                              Destinos aplicables a programación
-                            </div>
-                          </v-col>
-                          <v-col cols="6">
-                            <v-autocomplete
-                              v-model="applicableProvinces"
-                              :items="[]"
-                              label="Provincia"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                          <v-col cols="6">
-                            <v-autocomplete
-                              v-model="applicableProvinces"
-                              :items="[]"
-                              label="Localidad"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                          <v-col cols="4">
-                            <v-autocomplete
-                              v-model="applicableProvinces"
-                              :items="[]"
-                              label="Regiones"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                          <v-col cols="4">
-                            <v-autocomplete
-                              v-model="applicableRegions"
-                              :items="[]"
-                              label="Zonas"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
-                          </v-col>
-                          <v-col cols="4">
-                            <v-autocomplete
-                              v-model="applicableRegions"
-                              :items="[]"
-                              label="Sectores"
-                              maxlength="50"
-                              multiple
-                              clearable
-                              outlined
-                              small-chips
-                            ></v-autocomplete>
+                                <v-icon color="red"> fas fa-times </v-icon>
+                              </v-btn>
+                            </v-img>
                           </v-col>
                         </v-row>
                       </v-col>
+                      <ScheduleForm></ScheduleForm>
                     </v-row>
                   </v-container>
                 </v-card-text>
-
+                <v-divider></v-divider>
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn color="info" text @click="close"> Cancelar </v-btn>
@@ -450,7 +320,11 @@
                   >
                     Eliminar
                   </v-btn>
-                  <v-btn color="success" @click="save" :disabled="loading">
+                  <v-btn
+                    color="success"
+                    @click="save"
+                    :disabled="loading || requesting || !editedItem.nombre"
+                  >
                     <v-icon class="mr-2"> fas fa-save </v-icon>
                     Guardar
                   </v-btn>
@@ -460,7 +334,7 @@
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
                 <v-card-title class="headline">
-                  ¿Eliminar esta promoción?
+                  ¿Eliminar esta publicación?
                 </v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -488,13 +362,17 @@
 
 <script>
 import moment from "moment";
-// @ is an alias to /src
+import ScheduleForm from "../../components/ScheduleForm.vue";
+import Gallery from "../Gallery.vue";
 export default {
   name: "Publications",
-  components: {},
+  components: {
+    ScheduleForm,
+    Gallery,
+  },
   data: () => ({
     loading: false,
-    search: "",
+    requesting: false,
     headers: [
       {
         text: "Vista Previa",
@@ -509,69 +387,33 @@ export default {
         value: "nombre",
       },
       {
-        text: "Fecha de modificación",
-        align: "start",
-        sortable: true,
-        value: "modificado",
-      },
-      {
         text: "Fecha de creación",
         align: "start",
         sortable: true,
         value: "creado",
       },
+      {
+        text: "Fecha de modificación",
+        align: "start",
+        sortable: true,
+        value: "modificado",
+      },
     ],
-    products: [],
-    productTypes: [],
-    attributes: [],
-    attributeTypes: [],
-    promoTypes: [],
-
-    applicableManufacturers: [],
-    manufacturers: [],
-    applicableCategories: [],
-    categories: [],
-    applicableProvinces: [],
-    provinces: [],
-    applicableRegions: [],
-    regions: [],
-    applicableClients: [],
-    clients: [],
-    applicableClientGroups: [],
-    clientGroups: [],
-
-    delimiters: [",", ".", "-", "/", " "],
     dialog: false,
     dialogDelete: false,
     dialogSearch: false,
+    dialogGallery: false,
     modal: false,
+    publications: [],
     editedIndex: -1,
     editedId: -1,
+    backgroundId: -1,
+    backgroundData: {},
     editedItem: {
       nombre: "",
-      fechaInicio: "",
-      fechaFin: "",
-      hastaAgotarStock: false,
-      porcentajeDescuento: 0,
-      cantidadMinima: 1,
-      montoDescuento: 0,
-      idTipo: -1,
-      idTipoItem: -1,
-      items: [],
-      destinatarios: [],
     },
     defaultItem: {
       nombre: "",
-      fechaInicio: "",
-      fechaFin: "",
-      hastaAgotarStock: false,
-      porcentajeDescuento: 0,
-      cantidadMinima: 1,
-      montoDescuento: 0,
-      idTipo: -1,
-      idTipoItem: -1,
-      items: [],
-      destinatarios: [],
     },
     searchItem: {
       nombre: "",
@@ -582,13 +424,8 @@ export default {
     snackbarColor: "black",
     promoTypeValue: 0,
     screenBackgroundSrc: "",
-    file: null,
-    files: [],
+    publishType: true,
     dates: [],
-    modal2: false,
-    modal3: false,
-    time: "",
-    time1: "",
   }),
 
   watch: {
@@ -612,31 +449,34 @@ export default {
         ? "Nueva Publicación"
         : "Editar Publicación";
     },
-    computedDateFormattedMomentjs() {
-      if (this.dates) {
-        let dates = [...this.dates];
-        let date = 0;
-        let arr = dates.length;
-        for (date; date < arr; date++) {
-          let formattedDate = moment(dates[date]).format("DD/MM/YYYY");
-          dates[date] = formattedDate;
-        }
-        return dates.join(" ~ ");
-      }
-      return [];
-    },
   },
 
   methods: {
-    onFileUpload(file_obj) {
-      try {
-        let url = URL.createObjectURL(file_obj);
-        if (url) this.screenBackgroundSrc = url.toString();
-      } catch (error) {
-        console.log("Error reading file:", error);
-        this.screenBackgroundSrc = "";
-      }
-      if (!this.file) this.screenBackgroundSrc = "";
+    clearBackground() {
+      this.backgroundId = -1;
+      this.backgroundData = {};
+    },
+    getBackground(val) {
+      console.log("backgroundId", val);
+      if (val > 0) this.backgroundId = +val;
+    },
+    async getBackgroundData() {
+      this.requesting = true;
+      await this.$http
+        .get(`Archivos/${+this.backgroundId}`)
+        .then((res) => {
+          if (res && res.data) {
+            this.backgroundData = Object.assign({}, res.data);
+          }
+        })
+        .catch((err) => {
+          console.log("error", err);
+          this.backgroundData = {};
+        })
+        .finally(() => {
+          this.requesting = false;
+          this.dialogGallery = false;
+        });
     },
     /** Removes duplicate keys in array */
     removeArrDuplicates(array) {
@@ -656,84 +496,19 @@ export default {
     /* Init */
     async initialize() {
       this.loading = true;
-      this.products = [];
-      this.manufacturers = [];
-      this.categories = [];
-      this.attributeTypes = [];
+      this.publications = [];
 
-      const products = this.$http.get("Articulos", {
-        params: { pageNumber: this.page, pageSize: this.itemsPerPage },
-      });
-      const manufacturers = this.$http.get("Fabricantes");
-      const productTypes = this.$http.get("TiposArticulo");
-      const categories = this.$http.get("CategoriasArticulo");
-      const attributeTypes = this.$http.get("TiposDeAtributo");
+      const publications = this.$http.get("Publicaciones");
 
-      const promises = [
-        products,
-        manufacturers,
-        productTypes,
-        categories,
-        attributeTypes,
-      ];
+      const promises = [publications];
 
       await this.$http
         .all(promises)
         .then(
           this.$http.spread((...responses) => {
-            const productsRes = responses[0];
-            const manufacturersRes = responses[1];
-            const productTypesRes = responses[2];
-            const categoriesRes = responses[3];
-            const attrTypesRes = responses[4];
-
-            if (productsRes && productsRes.data.list) {
-              this.products = productsRes.data.list;
-              this.pages = productsRes.data.totalPages;
-              this.totalRecords = productsRes.data.totalRecords;
-            }
-            if (manufacturersRes && manufacturersRes.data) {
-              this.manufacturers = manufacturersRes.data.map((m) => ({
-                text: m.nombre,
-                value: m.id,
-              }));
-            }
-            if (productTypesRes && productTypesRes.data) {
-              this.productTypes = productTypesRes.data.map((pt) => ({
-                text: pt.nombre,
-                value: pt.id,
-              }));
-            }
-            if (categoriesRes && categoriesRes.data) {
-              this.categories = categoriesRes.data.map((c) => ({
-                text: c.nombre,
-                value: c.id,
-              }));
-            }
-            if (attrTypesRes && attrTypesRes.data) {
-              let list = attrTypesRes.data;
-              let attributes = [];
-
-              for (let at of list) {
-                if (at.atributos && at.atributos.length > 0) {
-                  attributes.push(
-                    Object.assign({}, { header: at.nombre.toUpperCase() })
-                  );
-                  attributes.push(Object.assign({}, { divider: true }));
-                  for (let a of at.atributos) {
-                    attributes.push(
-                      Object.assign(
-                        {},
-                        {
-                          text: a.nombre,
-                          value: a.id,
-                        }
-                      )
-                    );
-                  }
-                }
-              }
-              this.attributes = attributes;
+            const publicationsRes = responses[0];
+            if (publicationsRes && publicationsRes.data) {
+              this.publications = publicationsRes.data;
             }
           })
         )
@@ -746,32 +521,9 @@ export default {
     },
 
     editItem(item) {
-      this.editedIndex = this.products.indexOf(item);
+      this.editedIndex = this.publications.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
-      if (item.tipoArticulo) {
-        this.editedItem.tipoArticulo = item.tipoArticulo.id;
-      } else this.editedItem.tipoArticulo = -1;
-      if (item.fabricante) {
-        this.editedItem.idFabricante = item.fabricante.id;
-      } else this.editedItem.idFabricante = -1;
-
-      // removeArrDuplicates prevents key duplicates in component render
-      if (item.categorias && item.categorias.length) {
-        this.editedItem.categorias = this.removeArrDuplicates(
-          item.categorias.map((c) => c.id)
-        );
-      } else this.editedItem.categorias = [];
-      if (item.atributos && item.atributos.length) {
-        this.editedItem.atributos = this.removeArrDuplicates(
-          item.atributos.map((a) => a.id)
-        );
-      } else this.editedItem.atributos = [];
-      if (item.codigosDeBarra && item.codigosDeBarra.length) {
-        this.editedItem.codigosDeBarra = this.removeArrDuplicates(
-          item.codigosDeBarra.map((b) => b.ean)
-        );
-      } else this.editedItem.codigosDeBarra = [];
       this.dialog = true;
     },
 
@@ -780,7 +532,7 @@ export default {
       this.dialog = false;
       this.dialogDelete = false;
       await this.$http
-        .delete(`Articulos/${this.editedId}`)
+        .delete(`Publicaciones/${this.editedId}`)
         .then((res) => {
           if (res) {
             this.snackbarText = "Operación realizada exitosamente.";
@@ -809,6 +561,8 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.backgroundId = -1;
+        this.backgroundData = {};
       });
     },
 
@@ -819,6 +573,8 @@ export default {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
+        this.backgroundId = -1;
+        this.backgroundData = {};
       });
     },
 
@@ -828,22 +584,12 @@ export default {
         this.loading = true;
         await this.$http
           .put(
-            `Articulos/${this.editedId}`,
+            `Publicaciones/${this.editedId}`,
             Object.assign(
               {},
               {
                 nombre: this.editedItem.nombre,
-                sku: this.editedItem.sku,
-                precio: this.editedItem.precio,
-                activo: this.editedItem.activo,
-                etiquetas: this.editedItem.etiquetas,
-                descripcion: this.editedItem.descripcion,
-                descripcionLarga: this.editedItem.descripcionLarga,
-                prospecto: this.editedItem.prospecto,
-                categorias: this.editedItem.categorias,
-                atributos: this.editedItem.atributos,
-                idFabricante: this.editedItem.idFabricante,
-                idTipo: this.editedItem.tipoArticulo,
+                idArchivoFondo: this.backgroundId,
               }
             )
           )
@@ -868,23 +614,12 @@ export default {
         this.loading = true;
         await this.$http
           .post(
-            "Articulos",
+            "Publicaciones",
             Object.assign(
               {},
               {
                 nombre: this.editedItem.nombre,
-                sku: this.editedItem.sku,
-                precio: this.editedItem.precio,
-                activo: this.editedItem.activo,
-                etiquetas: this.editedItem.etiquetas,
-                descripcion: this.editedItem.descripcion,
-                descripcionLarga: this.editedItem.descripcionLarga,
-                prospecto: this.editedItem.prospecto,
-                categorias: this.editedItem.categorias,
-                atributos: this.editedItem.atributos,
-                codigosDeBarra: this.editedItem.codigosDeBarra,
-                idFabricante: this.editedItem.idFabricante,
-                idTipo: this.editedItem.tipoArticulo,
+                idArchivoFondo: this.backgroundId,
               }
             )
           )
@@ -914,3 +649,12 @@ export default {
   },
 };
 </script>
+<style scoped>
+.__datatable_img {
+  position: relative;
+  max-height: 50px;
+  max-width: 50px;
+  min-height: 50px;
+  min-width: 50px;
+}
+</style>

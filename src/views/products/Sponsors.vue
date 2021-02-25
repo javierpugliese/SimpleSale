@@ -54,7 +54,6 @@
                   <v-btn
                     color="secondary"
                     dark
-                    large
                     class="mx-2"
                     v-bind="attrs"
                     v-on="on"
@@ -79,7 +78,7 @@
                             maxlength="50"
                             outlined
                             clearable
-                            required
+                            dense
                           ></v-text-field>
                         </v-col>
                         <v-col cols="12" sm="4">
@@ -91,6 +90,7 @@
                             clearable
                             outlined
                             small-chips
+                            dense
                           ></v-autocomplete>
                         </v-col>
                         <v-col cols="12" sm="4">
@@ -102,6 +102,7 @@
                             clearable
                             outlined
                             small-chips
+                            dense
                           ></v-autocomplete>
                         </v-col>
                       </v-row>
@@ -147,7 +148,6 @@
                   class="my-3"
                   v-bind="attrs"
                   v-on="on"
-                  large
                   :loading="loading"
                 >
                   <v-icon class="mr-2">fas fa-plus</v-icon>
@@ -171,7 +171,7 @@
                             maxlength="50"
                             outlined
                             clearable
-                            required
+                            dense
                           ></v-text-field>
                         </v-col>
                       </v-row>
@@ -185,6 +185,7 @@
                             clearable
                             outlined
                             small-chips
+                            dense
                           ></v-autocomplete>
                         </v-col>
                         <v-col cols="12" sm="6">
@@ -196,6 +197,7 @@
                             clearable
                             outlined
                             small-chips
+                            dense
                           ></v-autocomplete>
                         </v-col>
                       </v-row>
@@ -214,6 +216,7 @@
                                 label="Fecha de inicio"
                                 readonly
                                 outlined
+                                dense
                                 v-bind="attrs"
                                 v-on="on"
                               ></v-text-field>
@@ -221,6 +224,7 @@
                             <v-date-picker
                               v-model="editedItem.fechaInicio"
                               scrollable
+                              dense
                             >
                               <v-spacer></v-spacer>
                               <v-btn
@@ -258,6 +262,7 @@
                                 label="Fecha de finalización"
                                 readonly
                                 outlined
+                                dense
                                 v-bind="attrs"
                                 v-on="on"
                               ></v-text-field>
@@ -302,6 +307,7 @@
                                 label="Hora de inicio"
                                 outlined
                                 readonly
+                                dense
                                 v-bind="attrs"
                                 v-on="on"
                               ></v-text-field>
@@ -343,6 +349,7 @@
                                 label="Hora de finalización"
                                 readonly
                                 outlined
+                                dense
                                 v-bind="attrs"
                                 v-on="on"
                               ></v-text-field>

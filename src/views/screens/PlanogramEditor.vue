@@ -8,85 +8,15 @@
         </v-app-bar-nav-icon>
       </v-scale-transition>
       <v-scroll-y-transition>
-        <v-toolbar-title> Gestión de Planogramas </v-toolbar-title>
+        <v-toolbar-title> Editor de Planogramas </v-toolbar-title>
       </v-scroll-y-transition>
       <v-spacer></v-spacer>
-      <v-scale-transition>
-        <v-dialog
-          v-model="dialogSearch"
-          width="30%"
-          overlay-color="blue"
-          overlay-opacity="0.2"
-          scrollable
-          persistent
-        >
-          <template v-slot:activator="{ on, attrs }">
-            <v-btn
-              color="secondary"
-              dark
-              large
-              class="mx-2"
-              v-bind="attrs"
-              v-on="on"
-              :loading="loading"
-            >
-              <v-icon class="mr-2">fas fa-search</v-icon>
-              Buscar producto
-            </v-btn>
-          </template>
-          <v-card height="auto">
-            <v-card-title>
-              <span class="headline">Opciones de búsqueda</span>
-            </v-card-title>
-            <v-card-text>
-              <v-container>
-                <v-row>
-                  <v-col cols="12">
-                    <v-autocomplete
-                      v-model="productId"
-                      :items="products"
-                      label="Producto"
-                      maxlength="50"
-                      class="mt-6"
-                      clearable
-                      outlined
-                      small-chips
-                      :allow-overflow="false"
-                      :autofocus="true"
-                      :cache-items="true"
-                      @change="getProduct"
-                      :loading="loading"
-                      :disabled="loading"
-                    ></v-autocomplete>
-                  </v-col>
-                </v-row>
-              </v-container>
-            </v-card-text>
-
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="info" text large @click="dialogSearch = false">
-                Cerrar
-              </v-btn>
-              <v-btn
-                color="success"
-                large
-                @click="dialogSearch = false"
-                :disabled="loading"
-              >
-                Aplicar
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
-      </v-scale-transition>
       <v-scale-transition>
         <v-btn
           v-if="!searchMode"
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
-          large
           :disabled="loading"
           to="/pantallas/planogramas"
         >
@@ -264,6 +194,7 @@
               clearable
               outlined
               small-chips
+              dense
             ></v-autocomplete>
           </v-col>
         </v-row>
@@ -277,6 +208,7 @@
               outlined
               clearable
               required
+              dense
               @input="searchProducts"
             ></v-text-field>
           </v-col>
@@ -345,12 +277,26 @@
               :z="100"
               :handles="[]"
             >
-              <object
+              <img
+                v-if="planogramSrc && planogramSrc.match(/.(jpg|jpeg)$/i)"
+                :src="planogramSrc"
+                alt=" "
+                class="planogram__background ma-0 pa-0"
+              />
+              <!-- <object
+                v-else-if="planogramSrc.match(/.(mp4)$/i)"
                 :data="planogramSrc"
                 class="planogram__background ma-0 pa-0"
               >
                 <param name="wmode" value="transparent" />
-              </object>
+              </object> -->
+              <video
+                v-else-if="planogramSrc.match(/.(mp4)$/i)"
+                class="planogram__background ma-0 pa-0"
+              >
+                <source :src="planogramSrc" type="video/mp4" />
+                Su navegador no soporta la etiqueta de video HTML5.
+              </video>
               <!-- shelves  -->
               <vdr
                 v-for="(shelf, index) in shelves"
@@ -482,15 +428,64 @@
                 <p class="text-h5 text-center">ó</p>
               </v-col>
               <v-col cols="4">
-                <v-btn
-                  block
-                  color="success"
-                  :disabled="loading"
-                  :loading="loading"
+                <v-dialog
+                  v-model="dialogGallery"
+                  width="85%"
+                  overlay-color="blue"
+                  overlay-opacity="0.2"
+                  scrollable
+                  persistent
                 >
-                  <v-icon class="pr-2">fas fa-hand-pointer</v-icon>
-                  Elegir desde Galeria
-                </v-btn>
+                  <template v-slot:activator="{ on, attrs }">
+                    <v-btn
+                      color="success"
+                      dark
+                      class="mx-2"
+                      v-bind="attrs"
+                      v-on="on"
+                      :disabled="loading"
+                      :loading="loading"
+                    >
+                      <v-icon class="pr-2">fas fa-hand-pointer</v-icon>
+                      Elegir desde Galeria
+                    </v-btn>
+                  </template>
+
+                  <v-card height="auto">
+                    <v-card-title>Elegir un fondo</v-card-title>
+                    <v-card-text>
+                      <Gallery
+                        :paginationFixed="false"
+                        @selected="getBackground"
+                      >
+                      </Gallery>
+                    </v-card-text>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="info"
+                        text
+                        @click="
+                          dialogGallery = false;
+                          backgroundId = -1;
+                          backgroundData = {};
+                        "
+                        :disabled="loading || requesting"
+                        :loading="loading || requesting"
+                      >
+                        Cancelar
+                      </v-btn>
+                      <v-btn
+                        color="success"
+                        :disabled="loading || requesting"
+                        :loading="loading || requesting"
+                        @click="getBackgroundData"
+                      >
+                        Aplicar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
               </v-col>
             </v-row>
             <v-row>
@@ -516,10 +511,10 @@
 
 <script>
 // @ is an alias to /src
-
+import Gallery from "../Gallery.vue";
 export default {
   name: "PlanogramEditor",
-  components: {},
+  components: { Gallery },
   data: () => ({
     width: 40,
     height: 40,
@@ -551,6 +546,7 @@ export default {
     productId: -1,
     loading: false,
     loadingSearch: false,
+    requesting: false,
     searchTimeout: null,
 
     menu: false,
@@ -584,6 +580,9 @@ export default {
     calculatedProductHeight: 0,
     planogramSrc: "",
     dialogSearch: false,
+    dialogGallery: false,
+    backgroundId: -1,
+    backgroundData: {},
     searchProduct: {
       nombre: "",
       sku: "",
@@ -618,7 +617,38 @@ export default {
       return h;
     },
   },
+  watch: {
+    backgroundData(val) {
+      console.log("backgroundData", val);
+    },
+    planogramSrc(val) {
+      console.log("planogramSrc", val);
+    },
+  },
   methods: {
+    getBackground(val) {
+      console.log("backgroundId", val);
+      if (val > 0) this.backgroundId = +val;
+    },
+    async getBackgroundData() {
+      this.requesting = true;
+      await this.$http
+        .get(`Archivos/${+this.backgroundId}`)
+        .then((res) => {
+          if (res && res.data) {
+            this.backgroundData = Object.assign({}, res.data);
+            this.planogramSrc = this.backgroundData.url.toString();
+          }
+        })
+        .catch((err) => {
+          console.log("error", err);
+          this.backgroundData = {};
+        })
+        .finally(() => {
+          this.requesting = false;
+          this.dialogGallery = false;
+        });
+    },
     async searchProducts() {
       clearTimeout(this.searchTimeout);
       this.products = [];

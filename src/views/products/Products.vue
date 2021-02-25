@@ -44,13 +44,22 @@
         loading-text="Cargando..."
         sort-by="nombre"
         class="elevation-1 table-cursor"
+        striped
+        dense
+        :fixed-header="true"
+        :calculate-widths="true"
         :disable-pagination="true"
         :hide-default-footer="true"
       >
         <template v-slot:item.imagen="{ item }">
           <v-img
             :lazy-src="require('@/assets/no-disponible.jpg')"
-            class="__background-small my-2"
+            class="__datatable_img my-2"
+            alt=" "
+            :contain="true"
+            :aspect-ratio="16 / 9"
+            gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+            style="border: 1px solid white"
             :src="
               getProductImage(item) || require('@/assets/no-disponible.jpg')
             "
@@ -70,11 +79,16 @@
           {{ parseDate(item) }}
         </template>
 
+        <template v-slot:item.activo="{ item }">
+          <v-simple-checkbox v-model="item.activo" disabled></v-simple-checkbox>
+        </template>
+
         <template v-slot:top>
           <v-toolbar flat>
             <v-toolbar-title>Lista de Productos</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
+            <!-- Search and filter dialog -->
             <v-dialog
               v-model="dialogSearch"
               width="60%"
@@ -90,7 +104,6 @@
                   class="mx-2"
                   v-bind="attrs"
                   v-on="on"
-                  large
                   :loading="loading"
                 >
                   <v-icon class="mr-2">fas fa-search</v-icon>
@@ -113,7 +126,8 @@
                           maxlength="50"
                           outlined
                           clearable
-                          required
+                          dense
+                          single-line
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="4">
@@ -125,7 +139,8 @@
                           maxlength="50"
                           outlined
                           clearable
-                          required
+                          dense
+                          single-line
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="4">
@@ -136,7 +151,8 @@
                           maxlength="13"
                           outlined
                           clearable
-                          required
+                          dense
+                          single-line
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -150,6 +166,8 @@
                           clearable
                           outlined
                           small-chips
+                          dense
+                          single-line
                         ></v-autocomplete>
                       </v-col>
                       <v-col cols="12" sm="4">
@@ -161,6 +179,8 @@
                           clearable
                           outlined
                           small-chips
+                          dense
+                          single-line
                         ></v-autocomplete>
                       </v-col>
                       <v-col cols="12" sm="4">
@@ -172,6 +192,8 @@
                           clearable
                           outlined
                           small-chips
+                          dense
+                          single-line
                         ></v-autocomplete>
                       </v-col>
                     </v-row>
@@ -186,6 +208,8 @@
                           clearable
                           outlined
                           small-chips
+                          dense
+                          single-line
                         >
                         </v-autocomplete>
                       </v-col>
@@ -212,10 +236,11 @@
             <!-- Modal form product -->
             <v-dialog
               v-model="dialog"
-              fullscreen
-              hide-overlay
-              transition="dialog-bottom-transition"
+              width="80%"
+              overlay-color="blue"
+              overlay-opacity="0.2"
               scrollable
+              persistent
             >
               <template v-slot:activator="{ on, attrs }">
                 <v-btn
@@ -224,313 +249,387 @@
                   class="mx-2"
                   v-bind="attrs"
                   v-on="on"
-                  large
                   :loading="loading"
                 >
                   <v-icon class="mr-2">fas fa-plus</v-icon>
                   Nuevo Producto
                 </v-btn>
               </template>
-              <v-card>
+              <v-card height="auto">
                 <v-card-title>
                   <span class="headline">{{ formTitle }}</span>
                 </v-card-title>
-
+                <v-divider></v-divider>
                 <v-card-text>
-                  <v-container>
-                    <v-sheet class="pa-5" color="blue-grey darken-4">
-                      <v-row>
-                        <v-col cols="12" sm="6" md="3">
-                          <div class="d-flex justify-center justify-sm-start">
-                            <v-switch
-                              v-model="editedItem.activo"
-                              label="¿Habilitar producto?"
-                            ></v-switch>
-                          </div>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12" sm="4">
-                          <v-text-field
-                            v-model="editedItem.nombre"
-                            label="Nombre"
-                            counter="50"
-                            maxlength="50"
-                            outlined
-                            clearable
-                            required
-                          ></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="4">
-                          <v-text-field
-                            v-model="editedItem.sku"
-                            :disabled="editedId > -1"
-                            label="SKU"
-                            counter="50"
-                            maxlength="50"
-                            outlined
-                            clearable
-                            required
-                          ></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="4">
-                          <v-text-field
-                            v-model.number="editedItem.precio"
-                            label="Precio"
-                            prefix="$"
-                            value="0.00"
-                            outlined
-                            clearable
-                            required
-                          ></v-text-field>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12" sm="4">
-                          <v-autocomplete
-                            v-model="editedItem.tipoArticulo"
-                            :items="productTypes"
-                            label="Tipo"
-                            maxlength="50"
-                            clearable
-                            outlined
-                            small-chips
-                          ></v-autocomplete>
-                        </v-col>
-                        <v-col cols="12" sm="4">
-                          <v-autocomplete
-                            v-model="editedItem.idFabricante"
-                            :items="manufacturers"
-                            label="Fabricante"
-                            maxlength="50"
-                            clearable
-                            outlined
-                            small-chips
-                          ></v-autocomplete>
-                        </v-col>
-                        <v-col cols="12" sm="4">
-                          <v-autocomplete
-                            v-model="editedItem.categorias"
-                            :items="categories"
-                            label="Categorías"
-                            maxlength="50"
-                            multiple
-                            clearable
-                            outlined
-                            small-chips
-                          ></v-autocomplete>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12" sm="6">
-                          <v-text-field
-                            v-model="editedItem.descripcion"
-                            label="Subtítulo"
-                            counter="50"
-                            maxlength="50"
-                            outlined
-                            clearable
-                          ></v-text-field>
-                        </v-col>
-                        <v-col cols="12" sm="6">
-                          <v-autocomplete
-                            v-model="editedItem.atributos"
-                            :items="attributes"
-                            label="Atributos"
-                            maxlength="50"
-                            multiple
-                            clearable
-                            outlined
-                            small-chips
-                          >
-                          </v-autocomplete>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12" sm="6">
-                          <v-textarea
-                            v-model="editedItem.descripcionLarga"
-                            label="Descripción"
-                            rows="5"
-                            outlined
-                            clearable
-                          ></v-textarea>
-                        </v-col>
-                        <v-col cols="12" sm="6">
-                          <v-textarea
-                            v-model="editedItem.prospecto"
-                            label="Prospecto"
-                            rows="5"
-                            outlined
-                            clearable
-                          ></v-textarea>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12">
-                          <v-combobox
-                            v-model="editedItem.etiquetas"
-                            :delimiters="delimiters"
-                            label="Etiquetas"
-                            prepend-icon="fas fa-tags"
-                            chips
-                            small-chips
-                            deletable-chips
-                            clearable
-                            outlined
-                            multiple
-                            append-icon=""
-                          >
-                          </v-combobox>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12">
-                          <v-combobox
-                            v-model="editedItem.codigosDeBarra"
-                            label="Códigos de Barra"
-                            :delimiters="delimiters"
-                            prepend-icon="fas fa-barcode"
-                            chips
-                            small-chips
-                            deletable-chips
-                            clearable
-                            outlined
-                            multiple
-                            append-icon=""
-                          >
-                          </v-combobox>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col cols="12" class="d-flex flex-column">
-                          <v-alert class="mt-n6" dense type="warning">
-                            Subida de Archivos: Imagenes en formato JPG,
-                            dimensiones máximas 1000x1000. Videos en formato
-                            MP4, máximo 50MB.
-                          </v-alert>
-                          <v-file-input
-                            v-model="files"
-                            counter
-                            label="Subir archivos"
-                            accept=".jpg, .mp4"
-                            multiple
-                            placeholder="Seleccione archivos..."
-                            prepend-icon="fas fa-paperclip"
-                            outlined
-                            :show-size="1000"
-                            @change="onFileUpload($event)"
-                          >
-                            <template v-slot:selection="{ index, text }">
-                              <v-chip
-                                v-if="index < 2"
-                                color="info"
-                                dark
-                                label
-                                small
-                              >
-                                {{ text }}
-                              </v-chip>
-
-                              <span
-                                v-else-if="index === 2"
-                                class="overline grey--text text--ligthen-3 mx-2"
-                              >
-                                +{{ files.length - 2 }} Archivo(s)
-                              </span>
-                            </template>
-                          </v-file-input>
-                          <p
-                            v-if="files.length"
-                            class="text-overline warning--text"
-                          >
-                            Archivos que se subirán
-                          </p>
-
-                          <div
-                            class="d-flex flex-wrap justify-start"
-                            style="align-items: flex-start"
-                          >
-                            <v-img
-                              v-for="(i, index) in filesURLs"
-                              :key="`fileURL-${index}`"
-                              :src="i || require('@/assets/no-disponible.jpg')"
-                              alt=" "
-                              :contain="true"
-                              class="__background-small white--text ma-2"
-                              gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                  <v-container fluid>
+                    <v-row dense>
+                      <v-col cols="12" sm="3">
+                        <v-text-field
+                          v-model="editedItem.nombre"
+                          label="Nombre"
+                          counter="50"
+                          maxlength="50"
+                          outlined
+                          clearable
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-text-field
+                          v-model="editedItem.sku"
+                          :disabled="editedId > -1"
+                          label="SKU"
+                          maxlength="50"
+                          outlined
+                          clearable
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-autocomplete
+                          v-model="editedItem.tipoArticulo"
+                          :items="productTypes"
+                          label="Tipo"
+                          maxlength="50"
+                          clearable
+                          outlined
+                          small-chips
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-autocomplete>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-autocomplete
+                          v-model="editedItem.idFabricante"
+                          :items="manufacturers"
+                          label="Fabricante"
+                          maxlength="50"
+                          clearable
+                          outlined
+                          small-chips
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-autocomplete>
+                      </v-col>
+                    </v-row>
+                    <v-row dense>
+                      <v-col cols="12" sm="3">
+                        <v-text-field
+                          v-model.number="editedItem.precio"
+                          label="Precio"
+                          prefix="$"
+                          value="0.00"
+                          outlined
+                          clearable
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col
+                        cols="12"
+                        sm="3"
+                        style="margin-top: -11px !important"
+                      >
+                        <v-checkbox
+                          v-model="editedItem.activo"
+                          label="¿Habilitar el producto?"
+                          dense
+                          single-line
+                          :hide-details="true"
+                        >
+                        </v-checkbox>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-autocomplete
+                          v-model="editedItem.categorias"
+                          :items="categories"
+                          label="Categorías"
+                          maxlength="50"
+                          multiple
+                          clearable
+                          outlined
+                          small-chips
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-autocomplete>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-autocomplete
+                          v-model="editedItem.atributos"
+                          :items="attributes"
+                          label="Atributos"
+                          maxlength="50"
+                          multiple
+                          clearable
+                          outlined
+                          small-chips
+                          dense
+                          single-line
+                          :hide-details="true"
+                        >
+                        </v-autocomplete>
+                      </v-col>
+                    </v-row>
+                    <v-row dense>
+                      <v-col cols="12" sm="6">
+                        <v-text-field
+                          v-model="editedItem.descripcion"
+                          label="Subtítulo"
+                          maxlength="128"
+                          outlined
+                          clearable
+                          dense
+                          single-line
+                          :hide-details="true"
+                        ></v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-combobox
+                          v-model="editedItem.etiquetas"
+                          :delimiters="delimiters"
+                          label="Etiquetas"
+                          chips
+                          small-chips
+                          deletable-chips
+                          clearable
+                          outlined
+                          multiple
+                          dense
+                          single-line
+                          :hide-details="true"
+                        >
+                        </v-combobox>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-combobox
+                          v-model="editedItem.codigosDeBarra"
+                          label="Códigos de Barra"
+                          :delimiters="delimiters"
+                          chips
+                          small-chips
+                          deletable-chips
+                          clearable
+                          outlined
+                          multiple
+                          dense
+                          single-line
+                          :hide-details="true"
+                        >
+                        </v-combobox>
+                      </v-col>
+                    </v-row>
+                    <v-row dense>
+                      <v-col cols="12" sm="3">
+                        <v-textarea
+                          v-model="editedItem.descripcionLarga"
+                          label="Descripción"
+                          rows="3"
+                          outlined
+                          clearable
+                          dense
+                          single-line
+                          :hide-details="true"
+                        >
+                        </v-textarea>
+                      </v-col>
+                      <v-col cols="12" sm="3">
+                        <v-textarea
+                          v-model="editedItem.prospecto"
+                          label="Prospecto"
+                          rows="3"
+                          outlined
+                          clearable
+                          dense
+                          single-line
+                          :hide-details="true"
+                        >
+                        </v-textarea>
+                      </v-col>
+                      <v-col cols="12" sm="3" class="d-flex flex-column">
+                        <v-btn
+                          color="secondary"
+                          block
+                          dark
+                          class="mb-1"
+                          :loading="loading"
+                          disabled
+                        >
+                          <v-icon class="mr-2">fas fa-mouse-pointer</v-icon>
+                          Elegir Cruzados
+                        </v-btn>
+                        <v-btn
+                          color="secondary"
+                          block
+                          dark
+                          class="mt-1"
+                          :loading="loading"
+                          disabled
+                        >
+                          <v-icon class="mr-2">fas fa-mouse-pointer</v-icon>
+                          Asignar Promociones
+                        </v-btn>
+                      </v-col>
+                      <v-col cols="12" sm="3" class="d-flex flex-column">
+                        <v-btn
+                          color="secondary"
+                          block
+                          dark
+                          class="mb-1"
+                          :loading="loading"
+                          disabled
+                        >
+                          <v-icon class="mr-2">fas fa-mouse-pointer</v-icon>
+                          Elegir Alternativos
+                        </v-btn>
+                        <v-btn
+                          color="secondary"
+                          block
+                          dark
+                          class="mt-1"
+                          :loading="loading"
+                          disabled
+                        >
+                          <v-icon class="mr-2">fas fa-mouse-pointer</v-icon>
+                          Asignar Sponsors
+                        </v-btn>
+                      </v-col>
+                    </v-row>
+                    <v-row dense>
+                      <v-col cols="12" class="d-flex flex-column">
+                        <v-alert dense type="warning">
+                          Subida de Archivos: Imagenes en formato JPG,
+                          dimensiones máximas 1000x1000. Videos en formato MP4,
+                          máximo 50MB.
+                        </v-alert>
+                        <v-file-input
+                          v-model="files"
+                          counter
+                          label="Archivos del producto"
+                          accept=".jpg, .mp4"
+                          multiple
+                          placeholder="Elegir archivos..."
+                          prepend-icon=""
+                          outlined
+                          dense
+                          single-line
+                          :show-size="1000"
+                          @change="onFileUpload($event)"
+                        >
+                          <template v-slot:selection="{ index, text }">
+                            <v-chip
+                              v-if="index < 2"
+                              color="info"
+                              dark
+                              label
+                              small
                             >
-                              <v-btn
-                                icon
-                                large
-                                style="position: absolute; top: 0; right: 0"
-                                @click="removeFile(index)"
-                              >
-                                <v-icon color="red"> fas fa-times </v-icon>
-                              </v-btn>
-                            </v-img>
-                          </div>
-                          <p
-                            v-if="
-                              (editedId > -1 || editedIndex > -1) &&
-                              editedItem.archivos &&
-                              editedItem.archivos.length
+                              {{ text }}
+                            </v-chip>
+
+                            <span
+                              v-else-if="index === 2"
+                              class="overline grey--text text--ligthen-3 mx-2"
+                            >
+                              +{{ files.length - 2 }} Archivo(s)
+                            </span>
+                          </template>
+                        </v-file-input>
+                        <p
+                          v-if="files.length"
+                          class="text-overline warning--text"
+                        >
+                          Archivos que se subirán
+                        </p>
+
+                        <div
+                          class="d-flex flex-wrap justify-start"
+                          style="align-items: flex-start"
+                        >
+                          <v-img
+                            v-for="(i, index) in filesURLs"
+                            :key="`fileURL-${index}`"
+                            :src="i || require('@/assets/no-disponible.jpg')"
+                            alt=" "
+                            :contain="true"
+                            class="__background-small white--text ma-2"
+                            gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                          >
+                            <v-btn
+                              icon
+                              style="position: absolute; top: 0; right: 0"
+                              @click="removeFile(index)"
+                            >
+                              <v-icon color="red"> fas fa-times </v-icon>
+                            </v-btn>
+                          </v-img>
+                        </div>
+                        <p
+                          v-if="
+                            (editedId > -1 || editedIndex > -1) &&
+                            editedItem.archivos &&
+                            editedItem.archivos.length
+                          "
+                          class="text-overline warning--text"
+                        >
+                          Archivos del producto
+                        </p>
+                        <v-alert
+                          v-else-if="editedId > -1 || editedIndex > -1"
+                          dense
+                          type="info"
+                        >
+                          El producto no tiene archivos.
+                        </v-alert>
+                        <div
+                          class="d-flex flex-wrap justify-start"
+                          style="align-items: flex-start"
+                        >
+                          <v-img
+                            v-for="(i, index) in editedItem.archivos"
+                            :key="`productFile-${index}`"
+                            :lazy-src="require('@/assets/no-disponible.jpg')"
+                            :src="
+                              i.url || require('@/assets/no-disponible.jpg')
                             "
-                            class="text-overline warning--text"
+                            alt=" "
+                            :contain="true"
+                            class="__background-small white--text ma-2"
+                            gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
                           >
-                            Archivos del producto
-                          </p>
-                          <v-alert
-                            v-else-if="editedId > -1 || editedIndex > -1"
-                            dense
-                            type="info"
-                          >
-                            El producto no tiene archivos.
-                          </v-alert>
-                          <div
-                            class="d-flex flex-wrap justify-start"
-                            style="align-items: flex-start"
-                          >
-                            <v-img
-                              v-for="(i, index) in editedItem.archivos"
-                              :key="`productFile-${index}`"
-                              :lazy-src="require('@/assets/no-disponible.jpg')"
-                              :src="
-                                i.url || require('@/assets/no-disponible.jpg')
-                              "
-                              alt=" "
-                              :contain="true"
-                              class="__background-small white--text ma-2"
-                              gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                            <v-btn
+                              icon
+                              style="position: absolute; top: 0; right: 0"
+                              @click="removeFileFromProduct(index)"
                             >
-                              <v-btn
-                                icon
-                                large
-                                style="position: absolute; top: 0; right: 0"
-                                @click="removeFileFromProduct(index)"
+                              <v-icon color="red"> fas fa-times </v-icon>
+                            </v-btn>
+                            <template v-slot:placeholder>
+                              <v-row
+                                class="fill-height ma-0"
+                                align="center"
+                                justify="center"
                               >
-                                <v-icon color="red"> fas fa-times </v-icon>
-                              </v-btn>
-                              <template v-slot:placeholder>
-                                <v-row
-                                  class="fill-height ma-0"
-                                  align="center"
-                                  justify="center"
-                                >
-                                  <v-progress-circular
-                                    indeterminate
-                                    color="info"
-                                  ></v-progress-circular>
-                                </v-row>
-                              </template>
-                            </v-img>
-                          </div>
-                        </v-col>
-                      </v-row>
-                    </v-sheet>
+                                <v-progress-circular
+                                  indeterminate
+                                  color="info"
+                                ></v-progress-circular>
+                              </v-row>
+                            </template>
+                          </v-img>
+                        </div>
+                      </v-col>
+                    </v-row>
                   </v-container>
                 </v-card-text>
-
+                <v-divider></v-divider>
                 <v-card-actions>
                   <v-spacer></v-spacer>
                   <v-btn color="info" text @click="close"> Cancelar </v-btn>
@@ -586,6 +685,8 @@
                 :items="itemsPerPageItems"
                 filled
                 outlined
+                dense
+                single-line
                 label="Productos por página"
                 :hide-details="true"
                 :loading="loading"
@@ -624,10 +725,6 @@
 
 <script>
 import moment from "moment";
-window.onbeforeunload = () => {
-  return "Asegúrese de que los archivos hayan terminado de cargarse antes de cerrar esta ventana.";
-};
-// @ is an alias to /src
 export default {
   name: "Products",
   components: {},
@@ -682,12 +779,20 @@ export default {
         sortable: true,
         value: "modificado",
       },
+      {
+        text: "Habilitado",
+        align: "start",
+        sortable: false,
+        value: "activo",
+      },
     ],
     products: [],
     manufacturers: [],
     productTypes: [],
     categories: [],
     attributes: [],
+    crossProducts: [],
+    alternativeProducts: [],
     files: [],
     filesURLs: [],
     itemsPerPageItems: [
@@ -719,6 +824,8 @@ export default {
       atributos: [],
       codigosDeBarra: [],
       archivos: [],
+      cruzados: [],
+      alternativos: [],
     },
     defaultItem: {
       nombre: "",
@@ -735,6 +842,8 @@ export default {
       atributos: [],
       codigosDeBarra: [],
       archivos: [],
+      cruzados: [],
+      alternativos: [],
     },
     searchItem: {
       nombre: "",
@@ -1179,5 +1288,12 @@ export default {
   max-width: 20vh;
   min-height: 20vh;
   min-width: 20vh;
+}
+.__datatable_img {
+  position: relative;
+  max-height: 50px;
+  max-width: 50px;
+  min-height: 50px;
+  min-width: 50px;
 }
 </style>

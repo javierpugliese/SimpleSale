@@ -122,12 +122,12 @@
                         <v-text-field
                           v-model="searchItem.nombre"
                           label="Nombre"
-                          counter="50"
                           maxlength="50"
                           outlined
                           clearable
                           dense
                           single-line
+                          :hide-details="true"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="4">
@@ -135,24 +135,24 @@
                           v-model="searchItem.sku"
                           :disabled="editedId > -1"
                           label="SKU"
-                          counter="50"
                           maxlength="50"
                           outlined
                           clearable
                           dense
                           single-line
+                          :hide-details="true"
                         ></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="4">
                         <v-text-field
                           v-model="searchItem.ean"
                           label="Código EAN"
-                          counter="13"
                           maxlength="13"
                           outlined
                           clearable
                           dense
                           single-line
+                          :hide-details="true"
                         ></v-text-field>
                       </v-col>
                     </v-row>
@@ -168,6 +168,7 @@
                           small-chips
                           dense
                           single-line
+                          :hide-details="true"
                         ></v-autocomplete>
                       </v-col>
                       <v-col cols="12" sm="4">
@@ -181,6 +182,7 @@
                           small-chips
                           dense
                           single-line
+                          :hide-details="true"
                         ></v-autocomplete>
                       </v-col>
                       <v-col cols="12" sm="4">
@@ -194,6 +196,7 @@
                           small-chips
                           dense
                           single-line
+                          :hide-details="true"
                         ></v-autocomplete>
                       </v-col>
                     </v-row>
@@ -210,6 +213,7 @@
                           small-chips
                           dense
                           single-line
+                          :hide-details="true"
                         >
                         </v-autocomplete>
                       </v-col>

@@ -280,8 +280,12 @@ export default {
       this.loading = true;
       if (this.editedIndex > -1 && this.editedId > -1) {
         Object.assign(this.categories[this.editedIndex], this.editedItem);
+        const data = { nombre: this.editedItem.nombre };
+        if (this.editedItem.idCategoriaPadre > 0)
+          data.idCategoriaPadre = this.editedItem.idCategoriaPadre;
+
         await this.$http
-          .put(`CategoriasArticulo/${this.editedId}`, this.editedItem)
+          .put(`CategoriasArticulo/${this.editedId}`, data)
           .then((res) => {
             if (res) {
               this.snackbarText = "Operación realizada exitosamente.";
@@ -300,8 +304,11 @@ export default {
             this.loading = false;
           });
       } else {
+        const data = { nombre: this.editedItem.nombre };
+        if (this.editedItem.idCategoriaPadre > 0)
+          data.idCategoriaPadre = this.editedItem.idCategoriaPadre;
         await this.$http
-          .post("CategoriasArticulo", this.editedItem)
+          .post("CategoriasArticulo", data)
           .then((res) => {
             if (res) {
               this.snackbarText = "Operación realizada exitosamente.";

@@ -199,6 +199,9 @@
           </v-col>
         </v-row>
         <v-row dense>
+          <ProductListInfiniteScroll @itemSelected="handleProduct" />
+        </v-row>
+        <!-- <v-row dense>
           <v-col cols="12">
             <v-autocomplete
               :items="[]"
@@ -233,7 +236,6 @@
                 color="#000"
                 class="text-h6 text-center pa-3 fill-height"
               >
-                <!-- Product list from search -->
                 <v-card
                   v-for="(product, index) in products"
                   :key="`product-${index}-${product.id}`"
@@ -264,8 +266,9 @@
               </v-sheet>
             </div>
           </v-col>
-        </v-row>
+        </v-row> -->
       </v-col>
+
       <!-- Planogram preview -->
       <v-col cols="12" sm="3">
         <v-row class="d-flex flex-column" dense>
@@ -484,7 +487,7 @@
                       :loading="loading"
                     >
                       <v-icon class="pr-2">fas fa-hand-pointer</v-icon>
-                      Elegir desde Galeria
+                      Elegir fondo
                     </v-btn>
                   </template>
 
@@ -550,9 +553,10 @@
 <script>
 // @ is an alias to /src
 import Gallery from "../Gallery.vue";
+import ProductListInfiniteScroll from "../../components/ProductListInfiniteScroll.vue";
 export default {
   name: "PlanogramEditor",
-  components: { Gallery },
+  components: { Gallery, ProductListInfiniteScroll },
   data: () => ({
     width: 40,
     height: 40,
@@ -677,6 +681,11 @@ export default {
     },
   },
   methods: {
+    handleProduct(obj) {
+      console.log("handleProduct evt", obj);
+      console.log("$event", window.event);
+      this.showMenu(window.event, obj.product, obj.pos);
+    },
     getBackground(val) {
       console.log("backgroundId", val);
       if (val > 0) this.backgroundId = +val;

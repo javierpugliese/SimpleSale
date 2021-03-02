@@ -4,7 +4,7 @@
       v-model="searchItem.nombre"
       label="Buscar productos"
       maxlength="50"
-      class="w-100"
+      class="ma-3"
       style="margin-bottom: 16px"
       outlined
       clearable
@@ -12,68 +12,69 @@
       single-line
       :hide-details="true"
       @click:clear="products = []"
-      @input="search"
+      @input="
+        products = [];
+        search();
+      "
     >
     </v-text-field>
+    <div id="__results" class="mx-3">
+      <div v-for="(product, index) in products" :key="index">
+        <!-- TODO: v-if="product.archivos", non-if for test -->
+        <v-list-item style="background-color: #424242" class="my-1 py-2">
+          <v-img
+            :lazy-src="require('@/assets/no-disponible.jpg')"
+            class="__product-img mr-3"
+            alt=" "
+            :contain="true"
+            :aspect-ratio="1 / 1"
+            gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+            style="border: 1px solid white"
+            :src="
+              product.archivos
+                ? product.archivos[0].url
+                : null || require('@/assets/no-disponible.jpg')
+            "
+          >
+          </v-img>
+
+          <v-list-item-content>
+            <v-list-item-title>
+              {{ product.nombre }} - $<strong>{{ product.precio }}</strong>
+            </v-list-item-title>
+            <v-list-item-subtitle>
+              <strong>SKU</strong> {{ product.sku }}
+            </v-list-item-subtitle>
+          </v-list-item-content>
+
+          <v-list-item-action>
+            <v-btn
+              depressed
+              small
+              @click="
+                $emit(`itemSelected`, {
+                  product: product.archivos[0],
+                  pos: index,
+                })
+              "
+            >
+              Enviar a estante
+              <v-icon small color="orange darken-4" class="ml-1" right>
+                fas fa-external-link-alt
+              </v-icon>
+            </v-btn>
+          </v-list-item-action>
+        </v-list-item>
+      </div>
+    </div>
     <v-progress-circular
       v-if="loading"
-      style="position: absolute"
+      style="position: relative; z-index: 100; bottom: 0; left: 45%"
       :size="70"
       :width="7"
       color="primary"
       indeterminate
     ></v-progress-circular>
-    <div id="__results">
-      <v-list-item
-        v-for="(product, index) in products"
-        :key="index"
-        style="background-color: #424242"
-        class="my-1 py-2"
-      >
-        <v-img
-          :lazy-src="require('@/assets/no-disponible.jpg')"
-          class="__product-img mr-3"
-          alt=" "
-          :contain="true"
-          :aspect-ratio="1 / 1"
-          gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-          style="border: 1px solid white"
-          :src="
-            product.archivos[0].url || require('@/assets/no-disponible.jpg')
-          "
-        >
-        </v-img>
-
-        <v-list-item-content>
-          <v-list-item-title
-            >{{ product.nombre }} - $<strong>{{
-              product.precio
-            }}</strong></v-list-item-title
-          >
-          <v-list-item-subtitle>
-            <strong>SKU</strong> {{ product.sku }}
-          </v-list-item-subtitle>
-        </v-list-item-content>
-
-        <v-list-item-action>
-          <v-btn
-            depressed
-            small
-            @click="
-              $emit(`itemSelected`, {
-                product: product.archivos[0],
-                pos: index,
-              })
-            "
-          >
-            Enviar a estante
-            <v-icon small color="orange darken-4" class="ml-1" right>
-              fas fa-external-link-alt
-            </v-icon>
-          </v-btn>
-        </v-list-item-action>
-      </v-list-item>
-    </div>
   </div>
 </template>
 <script>
@@ -123,10 +124,10 @@ export default {
       this.search();
     },
     async search() {
-      this.loading = true;
       clearTimeout(this.searchTimeout);
       let endpoint = `Articulos/Filtrados`;
       this.searchTimeout = setTimeout(() => {
+        this.loading = true;
         this.$http
           .post(
             endpoint,
@@ -137,13 +138,13 @@ export default {
           )
           .then((res) => {
             if (res && res.data && res.data.list.length) {
-              /* let array = res.data.list;
+              let array = res.data.list;
               let i = 0;
               let arr = array.length;
               for (i; i < arr; i++) {
                 this.products.push(array[i]);
-              } */
-              this.products = res.data.list;
+              }
+              //this.products = res.data.list;
               this.pages = res.data.totalPages;
               this.totalRecords = res.data.totalRecords;
             }
@@ -175,9 +176,9 @@ export default {
 </script>
 <style scoped>
 .__result-box {
-  overflow: scroll;
+  overflow: auto;
   width: 100%;
-  border: 1px solid whitesmoke;
+  background-color: #272727;
   padding-bottom: 16px;
 }
 

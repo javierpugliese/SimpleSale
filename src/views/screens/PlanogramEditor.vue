@@ -199,7 +199,9 @@
           </v-col>
         </v-row>
         <v-row dense>
-          <ProductListInfiniteScroll @itemSelected="handleProduct" />
+          <v-col cols="12">
+            <ProductListInfiniteScroll @itemSelected="handleProduct" />
+          </v-col>
         </v-row>
         <!-- <v-row dense>
           <v-col cols="12">
@@ -317,6 +319,7 @@
               <vdr
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
+                :id="`vdr_shelf-${index}`"
                 :w="getPlanogramWidth"
                 :h="+shelf.max_height"
                 :resizable="false"
@@ -334,8 +337,8 @@
                 :snap-tolerance="4"
               >
                 <vdr
-                  v-for="(product, index) in shelf.storedProducts"
-                  v-bind:key="`product-${index}`"
+                  v-for="(product, pos) in shelf.storedProducts"
+                  v-bind:key="`product-${pos}`"
                   :w="product.size.w"
                   :h="product.size.h"
                   :min-width="10"
@@ -377,7 +380,39 @@
                     :width="getPlanogramWidth"
                     :height="defaultShelfHeight"
                     :color="getRGBA(shelf.color)"
-                  ></v-sheet>
+                  >
+                    <div
+                      style="
+                        position: absolute;
+                        bottom: 0;
+                        left: 102%;
+                        border: 1px solid yellow;
+                        width: 30px;
+                      "
+                    >
+                      <v-btn
+                        color="red"
+                        @click="removeShelf(index)"
+                        small
+                        text
+                        icon
+                      >
+                        <v-icon>fas fa-trash-alt</v-icon>
+                      </v-btn>
+                    </div>
+                    <div
+                      style="
+                        position: absolute;
+                        bottom: 0;
+                        right: 102%;
+                        border: 1px solid yellow;
+                        width: 30px;
+                      "
+                      class="text-overline text-center"
+                    >
+                      <div class="text-overline">{{ index }}</div>
+                    </div>
+                  </v-sheet>
                 </div>
               </vdr>
             </vdr>
@@ -439,7 +474,12 @@
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="4">
-                <v-btn @click="addShelf" color="#55AA99">
+                <v-btn
+                  @click="addShelf"
+                  :disabled="loading || this.backgroundId <= 0"
+                  :loading="loading"
+                  color="#55AA99"
+                >
                   Agregar estante
                 </v-btn>
               </v-col>
@@ -679,8 +719,43 @@ export default {
     planogramSrc(val) {
       console.log("planogramSrc", val);
     },
+    shelves(val) {
+      console.log("[Observer] shelves", val);
+    },
   },
   methods: {
+    /* getShelfCoords(str) {
+      let elem = document.querySelector(`#vdr_shelf-${str}`);
+
+      console.log("elemDiv", elemDiv);
+
+      let box = elem.getBoundingClientRect();
+
+      const coords = {
+        top: box.top + window.pageYOffset,
+        right: box.right + window.pageXOffset,
+        bottom: box.bottom + window.pageYOffset,
+        left: box.left + window.pageXOffset,
+      };
+      console.log("coords", coords);
+
+      return coords;
+    }, */
+    removeShelf(pos) {
+      console.log("shelf number ", pos);
+      console.log("shelf to be removed", this.shelves[pos]);
+      console.log(
+        "planogram availableSpace before",
+        this.planogram.availableSpace
+      );
+      this.planogram.availableSpace =
+        this.planogram.availableSpace + this.shelf_item.maxHeight;
+      console.log(
+        "planogram availableSpace after",
+        this.planogram.availableSpace
+      );
+      this.shelves.splice(this.shelves.indexOf(this.shelves[pos]), 1);
+    },
     handleProduct(obj) {
       console.log("handleProduct evt", obj);
       console.log("$event", window.event);
@@ -873,23 +948,10 @@ export default {
       }
     },
   },
-  mounted: async function () {
+  mounted: function () {
     this.loading = true;
     this.products = [];
     this.loading = false;
-    /* await this.$http
-      .get("Simple")
-      .then((res) => {
-        if (res && res.data.list) {
-          this.products = res.data.list.map((p) =>
-            Object.assign({}, { text: p.nombre, value: p.id })
-          );
-        }
-      })
-      .catch((err) => console.log(err))
-      .finally(() => {
-        this.loading = false;
-      }); */
   },
 };
 </script>

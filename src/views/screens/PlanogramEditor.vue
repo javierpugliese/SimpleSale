@@ -294,6 +294,7 @@
               :resizable="false"
               :z="100"
               :handles="[]"
+              id="__PLANOGRAM_VDR"
             >
               <img
                 v-if="planogramSrc && planogramSrc.match(/.(jpg|jpeg)$/i)"
@@ -335,6 +336,8 @@
                 :z="101"
                 :snap="true"
                 :snap-tolerance="4"
+                @dragging="getProportionalHeight"
+                v-inserted
               >
                 <vdr
                   v-for="(product, pos) in shelf.storedProducts"
@@ -476,7 +479,7 @@
               <v-col cols="12" sm="4">
                 <v-btn
                   @click="addShelf"
-                  :disabled="loading || this.backgroundId <= 0"
+                  :disabled="loading"
                   :loading="loading"
                   color="#55AA99"
                 >
@@ -591,7 +594,6 @@
 </template>
 
 <script>
-// @ is an alias to /src
 import Gallery from "../Gallery.vue";
 import ProductListInfiniteScroll from "../../components/ProductListInfiniteScroll.vue";
 export default {
@@ -602,6 +604,8 @@ export default {
     height: 40,
     x: 0,
     y: 0,
+    shelf_x: 0,
+    shelf_y: 0,
     draggable: false,
     grid: {
       planogram: {
@@ -724,6 +728,11 @@ export default {
     },
   },
   methods: {
+    getProportionalHeight(x, y) {
+      console.log("x,y,pos", x, y);
+      this.shelf_x = x;
+      this.shelf_y = y;
+    },
     /* getShelfCoords(str) {
       let elem = document.querySelector(`#vdr_shelf-${str}`);
 
@@ -767,23 +776,19 @@ export default {
     },
     async save() {
       this.loading = true;
-      await this.$http
-        .post(
-          "Gondolas",
-          Object.assign(
-            {},
-            {
-              nombre: this.editedItem.nombre,
-              titulo: this.editedItem.nombre,
-              idFondo: this.backgroundId,
-            }
-          )
-        )
+      const planogramData = {
+        nombre: this.editedItem.nombre,
+        titulo: this.editedItem.nombre,
+        idFondo: this.backgroundId,
+      };
+      const planogram = await this.$http
+        .post("Gondolas", planogramData)
         .then((res) => {
           if (res) {
             this.snackbar = true;
             this.snackbarColor = "success";
             this.snackbarText = "Operación realizada exitosamente.";
+            return +res.data.idObjeto;
           }
         })
         .catch((err) => {
@@ -795,6 +800,36 @@ export default {
         .finally(() => {
           this.loading = false;
         });
+
+      console.log("planogram data", planogram);
+      if (planogram) {
+        console.log("PUSHING SHELVES TO PLANOGRAM");
+        let promises = [];
+        let i = 0;
+        let arr = this.shelves.length;
+        for (i; i < arr; i++) {
+          let s = this.shelves[i];
+          const shelfData = {
+            color: `rgba(${s.color.r},${s.color.g},${s.color.b},${s.color.a})`,
+            altura: (this.shelf_y + s.max_height) / this.getPlanogramHeight,
+            orden: i,
+            idGondola: planogram,
+          };
+          const req = this.$http.post("Estantes", shelfData);
+          promises.push(req);
+        }
+        if (promises.length) {
+          await this.$http.all(promises).then(
+            this.$http.spread((...responses) => {
+              let r = 0;
+              let resArr = responses.length;
+              for (r; r < resArr; r++) {
+                console.log(`response ${r}:`, responses[r]);
+              }
+            })
+          );
+        }
+      }
     },
     async getBackgroundData() {
       this.requesting = true;
@@ -912,7 +947,7 @@ export default {
         } else alert("No hay más espacio disponible.");
       } else
         alert(
-          `El minimo de altura del estante debe ser de ${this.planogram.minimalShelfSpace}px`
+          `El mínimo de altura del estante debe ser de ${this.planogram.minimalShelfSpace}px`
         );
     },
     async getProduct() {

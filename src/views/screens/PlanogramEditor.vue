@@ -342,7 +342,6 @@
                 @created="
                   (left, top) => getProportionalHeight(index, shelf, left, top)
                 "
-                v-inserted
               >
                 <vdr
                   v-for="(product, pos) in shelf.storedProducts"
@@ -365,6 +364,18 @@
                   :snap="true"
                   :snap-tolerance="2"
                   :handles="['tl', 'tr', 'bl', 'br']"
+                  @dragging="
+                    (left, top) =>
+                      getProportionalHeightChild(index, pos, product, left, top)
+                  "
+                  @created="
+                    (left, top) =>
+                      getProportionalHeightChild(index, pos, product, left, top)
+                  "
+                  @resizing="
+                    (x, y, width, height) =>
+                      setNewSizes(index, pos, product, x, y, width, height)
+                  "
                 >
                   <div
                     class="d-flex justify-content-center ma-0"
@@ -611,6 +622,10 @@ export default {
     y: 0,
     shelf_x: 0,
     shelf_y: 0,
+    product_x: 0,
+    product_y: 0,
+    product_w: 0,
+    product_h: 0,
     draggable: false,
     grid: {
       planogram: {
@@ -733,20 +748,92 @@ export default {
     },
   },
   methods: {
+    setNewSizes(index, pos, product, x, y, width, height) {
+      console.log("RESIZING PRODUCT: ", product);
+      console.log(
+        "setNewSizes() args[index, pos, product, x, y, width, height] ",
+        index,
+        pos,
+        product,
+        x,
+        y,
+        width,
+        height
+      );
+      this.product_x = x;
+      this.product_y = y;
+      this.product_w = width;
+      this.product_h = height;
+
+      console.log(
+        "set reactiveProps[product_x, product_y, product_w ,product_h]: ",
+        this.product_x,
+        this.product_y,
+        this.product_w,
+        this.product_h
+      );
+
+      console.log(
+        "this.shelves[index].storedProducts[pos]",
+        this.shelves[index].storedProducts[pos]
+      );
+      console.log(
+        "this.shelves[index].storedProducts[pos] before (w,h)",
+        this.shelves[index].storedProducts[pos].size.w,
+        this.shelves[index].storedProducts[pos].size.h
+      );
+      this.shelves[index].storedProducts[pos].size.w = this.product_w;
+      this.shelves[index].storedProducts[pos].size.h = this.product_h;
+      console.log(
+        "this.shelves[index].storedProducts[pos] after (w,h)",
+        this.shelves[index].storedProducts[pos].size.w,
+        this.shelves[index].storedProducts[pos].size.h
+      );
+    },
     getProportionalHeight(pos, shelf, left, top) {
       console.log("left, top", left, top);
       console.log("pos", pos);
       console.log("shelf dragging", shelf);
       this.shelf_x = left;
       this.shelf_y = top;
-      let formula =
-        (this.shelf_y + +shelf.max_height) / this.getPlanogramHeight;
+      let formula = parseInt(
+        ((this.shelf_y + +shelf.max_height) / this.getPlanogramHeight) * 100
+      );
       if (!this.shelves[pos]["proportionalHeight"]) {
         this.shelves[pos]["proportionalHeight"] = formula;
       } else this.shelves[pos].proportionalHeight = formula;
 
       console.log("shelf after formula", this.shelves[pos]);
       console.log("formula", formula);
+    },
+    getProportionalHeightChild(index, pos, product, left, top) {
+      console.log(
+        "index, pos, left, top, product",
+        index,
+        pos,
+        left,
+        top,
+        product
+      );
+      this.product_x = left;
+      this.product_y = top;
+      let pWidth = parseInt((this.product_x / this.getPlanogramWidth) * 100);
+      let pHeight = parseInt(
+        (this.product_y / this.shelves[index].max_height) * 100
+      );
+      const size = {
+        pWidth: pWidth,
+        pHeight: pHeight,
+      };
+      if (!this.shelves[index].storedProducts[pos]["proportionalSize"]) {
+        this.shelves[index].storedProducts[pos]["proportionalSize"] = size;
+      } else this.shelves[index].storedProducts[pos].proportionalSize = size;
+
+      console.log(
+        "product after formula",
+        this.shelves[index].storedProducts[pos]
+      );
+      console.log("formulas (w, h)", pWidth, pHeight);
     },
     /* getShelfCoords(str) {
       let elem = document.querySelector(`#vdr_shelf-${str}`);
@@ -811,6 +898,7 @@ export default {
           this.snackbar = true;
           this.snackbarColor = "black";
           this.snackbarText = "Operación cancelada.";
+          return null;
         })
         .finally(() => {
           this.loading = false;
@@ -826,7 +914,7 @@ export default {
           let s = this.shelves[i];
           const shelfData = {
             color: `rgba(${s.color.r},${s.color.g},${s.color.b},${s.color.a})`,
-            altura: (this.shelf_y + s.max_height) / this.getPlanogramHeight,
+            altura: s.proportionalHeight,
             orden: i,
             idGondola: planogram,
           };

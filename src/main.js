@@ -54,18 +54,6 @@ Vue.prototype.$http = axios;
 Vue.use(VueWorker, "$worker");
 Vue.component('vdr', vdr);
 
-// Registra una directiva personalizada global llamada `v-focus`
-Vue.directive('inserted', {
-  // Cuando el elemento enlazado se inserta en el DOM...
-  inserted: function (el) {
-    // Enfoca el elemento
-    //el.focus();
-
-    // Log element
-    console.log("Inserted element:", el)
-  }
-})
-
 new Vue({
   router,
   store,

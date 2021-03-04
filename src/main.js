@@ -7,8 +7,10 @@ import "roboto-fontface/css/roboto/roboto-fontface.css";
 import "@fortawesome/fontawesome-free/css/all.css";
 import axios from "axios";
 import VueWorker from 'vue-worker';
-import vdr from 'vue-draggable-resizable-gorkys';
-import 'vue-draggable-resizable-gorkys/dist/VueDraggableResizable.css';
+//import vdr from 'vue-draggable-resizable-gorkys';
+import vdr from "./components/vdr_gorkys_modified/components/vue-draggable-resizable.vue";
+import "./components/vdr_gorkys_modified/components/vue-draggable-resizable.css";
+//import 'vue-draggable-resizable-gorkys/dist/VueDraggableResizable.css';
 
 //import VueDraggableResizable from 'vue-draggable-resizable';
 

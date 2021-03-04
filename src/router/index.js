@@ -1,4 +1,5 @@
 /* eslint-disable */
+
 import Vue from "vue";
 import VueRouter from "vue-router";
 import Gallery from "../views/Gallery.vue";

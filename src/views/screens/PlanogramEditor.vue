@@ -336,7 +336,12 @@
                 :z="101"
                 :snap="true"
                 :snap-tolerance="4"
-                @dragging="getProportionalHeight"
+                @dragging="
+                  (left, top) => getProportionalHeight(index, shelf, left, top)
+                "
+                @created="
+                  (left, top) => getProportionalHeight(index, shelf, left, top)
+                "
                 v-inserted
               >
                 <vdr
@@ -728,10 +733,20 @@ export default {
     },
   },
   methods: {
-    getProportionalHeight(x, y) {
-      console.log("x,y,pos", x, y);
-      this.shelf_x = x;
-      this.shelf_y = y;
+    getProportionalHeight(pos, shelf, left, top) {
+      console.log("left, top", left, top);
+      console.log("pos", pos);
+      console.log("shelf dragging", shelf);
+      this.shelf_x = left;
+      this.shelf_y = top;
+      let formula =
+        (this.shelf_y + +shelf.max_height) / this.getPlanogramHeight;
+      if (!this.shelves[pos]["proportionalHeight"]) {
+        this.shelves[pos]["proportionalHeight"] = formula;
+      } else this.shelves[pos].proportionalHeight = formula;
+
+      console.log("shelf after formula", this.shelves[pos]);
+      console.log("formula", formula);
     },
     /* getShelfCoords(str) {
       let elem = document.querySelector(`#vdr_shelf-${str}`);

@@ -161,6 +161,7 @@
                 :z="101"
                 :snap="true"
                 :snap-tolerance="4"
+                axis="y"
                 @dragging="
                   (left, top) => getProportionalHeight(index, shelf, left, top)
                 "
@@ -189,6 +190,7 @@
                   :snap="true"
                   :snap-tolerance="2"
                   :handles="['tl', 'tr', 'bl', 'br']"
+                  axis="both"
                   @dragging="
                     (left, top) =>
                       getProportionalHeightChild(index, pos, product, left, top)
@@ -479,19 +481,6 @@ export default {
     product_y: 0,
     product_w: 0,
     product_h: 0,
-    draggable: false,
-    grid: {
-      planogram: {
-        show: true,
-        x: 10,
-        y: 10,
-      },
-      shelf: {
-        show: true,
-        x: 5,
-        y: 5,
-      },
-    },
     planogram: {
       height: Math.ceil(window.innerHeight * 0.75),
       availableSpace: Math.ceil(window.innerHeight * 0.75),
@@ -763,10 +752,11 @@ export default {
                 var shelfId = sResponse.data.idObjeto;
                 let payloadProducts = [];
                 if (s.storedProducts && s.storedProducts.length) {
-                  let x = 0;
+                  var x = 0;
                   let pArray = s.storedProducts.length;
                   for (x; x < pArray; x++) {
                     var p = s.storedProducts[x];
+                    console.log("s.storedProducts[x]", p);
                     const pData = {
                       idEstante: +shelfId,
                       idArticulo: p.id,
@@ -870,17 +860,7 @@ export default {
     },
     getRGBA(rgba) {
       const color = rgba;
-      return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
-    },
-    onResize: function (x, y, width, height) {
-      this.x = x;
-      this.y = y;
-      this.width = width;
-      this.height = height;
-    },
-    onDrag: function (x, y) {
-      this.x = x;
-      this.y = y;
+      return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a.toFixed(2)})`;
     },
     addShelf() {
       if (this.shelf_item.maxHeight >= this.planogram.minimalShelfSpace) {
@@ -903,38 +883,6 @@ export default {
         alert(
           `El mínimo de altura del estante debe ser de ${this.planogram.minimalShelfSpace}px`
         );
-    },
-    async getProduct() {
-      Object.assign(this.product, this.default_product);
-      if (this.productId) {
-        let endpoint = `Articulos/${this.productId}`;
-        await this.$http
-          .get(endpoint, {
-            headers: {
-              "Access-Control-Allow-Origin": "*",
-            },
-          })
-          .then((res) => {
-            if (res && res.data) {
-              let product = res.data;
-              this.product = Object.assign(
-                {},
-                {
-                  nombre: product.nombre,
-                  precio: product.precio,
-                  sku: product.sku,
-                  descripcion: product.descripcion,
-                  archivos: product.archivos,
-                  categorias: product.categorias,
-                }
-              );
-            }
-          })
-          .catch((err) => {
-            console.log("error", err);
-          })
-          .finally(() => {});
-      }
     },
   },
   mounted: function () {

@@ -1,6 +1,5 @@
 <template>
   <div class="planogram-editor">
-    <!-- Toolbar -->
     <v-toolbar color="grey-darken-1" dark>
       <v-scale-transition>
         <v-app-bar-nav-icon>
@@ -81,115 +80,6 @@
         </v-alert>
       </v-menu>
 
-      <!-- Product details -->
-      <!-- <v-col cols="12" md="2">
-        <v-row class="d-flex flex-column" dense>
-          <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-3">
-              Detalles del producto
-            </v-sheet>
-          </v-col>
-          <v-col cols="12" class="d-flex flex-column">
-            <v-list subheader three-line>
-              <v-subheader>SKU {{ product.sku }}</v-subheader>
-
-              <v-list-item>
-                <v-list-item-content>
-                  <v-list-item-title>Nombre</v-list-item-title>
-                  <v-list-item-subtitle class="text-overline">
-                    {{ product.nombre }}
-                  </v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-
-              <v-list-item>
-                <v-list-item-content>
-                  <v-list-item-title>Precio</v-list-item-title>
-                  <v-list-item-subtitle>
-                    {{ product.precio ? `$${product.precio}` : `No asignado.` }}
-                  </v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-
-              <v-list-item>
-                <v-list-item-content>
-                  <v-list-item-title>Descripción</v-list-item-title>
-                  <v-list-item-subtitle>
-                    {{ product.descripcion }}
-                  </v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-
-              <v-list-item>
-                <v-list-item-content>
-                  <v-list-item-title>Categorías</v-list-item-title>
-                  <v-list-item-subtitle>
-                    <v-chip
-                      v-for="(c, index) in product.categorias"
-                      :key="`category${c.id}-${index}`"
-                      label
-                      class="ma-1"
-                      v-text="c.nombre.toUpperCase()"
-                    >
-                    </v-chip>
-                  </v-list-item-subtitle>
-                </v-list-item-content>
-              </v-list-item>
-            </v-list>
-          </v-col>
-        </v-row>
-      </v-col> -->
-
-      <!-- Product files list -->
-      <!-- <v-col cols="12" md="2">
-        <v-row class="d-flex flex-column" dense>
-          <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-3">
-              Archivos del producto
-            </v-sheet>
-          </v-col>
-          <div
-            class="mx-auto"
-            :style="{
-              'overflow-y': `scroll`,
-              height: `${getPlanogramHeight}px`,
-              width: 'calc(100% - 8px)',
-              border: 'solid 1px #fff',
-            }"
-          >
-            <v-col
-              v-for="(pf, index) in product.archivos"
-              :key="`productFile-${index}`"
-              cols="12"
-              class="d-flex flex-column"
-            >
-              <v-card color="333333" @click="showMenu($event, pf, index)">
-                <v-img
-                  :lazy-src="require('@/assets/no-disponible.jpg')"
-                  :src="pf.url || require('@/assets/no-disponible.jpg')"
-                  alt=" "
-                  :contain="true"
-                  class="__background-small white--text mx-auto"
-                >
-                  <template v-slot:placeholder>
-                    <v-row
-                      class="fill-height ma-0"
-                      align="center"
-                      justify="center"
-                    >
-                      <v-progress-circular
-                        indeterminate
-                        color="info"
-                      ></v-progress-circular>
-                    </v-row>
-                  </template>
-                </v-img>
-              </v-card>
-            </v-col>
-          </div>
-        </v-row>
-      </v-col> -->
-
       <v-col cols="12" sm="4">
         <v-row dense>
           <v-col cols="12">
@@ -203,72 +93,6 @@
             <ProductListInfiniteScroll @itemSelected="handleProduct" />
           </v-col>
         </v-row>
-        <!-- <v-row dense>
-          <v-col cols="12">
-            <v-autocomplete
-              :items="[]"
-              label="Plantilla"
-              maxlength="50"
-              clearable
-              outlined
-              small-chips
-              dense
-            ></v-autocomplete>
-          </v-col>
-        </v-row>
-        <v-row dense>
-          <v-col cols="12">
-            <v-text-field
-              v-model="searchProduct.nombre"
-              label="Nombre"
-              counter="50"
-              maxlength="50"
-              outlined
-              clearable
-              required
-              dense
-              @input="searchProducts"
-            ></v-text-field>
-          </v-col>
-        </v-row>
-        <v-row>
-          <v-col cols="12">
-            <div style="height: 55vh; border: 1px solid white">
-              <v-sheet
-                color="#000"
-                class="text-h6 text-center pa-3 fill-height"
-              >
-                <v-card
-                  v-for="(product, index) in products"
-                  :key="`product-${index}-${product.id}`"
-                  height="48"
-                >
-                  <v-card-title v-text="product.nombre"></v-card-title>
-                  <v-card-subtitle v-text="product.sku"></v-card-subtitle>
-                  <v-card-text>
-                    <v-container>
-                      <div class="d-flex flex-column">
-                        <div
-                          v-for="(file, index) in product.archivos"
-                          :key="`pFile-${index}-${file.id}`"
-                        >
-                          <v-img
-                            v-if="file.url"
-                            :src="
-                              file.url || require('@/assets/no-disponible.jpg')
-                            "
-                          >
-                          </v-img>
-                        </div>
-                      </div>
-                    </v-container>
-                  </v-card-text>
-                  <v-card-actions></v-card-actions>
-                </v-card>
-              </v-sheet>
-            </div>
-          </v-col>
-        </v-row> -->
       </v-col>
 
       <!-- Planogram preview -->
@@ -385,7 +209,8 @@
                     <img
                       class="shelf_img"
                       v-bind:src="
-                        product.url || require('@/assets/no-disponible.jpg')
+                        product.archivos[0].url ||
+                        require('@/assets/no-disponible.jpg')
                       "
                     />
                   </div>
@@ -683,6 +508,7 @@ export default {
     loadingSearch: false,
     requesting: false,
     searchTimeout: null,
+    productBeingStored: {},
 
     menu: false,
     menu_x: 0,
@@ -774,6 +600,9 @@ export default {
     },
     shelves(val) {
       console.log("[Observer] shelves", val);
+    },
+    productBeingStored(val) {
+      console.log("[Observer] productBeingStored", val);
     },
   },
   methods: {
@@ -880,9 +709,8 @@ export default {
       this.shelves.splice(this.shelves.indexOf(this.shelves[pos]), 1);
     },
     handleProduct(obj) {
-      console.log("handleProduct evt", obj);
-      console.log("$event", window.event);
-      this.showMenu(window.event, obj.product, obj.pos);
+      console.log("handleProduct", obj);
+      this.showMenu(window.event, obj);
     },
     getBackground(val) {
       console.log("backgroundId", val);
@@ -1001,26 +829,6 @@ export default {
           this.dialogGallery = false;
         });
     },
-    async searchProducts() {
-      clearTimeout(this.searchTimeout);
-      this.products = [];
-      let endpoint = `Articulos/Filtrados`;
-      this.searchTimeout = setTimeout(() => {
-        this.$http
-          .post(endpoint, Object.assign({}, this.searchProduct))
-          .then((res) => {
-            if (res && res.data && res.data.length) {
-              this.products = res.data;
-            }
-          })
-          .catch((err) => {
-            console.log("error", err);
-          })
-          .finally(() => {
-            this.loading = false;
-          });
-      }, 1250);
-    },
     onFileUpload(file_obj) {
       try {
         let url = URL.createObjectURL(file_obj);
@@ -1033,7 +841,7 @@ export default {
     },
     sendToShelf(pos) {
       const image = new Image();
-      image.src = this.productBeingStored.url;
+      image.src = this.productBeingStored.archivos[0].url;
       image.onload = () => {
         return image.src;
       };
@@ -1045,22 +853,17 @@ export default {
         let estimated_width = Math.ceil((max_h / image.height) * image.width);
         size = Object.assign({}, { w: estimated_width, h: max_h });
       }
-      this.shelves[pos].storedProducts.push(
-        Object.assign(
-          {},
-          {
-            ...this.productBeingStored,
-            size,
-          }
-        )
-      );
+      if (!this.productBeingStored["size"]) {
+        this.productBeingStored["size"] = size;
+      }
+      this.shelves[pos].storedProducts.push(this.productBeingStored);
       console.log("shelves", this.shelves);
     },
-    showMenu(e, product, pos) {
+    showMenu(e, obj) {
       this.menu = false;
       this.menu_x = e.clientX;
       this.menu_y = e.clientY;
-      this.productBeingStored = Object.assign({}, { ...product, index: pos });
+      this.productBeingStored = Object.assign({}, obj);
       this.$nextTick(() => {
         this.menu = true;
       });

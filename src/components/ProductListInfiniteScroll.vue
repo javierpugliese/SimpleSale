@@ -48,16 +48,7 @@
           </v-list-item-content>
 
           <v-list-item-action>
-            <v-btn
-              depressed
-              small
-              @click="
-                $emit(`itemSelected`, {
-                  product: product.archivos[0],
-                  pos: index,
-                })
-              "
-            >
+            <v-btn depressed small @click="$emit(`itemSelected`, product)">
               Enviar a estante
               <v-icon small color="orange darken-4" class="ml-1" right>
                 fas fa-external-link-alt
@@ -97,28 +88,10 @@ export default {
       nombre: "",
     },
     products: [],
-    productBeingStored: {},
   }),
   watch: {},
   computed: {},
   methods: {
-    showMenu(e, product, pos) {
-      this.menu = false;
-      this.menu_x = e.clientX;
-      this.menu_y = e.clientY;
-      this.productBeingStored = Object.assign({}, { ...product, index: pos });
-      this.$nextTick(() => {
-        this.menu = true;
-      });
-    },
-    goToPage(value) {
-      this.page = value;
-      this.search();
-    },
-    previousPage() {
-      this.page--;
-      this.search();
-    },
     nextPage() {
       this.page++;
       this.search();

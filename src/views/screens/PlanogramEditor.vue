@@ -916,25 +916,58 @@ export default {
           this.loading = false;
         });
 
-      console.log("planogram data", planogram);
       if (planogram) {
-        console.log("PUSHING SHELVES TO PLANOGRAM");
         let promises = [];
         let i = 0;
         let arr = this.shelves.length;
         for (i; i < arr; i++) {
-          let s = this.shelves[i];
+          var s = this.shelves[i];
           const shelfData = {
             color: `rgba(${s.color.r},${s.color.g},${s.color.b},${s.color.a})`,
             altura: s.proportionalHeight,
             orden: i,
             idGondola: planogram,
           };
-          const req = this.$http.post("Estantes", shelfData);
+          const req = this.$http
+            .post("Estantes", shelfData)
+            .then(async (sResponse) => {
+              if (sResponse && sResponse.data) {
+                var shelfId = sResponse.data.idObjeto;
+                let payloadProducts = [];
+                if (s.storedProducts && s.storedProducts.length) {
+                  let x = 0;
+                  let pArray = s.storedProducts.length;
+                  for (x; x < pArray; x++) {
+                    var p = s.storedProducts[x];
+                    const pData = {
+                      idEstante: +shelfId,
+                      idArticulo: p.id,
+                      nombre: p.nombre,
+                      origenX: p.proportionalSize.pWidth,
+                      origenY: p.proportionalSize.pHeight,
+                      cantidadX: 1,
+                      cantidadY: 1,
+                      alto: Math.trunc(
+                        (p.size.h / this.getPlanogramHeight) * 1000
+                      ),
+                      ancho: Math.trunc(
+                        (p.size.w / this.getPlanogramWidth) * 1000
+                      ),
+                    };
+                    payloadProducts.push(pData);
+                  }
+                  const sReq = this.$http.post(
+                    `Estantes/Articulos/${+shelfId}`,
+                    { articulos: payloadProducts }
+                  );
+                  return await sReq;
+                }
+              }
+            });
           promises.push(req);
         }
         if (promises.length) {
-          const shelves_req = await this.$http.all(promises).then(
+          await this.$http.all(promises).then(
             this.$http.spread((...responses) => {
               let r = 0;
               let resArr = responses.length;
@@ -942,54 +975,6 @@ export default {
               for (r; r < resArr; r++) {
                 console.log(`response ${r}:`, responses[r]);
                 results.push(+responses[r].data.idObjeto);
-              }
-              return results;
-            })
-          );
-
-          let sr = 0;
-          let sr_Arr = shelves_req.length;
-          let promsToSend = [];
-          for (sr; sr < sr_Arr; sr++) {
-            let eaId = shelves_req[sr];
-            let sh = 0;
-            let sh_Arr = this.shelves.length;
-            for (sh; sh < sh_Arr; sh++) {
-              let shelfObj = this.shelves[sh];
-              if (shelfObj.storedProducts && shelfObj.storedProducts.length) {
-                let p = 0;
-                let p_Arr = shelfObj.storedProducts.length;
-                for (p; p < p_Arr; p++) {
-                  let product = shelfObj.storedProducts[p];
-                  const pData = {
-                    idEstante: eaId,
-                    idArticulo: product.id,
-                    nombre: `string-${p}`,
-                    origenX: product.proportionalSize.pWidth,
-                    origenY: product.proportionalSize.pHeight,
-                    cantidadX: 1,
-                    cantidadY: 1,
-                    alto: product.size.h / this.getPlanogramHeight,
-                    ancho: product.size.w / this.getPlanogramWidth,
-                  };
-                  console.log("pData (alto, ancho)", pData.alto, pData.ancho);
-                  const p_req = this.$http.post(
-                    `Estantes/Articulos/${eaId}`,
-                    pData
-                  );
-                  promsToSend.push(p_req);
-                }
-              }
-            }
-          }
-
-          await this.$http.all(promsToSend).then(
-            this.$http.spread((...responses) => {
-              let x = 0;
-              let resArr = responses.length;
-              let results = [];
-              for (x; x < resArr; x++) {
-                console.log(`response ${x}:`, responses[x]);
               }
               return results;
             })

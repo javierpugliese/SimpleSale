@@ -543,24 +543,6 @@ export default {
       titulo: "",
       idFondo: -1,
     },
-    searchProduct: {
-      nombre: "",
-      sku: "",
-      ean: "",
-      idFabricante: -1,
-      idCategoria: -1,
-      idTipoArticulo: -1,
-      atributos: [],
-    },
-    searchProductDefault: {
-      nombre: "",
-      sku: "",
-      ean: "",
-      idFabricante: -1,
-      idCategoria: -1,
-      idTipoArticulo: -1,
-      atributos: [],
-    },
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
@@ -595,6 +577,18 @@ export default {
     },
   },
   methods: {
+    xOffset(sIndex) {
+      console.log("setYOffset", sIndex);
+
+      /* let total = this.shelves[sIndex].storedProducts.length;
+
+      let x = 0,
+        offsetFactor = 2;
+
+      for (x; x < total; offsetFactor++) {
+        totalFactor = Math.trunc(this.getPlanogramWidth / offsetFactor);
+      } */
+    },
     setNewSizes(index, pos, product, x, y, width, height) {
       console.log("RESIZING PRODUCT: ", product);
       console.log(
@@ -734,69 +728,65 @@ export default {
         });
 
       if (planogram) {
-        let promises = [];
-        let i = 0;
+        var i = 0;
         let arr = this.shelves.length;
+
+        // Array of Objects
+        var ids = [];
+
         for (i; i < arr; i++) {
           var s = this.shelves[i];
-          const shelfData = {
-            color: `rgba(${s.color.r},${s.color.g},${s.color.b},${s.color.a})`,
-            altura: s.proportionalHeight,
-            orden: i,
-            idGondola: planogram,
-          };
-          const req = this.$http
-            .post("Estantes", shelfData)
-            .then(async (sResponse) => {
-              if (sResponse && sResponse.data) {
-                var shelfId = sResponse.data.idObjeto;
-                let payloadProducts = [];
-                if (s.storedProducts && s.storedProducts.length) {
-                  var x = 0;
-                  let pArray = s.storedProducts.length;
-                  for (x; x < pArray; x++) {
-                    var p = s.storedProducts[x];
-                    console.log("s.storedProducts[x]", p);
-                    const pData = {
-                      idEstante: +shelfId,
-                      idArticulo: p.id,
-                      nombre: p.nombre,
-                      origenX: p.proportionalSize.pWidth,
-                      origenY: p.proportionalSize.pHeight,
-                      cantidadX: 1,
-                      cantidadY: 1,
-                      alto: Math.trunc(
-                        (p.size.h / this.getPlanogramHeight) * 1000
-                      ),
-                      ancho: Math.trunc(
-                        (p.size.w / this.getPlanogramWidth) * 1000
-                      ),
-                    };
-                    payloadProducts.push(pData);
-                  }
-                  const sReq = this.$http.post(
-                    `Estantes/Articulos/${+shelfId}`,
-                    { articulos: payloadProducts }
-                  );
-                  return await sReq;
-                }
-              }
-            });
-          promises.push(req);
-        }
-        if (promises.length) {
-          await this.$http.all(promises).then(
-            this.$http.spread((...responses) => {
-              let r = 0;
-              let resArr = responses.length;
-              let results = [];
-              for (r; r < resArr; r++) {
-                console.log(`response ${r}:`, responses[r]);
-                results.push(+responses[r].data.idObjeto);
-              }
-              return results;
-            })
+
+          let shelfData = Object.assign(
+            {},
+            {
+              color: `rgba(${s.color.r},${s.color.g},${s.color.b},${s.color.a})`,
+              altura: +s.proportionalHeight,
+              orden: i,
+              idGondola: planogram,
+            }
           );
+
+          await this.$http.post("Estantes", shelfData).then((response) => {
+            if (response && response.data) {
+              const obj = { id: +response.data.idObjeto, index: i };
+              console.log("shelf obj then", obj);
+              ids.push(obj);
+            }
+          });
+        }
+
+        if (ids.length) {
+          // each shelf id
+
+          for (let _id of ids) {
+            var payloadProducts = [];
+
+            let products = this.shelves[_id.index].storedProducts;
+            for (let a = 0; a < products.length; a++) {
+              let p = products[a];
+              let data = Object.assign(
+                {},
+                {
+                  idEstante: +_id.id,
+                  idArticulo: p.id,
+                  nombre: p.nombre,
+                  origenX: p.proportionalSize.pWidth,
+                  origenY: p.proportionalSize.pHeight,
+                  cantidadX: 1,
+                  cantidadY: 1,
+                  alto: Math.trunc((p.size.h / this.getPlanogramHeight) * 1000),
+                  ancho: Math.trunc((p.size.w / this.getPlanogramWidth) * 1000),
+                }
+              );
+              payloadProducts.push(data);
+            }
+
+            // send shelf products to api
+            await this.$http.post(`Estantes/${_id.id}/Articulos`, {
+              articulos: payloadProducts,
+            });
+          } // end for ids
         }
       }
     },
@@ -836,7 +826,7 @@ export default {
         return image.src;
       };
       let max_w = Math.floor(this.getPlanogramWidth / 10);
-      let max_h = Math.floor(this.shelf_item.maxHeight / 4);
+      let max_h = Math.floor(this.shelves[pos].max_height / 2);
       let estimated_height = Math.ceil((max_w / image.width) * image.height);
       let size = Object.assign({}, { w: max_w, h: estimated_height });
       if (estimated_height > max_h) {

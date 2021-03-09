@@ -128,7 +128,7 @@ export default {
           .finally(() => {
             this.loading = false;
           });
-      }, 1250);
+      }, 1000);
     },
     async initialize() {
       this.loading = true;

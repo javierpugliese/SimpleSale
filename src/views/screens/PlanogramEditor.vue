@@ -172,6 +172,7 @@
                 <vdr
                   v-for="(product, pos) in shelf.storedProducts"
                   v-bind:key="`product-${pos}`"
+                  v-bind:id="`_SP_VDR-${index}-${pos}`"
                   :w="product.size.w"
                   :h="product.size.h"
                   :min-width="10"
@@ -189,15 +190,29 @@
                   :z="102"
                   :snap="true"
                   :snap-tolerance="2"
-                  :handles="['tl', 'tr', 'bl', 'br']"
+                  :handles="['tr']"
                   axis="both"
                   @dragging="
                     (left, top) =>
-                      getProportionalHeightChild(index, pos, product, left, top)
+                      getProportionalHeightChild(
+                        index,
+                        pos,
+                        product,
+                        false,
+                        left,
+                        top
+                      )
                   "
                   @created="
                     (left, top) =>
-                      getProportionalHeightChild(index, pos, product, left, top)
+                      getProportionalHeightChild(
+                        index,
+                        pos,
+                        product,
+                        true,
+                        left,
+                        top
+                      )
                   "
                   @resizing="
                     (x, y, width, height) =>
@@ -503,6 +518,8 @@ export default {
     menu_x: 0,
     menu_y: 0,
 
+    offsets_x: [],
+
     products: [],
     shelves: [],
     product: {
@@ -577,18 +594,31 @@ export default {
     },
   },
   methods: {
-    xOffset(sIndex) {
-      console.log("setYOffset", sIndex);
+    setYOffset(sHeight, pHeight) {
+      let space = sHeight - pHeight - this.defaultShelfHeight;
+      console.log("setYOffset sH pH space", sHeight, pHeight, space);
+      return space;
+    },
+    /* xOffset(sIndex, pIndex) {
+      console.log("xOffset", sIndex, pIndex);
 
-      /* let total = this.shelves[sIndex].storedProducts.length;
+      let domElement = document.querySelector(`#_SP_VDR-${pIndex}`);
+
+      let totalArray = this.shelves[sIndex].storedProducts;
+      let total = totalArray.length;
 
       let x = 0,
-        offsetFactor = 2;
+        offsetFactor = pIndex + 2,
+        totalFactor;
 
       for (x; x < total; offsetFactor++) {
-        totalFactor = Math.trunc(this.getPlanogramWidth / offsetFactor);
-      } */
-    },
+        let exp = Math.trunc(this.getPlanogramWidth / offsetFactor);
+        let sizeExp = Math.trunc(totalArray[x].size.w / 2);
+        totalFactor = exp - sizeExp - 2;
+        domElement.style.transform = `translate-x(${totalFactor}px)`;
+      }
+      console.log("totalFactor", totalFactor);
+    }, */
     setNewSizes(index, pos, product, x, y, width, height) {
       console.log("RESIZING PRODUCT: ", product);
       console.log(
@@ -647,7 +677,14 @@ export default {
       console.log("shelf after formula", this.shelves[pos]);
       console.log("formula", formula);
     },
-    getProportionalHeightChild(index, pos, product, left, top) {
+    getProportionalHeightChild(
+      index,
+      pos,
+      product,
+      calcMarginsOffsets,
+      left,
+      top
+    ) {
       console.log(
         "index, pos, left, top, product",
         index,
@@ -675,6 +712,36 @@ export default {
         this.shelves[index].storedProducts[pos]
       );
       console.log("formulas (w, h)", pWidth, pHeight);
+
+      // Auto margins and calculated offsets
+      if (calcMarginsOffsets === true) {
+        let totalArray = this.shelves[index].storedProducts;
+        let total = totalArray.length;
+        let sHeight = this.shelves[index].max_height;
+
+        let x = 0,
+          offsetFactor = total + 1,
+          totalFactor;
+
+        let exp = Math.trunc(this.getPlanogramWidth / offsetFactor);
+
+        for (x; x < total; x++) {
+          let sizeExp = Math.trunc(totalArray[x].size.w / 2);
+          totalFactor = this.getPlanogramWidth - (x + 1) * exp - sizeExp;
+          console.log("domEL", `_SP_VDR-${index}-${pos}`);
+          let domElement = document.querySelector(`#_SP_VDR-${index}-${x}`);
+
+          let y = Math.trunc(
+            sHeight -
+              totalArray[x].size.h -
+              Math.trunc(this.defaultShelfHeight / 2)
+          );
+
+          domElement.style.transform = `translate(${totalFactor}px, ${y}px)`;
+
+          console.log("totalFactor", totalFactor);
+        }
+      }
     },
     removeShelf(pos) {
       console.log("shelf number ", pos);

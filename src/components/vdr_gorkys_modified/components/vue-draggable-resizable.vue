@@ -58,6 +58,7 @@ const events = {
 };
 
 // 禁止用户选取
+// Prohibit user selection
 const userSelectNone = {
   userSelect: "none",
   MozUserSelect: "none",
@@ -65,6 +66,7 @@ const userSelectNone = {
   MsUserSelect: "none",
 };
 // 用户选中自动
+// User selects automatic
 const userSelectAuto = {
   userSelect: "auto",
   MozUserSelect: "auto",
@@ -131,6 +133,7 @@ export default {
       default: true,
     },
     // 锁定宽高比
+    // Lock aspect ratio
     lockAspectRatio: {
       type: Boolean,
       default: false,
@@ -235,16 +238,24 @@ export default {
       default: () => true,
     },
     // 冲突检测
+    // Collision detection
     isConflictCheck: {
       type: Boolean,
       default: false,
     },
     // 元素对齐
+    // Element alignment
     snap: {
       type: Boolean,
       default: false,
     },
     // 当调用对齐时，用来设置组件与组件之间的对齐距离，以像素为单位
+    /**
+     * When calling alignment,
+     * it is used to set the alignment distance
+     * between the component and the component,
+     * in pixels
+     */
     snapTolerance: {
       type: Number,
       default: 5,
@@ -253,12 +264,14 @@ export default {
       },
     },
     // 缩放比例
+    // Scaling ratio
     scaleRatio: {
       type: Number,
       default: 1,
       validator: (val) => typeof val === "number",
     },
     // handle是否缩放
+    // Handle whether to zoom
     handleInfo: {
       type: Object,
       default: () => {
@@ -361,6 +374,7 @@ export default {
 
   methods: {
     // 重置边界和鼠标状态
+    // Reset border and mouse state
     resetBoundsAndMouseState() {
       this.mouseClickPosition = {
         mouseX: 0,
@@ -383,10 +397,15 @@ export default {
       };
     },
     // 检查父元素大小
+    // Check the size of the parent element
     checkParentSize() {
       if (this.parent) {
         const [newParentWidth, newParentHeight] = this.getParentSize();
         // 修复父元素改变大小后，组件resizing时活动异常
+        /**
+         * After the parent element is resized,
+         * the activity is abnormal when the component is resizing.
+         */
         this.right = newParentWidth - this.width - this.left;
         this.bottom = newParentHeight - this.height - this.top;
 
@@ -395,6 +414,7 @@ export default {
       }
     },
     // 获取父元素大小
+    // Get the size of the parent element
     getParentSize() {
       if (this.parent === true) {
         const style = window.getComputedStyle(this.$el.parentNode, null);
@@ -416,6 +436,7 @@ export default {
       return [null, null];
     },
     // 元素触摸按下
+    // Element touch down
     elementTouchDown(e) {
       eventsFor = events.touch;
 
@@ -426,6 +447,7 @@ export default {
       this.elementDown(e);
     },
     // 元素按下
+    // Element press
     elementDown(e) {
       if (e instanceof MouseEvent && e.which !== 1) {
         return;
@@ -487,6 +509,7 @@ export default {
       }
     },
     // 计算移动范围
+    // Calculate the range of movement
     calcDragLimits() {
       return {
         minLeft: this.left % this.grid[0],
@@ -520,6 +543,7 @@ export default {
       };
     },
     // 取消
+    // Cancel
     deselect(e) {
       const target = e.target || e.srcElement;
       const regex = new RegExp(this.className + "-([trmbl]{2})", "");
@@ -542,12 +566,14 @@ export default {
       this.resetBoundsAndMouseState();
     },
     // 控制柄触摸按下
+    // Control handle touch down
     handleTouchDown(handle, e) {
       eventsFor = events.touch;
 
       this.handleDown(handle, e);
     },
     // 控制柄按下
+    // Handle pressed
     handleDown(handle, e) {
       if (e instanceof MouseEvent && e.which !== 1) {
         return;
@@ -584,6 +610,7 @@ export default {
       addEvent(document.documentElement, eventsFor.stop, this.handleUp);
     },
     // 计算调整大小范围
+    // Calculate the resize range
     calcResizeLimits() {
       let minW = this.minW;
       let minH = this.minH;
@@ -705,6 +732,7 @@ export default {
       return limits;
     },
     // 移动
+    // Move
     move(e) {
       if (this.resizing) {
         this.handleResize(e);
@@ -713,6 +741,7 @@ export default {
       }
     },
     // 元素移动
+    // Element movement
     async handleDrag(e) {
       const axis = this.axis;
       const grid = this.grid;
@@ -789,6 +818,7 @@ export default {
       this.bottom = this.parentHeight - this.height - top;
     },
     // 控制柄移动
+    // Handle movement
     handleResize(e) {
       let left = this.left;
       let top = this.top;
@@ -907,10 +937,12 @@ export default {
       this.height = height;
     },
     // 从控制柄松开
+    // Release from the control handle
     async handleUp(e) {
       this.handle = null;
 
       // 初始化辅助线数据
+      // Initialize auxiliary line data
       const temArr = new Array(3).fill({
         display: false,
         position: "",
@@ -939,13 +971,18 @@ export default {
     },
     // 新增方法 ↓↓↓
     // 设置属性
+    // New method ↓↓↓
+    // Set properties
     settingAttribute() {
       // 设置冲突检测
+      // Set up conflict detection
       this.$el.setAttribute("data-is-check", `${this.isConflictCheck}`);
       // 设置对齐元素
+      // Set alignment elements
       this.$el.setAttribute("data-is-snap", `${this.snap}`);
     },
     // 冲突检测
+    // Collision detection
     conflictCheck() {
       const top = this.top;
       const left = this.left;
@@ -953,7 +990,9 @@ export default {
       const height = this.height;
 
       if (this.isConflictCheck) {
-        const nodes = this.$el.parentNode.childNodes; // 获取当前父节点下所有子节点
+        // 获取当前父节点下所有子节点
+        // Get all child nodes under the current parent node
+        const nodes = this.$el.parentNode.childNodes;
         for (let item of nodes) {
           if (
             item.className !== undefined &&
@@ -964,9 +1003,11 @@ export default {
             const tw = item.offsetWidth;
             const th = item.offsetHeight;
             // 正则获取left与right
+            // Regularly get left and right
             let [tl, tt] = this.formatTransformVal(item.style.transform);
 
             // 左上角与右下角重叠
+            // The upper left corner overlaps the lower right corner
             const tfAndBr =
               (top >= tt && left >= tl && tt + th > top && tl + tw > left) ||
               (top <= tt &&
@@ -974,10 +1015,12 @@ export default {
                 top + height > tt &&
                 left + width > tl);
             // 右上角与左下角重叠
+            // The upper right corner overlaps the lower left corner
             const brAndTf =
               (left <= tl && top >= tt && left + width > tl && top < tt + th) ||
               (top < tt && left > tl && top + height > tt && left < tl + tw);
             // 下边与上边重叠
+            // The bottom overlaps with the top
             const bAndT =
               (top <= tt &&
                 left >= tl &&
@@ -985,6 +1028,7 @@ export default {
                 left < tl + tw) ||
               (top >= tt && left <= tl && top < tt + th && left > tl + tw);
             // 上边与下边重叠（宽度不一样）
+            // The upper and lower sides overlap (different width)
             const tAndB =
               (top <= tt &&
                 left >= tl &&
@@ -992,10 +1036,12 @@ export default {
                 left < tl + tw) ||
               (top >= tt && left <= tl && top < tt + th && left > tl + tw);
             // 左边与右边重叠
+            // Overlap left and right
             const lAndR =
               (left >= tl && top >= tt && left < tl + tw && top < tt + th) ||
               (top > tt && left <= tl && left + width > tl && top < tt + th);
             // 左边与右边重叠（高度不一样）
+            // The left side overlaps the right side (different height)
             const rAndL =
               (top <= tt &&
                 left >= tl &&
@@ -1004,6 +1050,7 @@ export default {
               (top >= tt && left <= tl && top < tt + th && left + width > tl);
 
             // 如果冲突，就将回退到移动前的位置
+            // If there is a conflict, it will fall back to the position before the move
             if (tfAndBr || brAndTf || bAndT || tAndB || lAndR || rAndL) {
               this.top = this.mouseClickPosition.top;
               this.left = this.mouseClickPosition.left;
@@ -1017,6 +1064,7 @@ export default {
       }
     },
     // 检测对齐元素
+    // Detect alignment elements
     async snapCheck() {
       let width = this.width;
       let height = this.height;
@@ -1027,6 +1075,7 @@ export default {
         let activeBottom = this.top + height;
 
         // 初始化辅助线数据
+        // Initialize auxiliary line data
         const temArr = new Array(3).fill({
           display: false,
           position: "",
@@ -1039,6 +1088,7 @@ export default {
         }
 
         // 获取当前父节点下所有子节点
+        // Get all child nodes under the current parent node
         const nodes = this.$el.parentNode.childNodes;
 
         let tem = {
@@ -1071,25 +1121,25 @@ export default {
             const w = item.offsetWidth;
             const h = item.offsetHeight;
             const [l, t] = this.formatTransformVal(item.style.transform);
-            const r = l + w; // 对齐目标right
-            const b = t + h; // 对齐目标的bottom
+            const r = l + w; // 对齐目标right  Align target right
+            const b = t + h; // 对齐目标的bottom  Align the bottom of the target
 
             const hc =
               Math.abs(activeTop + height / 2 - (t + h / 2)) <=
-              this.snapTolerance; // 水平中线
+              this.snapTolerance; // 水平中线  Horizontal midline
             const vc =
               Math.abs(activeLeft + width / 2 - (l + w / 2)) <=
-              this.snapTolerance; // 垂直中线
+              this.snapTolerance; // 垂直中线  Vertical centerline
 
-            const ts = Math.abs(t - activeBottom) <= this.snapTolerance; // 从上到下
-            const TS = Math.abs(b - activeBottom) <= this.snapTolerance; // 从上到下
-            const bs = Math.abs(t - activeTop) <= this.snapTolerance; // 从下到上
-            const BS = Math.abs(b - activeTop) <= this.snapTolerance; // 从下到上
+            const ts = Math.abs(t - activeBottom) <= this.snapTolerance; // 从上到下  From top to bottom
+            const TS = Math.abs(b - activeBottom) <= this.snapTolerance; // 从上到下  From top to bottom
+            const bs = Math.abs(t - activeTop) <= this.snapTolerance; // 从下到上  From bottom to top
+            const BS = Math.abs(b - activeTop) <= this.snapTolerance; // 从下到上  From bottom to top
 
-            const ls = Math.abs(l - activeRight) <= this.snapTolerance; // 外左
-            const LS = Math.abs(r - activeRight) <= this.snapTolerance; // 外左
-            const rs = Math.abs(l - activeLeft) <= this.snapTolerance; // 外右
-            const RS = Math.abs(r - activeLeft) <= this.snapTolerance; // 外右
+            const ls = Math.abs(l - activeRight) <= this.snapTolerance; // 外左  Outer Left
+            const LS = Math.abs(r - activeRight) <= this.snapTolerance; // 外左  Outer Left
+            const rs = Math.abs(l - activeLeft) <= this.snapTolerance; // 外右  Outer right
+            const RS = Math.abs(r - activeLeft) <= this.snapTolerance; // 外右  Outer right
 
             tem["display"] = [ts, TS, bs, BS, hc, hc, ls, LS, rs, RS, vc, vc];
             tem["position"] = [
@@ -1180,9 +1230,17 @@ export default {
               tem.value.x[2].push(t, b, activeTop, activeBottom);
             }
             // 辅助线坐标与是否显示(display)对应的数组,易于循环遍历
+            /**
+             * The array of auxiliary line coordinates
+             *  and whether to display (display) is easy to loop through
+             */
             const arrTem = [0, 1, 0, 1, 2, 2, 0, 1, 0, 1, 2, 2];
             for (let i = 0; i <= arrTem.length; i++) {
               // 前6为Y辅助线,后6为X辅助线
+              /**
+               * The first 6 is the Y auxiliary line,
+               * and the last 6 is the X auxiliary line
+               */
               const xory = i < 6 ? "y" : "x";
               const horv = i < 6 ? "hLine" : "vLine";
               if (tem.display[i]) {
@@ -1240,6 +1298,7 @@ export default {
       return { groupWidth, groupHeight, groupLeft, groupTop, bln };
     },
     // 正则获取left与top
+    // Regularly get left and top
     formatTransformVal(string) {
       let [left, top] = string.replace(/[^0-9\-,]/g, "").split(",");
       if (top === undefined) top = 0;
@@ -1314,6 +1373,7 @@ export default {
       };
     },
     // 控制柄显示与否
+    // Whether the handle is displayed
     actualHandles() {
       if (!this.resizable) return [];
 

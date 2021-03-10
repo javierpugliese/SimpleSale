@@ -106,12 +106,12 @@
           <v-col cols="12" class="d-flex justify-center">
             <!-- Planogram -->
             <vdr
-              :w="getPlanogramWidth"
-              :h="getPlanogramHeight"
+              :w="planogramWidth"
+              :h="planogramHeight"
               :parent="false"
               :debug="false"
-              :min-width="getPlanogramWidth"
-              :min-height="getPlanogramHeight"
+              :min-width="planogramWidth"
+              :min-height="planogramHeight"
               :isConflictCheck="false"
               :snap="false"
               :draggable="false"
@@ -126,13 +126,8 @@
                 alt=" "
                 class="planogram__background ma-0 pa-0"
               />
-              <!-- <object
-                v-else-if="planogramSrc.match(/.(mp4)$/i)"
-                :data="planogramSrc"
-                class="planogram__background ma-0 pa-0"
-              >
-                <param name="wmode" value="transparent" />
-              </object> -->
+
+              <!-- TODO: Integrate video component -->
               <video
                 v-else-if="planogramSrc.match(/.(mp4)$/i)"
                 class="planogram__background ma-0 pa-0"
@@ -140,14 +135,15 @@
                 <source :src="planogramSrc" type="video/mp4" />
                 Su navegador no soporta la etiqueta de video HTML5.
               </video>
-              <!-- shelves  -->
+
+              <!-- Shelves  -->
               <vdr
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
                 :id="`vdr_shelf-${index}`"
                 :class-name="showShelfClass ? 'vdr' : ' '"
-                :w="getPlanogramWidth"
-                :h="+shelf.max_height"
+                :w="planogramWidth"
+                :h="+shelf.h"
                 :resizable="false"
                 :draggable="shelf_active"
                 :lock-aspect-ratio="false"
@@ -162,7 +158,7 @@
                 :snap="true"
                 :snap-tolerance="4"
                 axis="y"
-                @dragging="
+                @dragstop="
                   (left, top) => getProportionalHeight(index, shelf, left, top)
                 "
                 @created="
@@ -191,32 +187,18 @@
                   :snap="true"
                   :snap-tolerance="2"
                   :handles="['tr']"
-                  axis="both"
-                  @dragging="
+                  axis="x"
+                  @dragstop="
                     (left, top) =>
-                      getProportionalHeightChild(
-                        index,
-                        pos,
-                        product,
-                        false,
-                        left,
-                        top
-                      )
+                      tweak_vdr(index, pos, product, true, left, top)
                   "
                   @created="
                     (left, top) =>
-                      getProportionalHeightChild(
-                        index,
-                        pos,
-                        product,
-                        true,
-                        left,
-                        top
-                      )
+                      tweak_vdr(index, pos, product, true, left, top)
                   "
-                  @resizing="
+                  @resizestop="
                     (x, y, width, height) =>
-                      setNewSizes(index, pos, product, x, y, width, height)
+                      tweakOnResize(index, pos, product, x, y, width, height)
                   "
                 >
                   <div
@@ -233,25 +215,17 @@
                   </div>
                 </vdr>
                 <!-- Shelf base -->
-                <div
-                  class="d-flex ma-0"
-                  :style="{ height: `${shelf.max_height}px` }"
-                >
+                <div class="d-flex ma-0" :style="{ height: `${shelf.h}px` }">
                   <v-sheet
                     class="align-self-end"
-                    :width="getPlanogramWidth"
-                    :height="defaultShelfHeight"
-                    :color="getRGBA(shelf.color)"
+                    :width="planogramWidth"
+                    :height="baseShelfHeight"
+                    :color="rgba(shelf.color)"
                   >
-                    <div
-                      style="
-                        position: absolute;
-                        bottom: 0;
-                        left: 102%;
-                        border: 1px solid yellow;
-                        width: 30px;
-                      "
-                    >
+                    <div class="shelf-actions-left text-overline text-center">
+                      <div class="text-overline">{{ index }}</div>
+                    </div>
+                    <div class="shelf-actions-right">
                       <v-btn
                         color="red"
                         @click="removeShelf(index)"
@@ -261,18 +235,6 @@
                       >
                         <v-icon>fas fa-trash-alt</v-icon>
                       </v-btn>
-                    </div>
-                    <div
-                      style="
-                        position: absolute;
-                        bottom: 0;
-                        right: 102%;
-                        border: 1px solid yellow;
-                        width: 30px;
-                      "
-                      class="text-overline text-center"
-                    >
-                      <div class="text-overline">{{ index }}</div>
                     </div>
                   </v-sheet>
                 </div>
@@ -425,7 +387,7 @@
               <v-row dense>
                 <v-col cols="12" sm="6">
                   <v-text-field
-                    v-model="shelf_item.maxHeight"
+                    v-model.number="shelf_h"
                     label="Altura estante"
                     outlined
                     clearable
@@ -449,7 +411,7 @@
             </v-col>
             <v-col cols="12" sm="6">
               <v-color-picker
-                v-model="shelf_item.baseColor"
+                v-model="shelf_color"
                 label="Color de la base"
                 dot-size="25"
                 hide-mode-switch
@@ -492,22 +454,19 @@ export default {
     y: 0,
     shelf_x: 0,
     shelf_y: 0,
+    shelf_h: Math.trunc(window.innerHeight * 0.75 * 0.15),
+    shelf_w: 0,
+    shelf_color: { r: 0, g: 0, b: 0, a: 1 },
     product_x: 0,
     product_y: 0,
     product_w: 0,
     product_h: 0,
-    planogram: {
-      height: Math.ceil(window.innerHeight * 0.75),
-      availableSpace: Math.ceil(window.innerHeight * 0.75),
-      minimalShelfSpace: Math.ceil(window.innerHeight * 0.75 * 0.15),
-    },
-    shelf_item: {
-      baseColor: { r: 0, g: 0, b: 0, a: 1 },
-      maxHeight: Math.ceil(window.innerHeight * 0.75 * 0.15),
-    },
+
+    // Planogram
+    space_y: Math.trunc(window.innerHeight * 0.75),
+
     shelf_active: true,
     showShelfClass: true,
-    productId: -1,
     loading: false,
     loadingSearch: false,
     requesting: false,
@@ -518,33 +477,11 @@ export default {
     menu_x: 0,
     menu_y: 0,
 
-    offsets_x: [],
-
     products: [],
     shelves: [],
-    product: {
-      nombre: "",
-      precio: 0.0,
-      sku: "",
-      descripcion: "",
-      categorias: [],
-      archivos: [],
-    },
-    default_product: {
-      nombre: "",
-      precio: 0.0,
-      sku: "",
-      descripcion: "",
-      categorias: [],
-      archivos: [],
-    },
-    _showMenu: false,
-    menuItems: [{ title: "test 1" }],
     searchMode: false,
     search: "",
     file: null,
-    calculatedProductWidth: 0,
-    calculatedProductHeight: 0,
     planogramSrc: "",
     dialogSearch: false,
     dialogGallery: false,
@@ -564,21 +501,6 @@ export default {
     snackbarText: "",
     snackbarColor: "black",
   }),
-  computed: {
-    defaultShelfHeight() {
-      return Math.ceil((this.planogram.height / 100) * 0.8);
-    },
-    getPlanogramWidth() {
-      let w = Math.ceil((this.planogram.height / 16) * 9);
-      console.log("plano w", w);
-      return w;
-    },
-    getPlanogramHeight() {
-      let h = this.planogram.height;
-      console.log("plano h", h);
-      return h;
-    },
-  },
   watch: {
     backgroundData(val) {
       console.log("backgroundData", val);
@@ -592,75 +514,48 @@ export default {
     productBeingStored(val) {
       console.log("[Observer] productBeingStored", val);
     },
+    space_y(val) {
+      console.log("[Observer] space_y", val);
+    },
+    shelf_h(val) {
+      console.log("[Observer] shelf_h", val);
+    },
+    product_x(val) {
+      console.log("[Observer] product_x", val);
+    },
+    product_y(val) {
+      console.log("[Observer] product_y", val);
+    },
+    product_w(val) {
+      console.log("[Observer] product_w", val);
+    },
+    product_h(val) {
+      console.log("[Observer] product_h", val);
+    },
+  },
+  computed: {
+    planogramHeight() {
+      let val = Math.trunc(window.innerHeight * 0.75);
+      console.log("[Computed] planogramHeight", val);
+      return val;
+    },
+    planogramWidth() {
+      let val = Math.trunc((this.planogramHeight / 16) * 9);
+      console.log("[Computed] planogramWidth", val);
+      return val;
+    },
+    baseShelfHeight() {
+      let val = Math.trunc((this.planogramHeight / 100) * 0.8);
+      console.log("[Computed] baseShelfHeight", val);
+      return val;
+    },
+    minShelfHeight() {
+      let val = Math.trunc(window.innerHeight * 0.75 * 0.15);
+      console.log("[Computed] minShelfHeight", val);
+      return val;
+    },
   },
   methods: {
-    setYOffset(sHeight, pHeight) {
-      let space = sHeight - pHeight - this.defaultShelfHeight;
-      console.log("setYOffset sH pH space", sHeight, pHeight, space);
-      return space;
-    },
-    /* xOffset(sIndex, pIndex) {
-      console.log("xOffset", sIndex, pIndex);
-
-      let domElement = document.querySelector(`#_SP_VDR-${pIndex}`);
-
-      let totalArray = this.shelves[sIndex].storedProducts;
-      let total = totalArray.length;
-
-      let x = 0,
-        offsetFactor = pIndex + 2,
-        totalFactor;
-
-      for (x; x < total; offsetFactor++) {
-        let exp = Math.trunc(this.getPlanogramWidth / offsetFactor);
-        let sizeExp = Math.trunc(totalArray[x].size.w / 2);
-        totalFactor = exp - sizeExp - 2;
-        domElement.style.transform = `translate-x(${totalFactor}px)`;
-      }
-      console.log("totalFactor", totalFactor);
-    }, */
-    setNewSizes(index, pos, product, x, y, width, height) {
-      console.log("RESIZING PRODUCT: ", product);
-      console.log(
-        "setNewSizes() args[index, pos, product, x, y, width, height] ",
-        index,
-        pos,
-        product,
-        x,
-        y,
-        width,
-        height
-      );
-      this.product_x = x;
-      this.product_y = y;
-      this.product_w = width;
-      this.product_h = height;
-
-      console.log(
-        "set reactiveProps[product_x, product_y, product_w ,product_h]: ",
-        this.product_x,
-        this.product_y,
-        this.product_w,
-        this.product_h
-      );
-
-      console.log(
-        "this.shelves[index].storedProducts[pos]",
-        this.shelves[index].storedProducts[pos]
-      );
-      console.log(
-        "this.shelves[index].storedProducts[pos] before (w,h)",
-        this.shelves[index].storedProducts[pos].size.w,
-        this.shelves[index].storedProducts[pos].size.h
-      );
-      this.shelves[index].storedProducts[pos].size.w = this.product_w;
-      this.shelves[index].storedProducts[pos].size.h = this.product_h;
-      console.log(
-        "this.shelves[index].storedProducts[pos] after (w,h)",
-        this.shelves[index].storedProducts[pos].size.w,
-        this.shelves[index].storedProducts[pos].size.h
-      );
-    },
     getProportionalHeight(pos, shelf, left, top) {
       console.log("left, top", left, top);
       console.log("pos", pos);
@@ -668,7 +563,7 @@ export default {
       this.shelf_x = left;
       this.shelf_y = top;
       let formula = parseInt(
-        ((this.shelf_y + +shelf.max_height) / this.getPlanogramHeight) * 100
+        ((this.shelf_y + +shelf.h) / this.planogramHeight) * 100
       );
       if (!this.shelves[pos]["proportionalHeight"]) {
         this.shelves[pos]["proportionalHeight"] = formula;
@@ -677,86 +572,90 @@ export default {
       console.log("shelf after formula", this.shelves[pos]);
       console.log("formula", formula);
     },
-    getProportionalHeightChild(
-      index,
-      pos,
-      product,
-      calcMarginsOffsets,
-      left,
-      top
-    ) {
-      console.log(
-        "index, pos, left, top, product",
-        index,
-        pos,
-        left,
-        top,
-        product
-      );
+    tweak_vdr(index, pos, product, calcMarginsOffsets, left, top) {
       this.product_x = left;
       this.product_y = top;
-      let pWidth = parseInt((this.product_x / this.getPlanogramWidth) * 100);
-      let pHeight = parseInt(
-        (this.product_y / this.shelves[index].max_height) * 100
-      );
-      const size = {
-        pWidth: pWidth,
-        pHeight: pHeight,
-      };
-      if (!this.shelves[index].storedProducts[pos]["proportionalSize"]) {
-        this.shelves[index].storedProducts[pos]["proportionalSize"] = size;
-      } else this.shelves[index].storedProducts[pos].proportionalSize = size;
 
-      console.log(
-        "product after formula",
-        this.shelves[index].storedProducts[pos]
-      );
-      console.log("formulas (w, h)", pWidth, pHeight);
+      if (typeof product === "object") {
+        if (product["size"]) {
+          this.product_w = product.size.w;
+          this.product_h = product.size.h;
+        }
+      }
 
-      // Auto margins and calculated offsets
+      // Calculate margins and offsets
       if (calcMarginsOffsets === true) {
         let totalArray = this.shelves[index].storedProducts;
         let total = totalArray.length;
-        let sHeight = this.shelves[index].max_height;
+        let sHeight = this.shelves[index].h;
 
         let x = 0,
           offsetFactor = total + 1,
           totalFactor;
 
-        let exp = Math.trunc(this.getPlanogramWidth / offsetFactor);
+        let exp = Math.trunc(this.planogramWidth / offsetFactor);
 
         for (x; x < total; x++) {
           let sizeExp = Math.trunc(totalArray[x].size.w / 2);
-          totalFactor = this.getPlanogramWidth - (x + 1) * exp - sizeExp;
-          console.log("domEL", `_SP_VDR-${index}-${pos}`);
+          totalFactor = this.planogramWidth - (x + 1) * exp - sizeExp;
+
           let domElement = document.querySelector(`#_SP_VDR-${index}-${x}`);
 
           let y = Math.trunc(
             sHeight -
               totalArray[x].size.h -
-              Math.trunc(this.defaultShelfHeight / 2)
+              Math.trunc(this.baseShelfHeight / 2)
           );
 
           domElement.style.transform = `translate(${totalFactor}px, ${y}px)`;
 
-          console.log("totalFactor", totalFactor);
+          this.product_x = totalFactor;
+          this.product_y = y;
+
+          console.log("Positioned x at:", totalFactor);
+          console.log("Positioned y at:", y);
         }
       }
+
+      // Fixes negative values in some rare cases
+      if (this.product_x <= 0) this.product_x = left + Math.abs(left);
+      if (this.product_y <= 0) this.product_y = top + Math.abs(top);
+
+      let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
+      let pHeight = parseInt((this.product_y / this.shelves[index].h) * 100);
+
+      const size = {
+        pWidth: pWidth,
+        pHeight: pHeight,
+      };
+
+      let storedProduct = this.shelves[index].storedProducts[pos];
+
+      if (!storedProduct["proportionalSize"]) {
+        storedProduct["proportionalSize"] = size;
+      } else storedProduct.proportionalSize = size;
+
+      console.log("proportionalSize (w, h)", pWidth, pHeight);
     },
-    removeShelf(pos) {
-      console.log("shelf number ", pos);
-      console.log("shelf to be removed", this.shelves[pos]);
-      console.log(
-        "planogram availableSpace before",
-        this.planogram.availableSpace
-      );
-      this.planogram.availableSpace =
-        this.planogram.availableSpace + this.shelf_item.maxHeight;
-      console.log(
-        "planogram availableSpace after",
-        this.planogram.availableSpace
-      );
-      this.shelves.splice(this.shelves.indexOf(this.shelves[pos]), 1);
+    tweakOnResize(index, pos, x, y, width, height) {
+      this.product_x = x;
+      this.product_y = y;
+      this.product_w = width;
+      this.product_h = height;
+
+      let storedProduct = this.shelves[index].storedProducts[pos];
+      storedProduct.size.w = Math.ceil(this.product_w);
+      storedProduct.size.h = Math.ceil(this.product_h);
+
+      let w = storedProduct.size.w;
+      let h = storedProduct.size.h;
+
+      console.log("Resize result (w, h):", w, h);
+    },
+    removeShelf(index) {
+      let pos = this.shelves.indexOf(this.shelves[index]);
+      this.space_y = this.space_y + this.shelves[pos].h;
+      this.shelves.splice(pos, 1);
     },
     handleProduct(obj) {
       console.log("handleProduct", obj);
@@ -768,13 +667,8 @@ export default {
     },
     async save() {
       this.loading = true;
-      const planogramData = {
-        nombre: this.editedItem.nombre,
-        titulo: this.editedItem.nombre,
-        idFondo: this.backgroundId,
-      };
       const planogram = await this.$http
-        .post("Gondolas", planogramData)
+        .post("Gondolas", Object.assign({}, this.editedItem))
         .then((res) => {
           if (res) {
             this.snackbar = true;
@@ -789,9 +683,6 @@ export default {
           this.snackbarColor = "black";
           this.snackbarText = "Operación cancelada.";
           return null;
-        })
-        .finally(() => {
-          this.loading = false;
         });
 
       if (planogram) {
@@ -803,11 +694,13 @@ export default {
 
         for (i; i < arr; i++) {
           var s = this.shelves[i];
-
+          let color = `rgba(${s.color.r}, ${s.color.g}, ${
+            s.color.b
+          }, ${parseInt(s.color.a).toFixed(2)})`;
           let shelfData = Object.assign(
             {},
             {
-              color: `rgba(${s.color.r},${s.color.g},${s.color.b},${s.color.a})`,
+              color: color,
               altura: +s.proportionalHeight,
               orden: i,
               idGondola: planogram,
@@ -842,8 +735,8 @@ export default {
                   origenY: p.proportionalSize.pHeight,
                   cantidadX: 1,
                   cantidadY: 1,
-                  alto: Math.trunc((p.size.h / this.getPlanogramHeight) * 1000),
-                  ancho: Math.trunc((p.size.w / this.getPlanogramWidth) * 1000),
+                  alto: Math.trunc((p.size.h / this.planogramHeight) * 1000),
+                  ancho: Math.trunc((p.size.w / this.planogramWidth) * 1000),
                 }
               );
               payloadProducts.push(data);
@@ -856,6 +749,7 @@ export default {
           } // end for ids
         }
       }
+      this.loading = false;
     },
     async getBackgroundData() {
       this.requesting = true;
@@ -876,28 +770,18 @@ export default {
           this.dialogGallery = false;
         });
     },
-    onFileUpload(file_obj) {
-      try {
-        let url = URL.createObjectURL(file_obj);
-        if (url) this.planogramSrc = url.toString();
-      } catch (error) {
-        console.log("Error reading file:", error);
-        this.planogramSrc = "";
-      }
-      if (!this.file) this.planogramSrc = "";
-    },
     sendToShelf(pos) {
       const image = new Image();
       image.src = this.productBeingStored.archivos[0].url;
       image.onload = () => {
         return image.src;
       };
-      let max_w = Math.floor(this.getPlanogramWidth / 10);
-      let max_h = Math.floor(this.shelves[pos].max_height / 2);
-      let estimated_height = Math.ceil((max_w / image.width) * image.height);
+      let max_w = Math.trunc(this.planogramWidth / 10);
+      let max_h = Math.trunc(this.shelves[pos].h / 2);
+      let estimated_height = Math.trunc((max_w / image.width) * image.height);
       let size = Object.assign({}, { w: max_w, h: estimated_height });
       if (estimated_height > max_h) {
-        let estimated_width = Math.ceil((max_h / image.height) * image.width);
+        let estimated_width = Math.trunc((max_h / image.height) * image.width);
         size = Object.assign({}, { w: estimated_width, h: max_h });
       }
       if (!this.productBeingStored["size"]) {
@@ -905,6 +789,9 @@ export default {
       }
       this.shelves[pos].storedProducts.push(this.productBeingStored);
       console.log("shelves", this.shelves);
+      this.$nextTick(() => {
+        this.menu = false;
+      });
     },
     showMenu(e, obj) {
       this.menu = false;
@@ -915,30 +802,29 @@ export default {
         this.menu = true;
       });
     },
-    getRGBA(rgba) {
-      const color = rgba;
-      return `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a.toFixed(2)})`;
+    rgba(object) {
+      if (typeof object === "object") {
+        const c = object;
+        if (c["r"] && c["g"] && c["b"] && c["a"] >= 0) {
+          return `rgba(${c.r}, ${c.g}, ${c.b}, ${parseInt(c.a).toFixed(2)})`;
+        }
+      }
+      return;
     },
     addShelf() {
-      if (this.shelf_item.maxHeight >= this.planogram.minimalShelfSpace) {
-        if (this.planogram.availableSpace > this.planogram.minimalShelfSpace) {
-          this.planogram.availableSpace =
-            this.planogram.availableSpace - this.shelf_item.maxHeight;
-          this.shelves.push(
-            Object.assign(
-              {},
-              {
-                color: this.shelf_item.baseColor,
-                max_height: this.shelf_item.maxHeight,
-                storedProducts: [],
-              }
-            )
-          );
-          console.log("shelves", this.shelves);
+      if (this.shelf_h >= this.minShelfHeight) {
+        if (this.space_y > this.minShelfHeight) {
+          this.space_y = this.space_y - this.shelf_h;
+          const obj = {
+            color: this.shelf_color,
+            h: this.shelf_h,
+            storedProducts: [],
+          };
+          this.shelves.push(obj);
         } else alert("No hay más espacio disponible.");
       } else
         alert(
-          `El mínimo de altura del estante debe ser de ${this.planogram.minimalShelfSpace}px`
+          `El mínimo de altura del estante debe ser de ${this.minShelfHeight}px`
         );
     },
   },
@@ -1077,5 +963,20 @@ export default {
 .my-handle-class-br:hover {
   background-color: red;
   transform: scale(1.4);
+}
+
+.shelf-actions-left {
+  position: absolute;
+  bottom: 0;
+  right: 102%;
+  border: 1px solid yellow;
+  width: 30px;
+}
+.shelf-actions-right {
+  position: absolute;
+  bottom: 0;
+  left: 102%;
+  border: 1px solid yellow;
+  width: 30px;
 }
 </style>

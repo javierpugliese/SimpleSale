@@ -448,6 +448,7 @@
 <script>
 import Gallery from "../Gallery.vue";
 import ProductListInfiniteScroll from "../../components/ProductListInfiniteScroll.vue";
+//import html2canvas from "html2canvas";
 export default {
   name: "PlanogramEditor",
   components: { Gallery, ProductListInfiniteScroll },
@@ -676,31 +677,32 @@ export default {
 
           this.product_x = totalFactor;
           this.product_y = y;
+          // Fixes negative values in some rare cases
+          if (this.product_x <= 0) this.product_x = left + Math.abs(left);
+          if (this.product_y <= 0) this.product_y = top + Math.abs(top);
+
+          let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
+          let pHeight = parseInt(
+            (this.product_y / this.shelves[index].h) * 100
+          );
+
+          const size = {
+            pWidth: pWidth,
+            pHeight: pHeight,
+          };
+
+          let storedProduct = this.shelves[index].storedProducts[x];
+
+          if (!storedProduct["proportionalSize"]) {
+            storedProduct["proportionalSize"] = size;
+          } else storedProduct.proportionalSize = size;
+
+          console.log("proportionalSize (w, h)", pWidth, pHeight);
 
           console.log("Positioned x at:", totalFactor);
           console.log("Positioned y at:", y);
         }
       }
-
-      // Fixes negative values in some rare cases
-      if (this.product_x <= 0) this.product_x = left + Math.abs(left);
-      if (this.product_y <= 0) this.product_y = top + Math.abs(top);
-
-      let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
-      let pHeight = parseInt((this.product_y / this.shelves[index].h) * 100);
-
-      const size = {
-        pWidth: pWidth,
-        pHeight: pHeight,
-      };
-
-      let storedProduct = this.shelves[index].storedProducts[pos];
-
-      if (!storedProduct["proportionalSize"]) {
-        storedProduct["proportionalSize"] = size;
-      } else storedProduct.proportionalSize = size;
-
-      console.log("proportionalSize (w, h)", pWidth, pHeight);
     },
     tweakOnResize(index, pos, x, y, width, height) {
       this.product_x = x;
@@ -748,7 +750,7 @@ export default {
           if (res) {
             this.snackbar = true;
             this.snackbarColor = "success";
-            this.snackbarText = "Operación realizada exitosamente.";
+            this.snackbarText = "Planograma creado.";
             return +res.data.idObjeto;
           }
         })
@@ -782,13 +784,22 @@ export default {
             }
           );
 
-          await this.$http.post("Estantes", shelfData).then((response) => {
-            if (response && response.data) {
-              const obj = { id: +response.data.idObjeto, index: i };
-              console.log("shelf obj then", obj);
-              ids.push(obj);
-            }
-          });
+          await this.$http
+            .post("Estantes", shelfData)
+            .then((response) => {
+              if (response && response.data) {
+                const obj = { id: +response.data.idObjeto, index: i };
+                console.log("shelf obj then", obj);
+                ids.push(obj);
+                this.snackbar = true;
+                this.snackbarColor = "success";
+                this.snackbarText = "Estante insertado.";
+              }
+            })
+            .catch((err) => {
+              console.log("error", err);
+              this.loading = false;
+            });
         }
 
         if (ids.length) {
@@ -805,7 +816,7 @@ export default {
                 {
                   idEstante: +_id.id,
                   idArticulo: p.id,
-                  nombre: p.nombre,
+                  nombre: "",
                   origenX: p.proportionalSize.pWidth,
                   origenY: p.proportionalSize.pHeight,
                   cantidadX: 1,

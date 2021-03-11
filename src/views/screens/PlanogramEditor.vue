@@ -158,11 +158,14 @@
                 :snap="true"
                 :snap-tolerance="4"
                 axis="y"
+                @dragging="(left, top) => xy('Shelf', left, top)"
                 @dragstop="
-                  (left, top) => getProportionalHeight(index, shelf, left, top)
+                  (left, top) =>
+                    getProportionalHeight(index, shelf, true, left, top)
                 "
                 @created="
-                  (left, top) => getProportionalHeight(index, shelf, left, top)
+                  (left, top) =>
+                    getProportionalHeight(index, shelf, true, left, top)
                 "
               >
                 <vdr
@@ -188,6 +191,7 @@
                   :snap-tolerance="2"
                   :handles="['tr']"
                   axis="x"
+                  @dragging="(left, top) => xy('Shelf', left, top)"
                   @dragstop="
                     (left, top) =>
                       tweak_vdr(index, pos, product, true, left, top)
@@ -517,6 +521,12 @@ export default {
     space_y(val) {
       console.log("[Observer] space_y", val);
     },
+    shelf_x(val) {
+      console.log("[Observer] shelf_x", val);
+    },
+    shelf_y(val) {
+      console.log("[Observer] shelf_y", val);
+    },
     shelf_h(val) {
       console.log("[Observer] shelf_h", val);
     },
@@ -556,21 +566,58 @@ export default {
     },
   },
   methods: {
-    getProportionalHeight(pos, shelf, left, top) {
-      console.log("left, top", left, top);
-      console.log("pos", pos);
-      console.log("shelf dragging", shelf);
+    xy(type, left, top) {
+      if (typeof type === "string") {
+        if (type == "Shelf") {
+          this.shelf_x = left;
+          this.shelf_y = top;
+        } else if (type == "Product") {
+          this.product_x = left;
+          this.product_y = top;
+        }
+      }
+    },
+    getProportionalHeight(pos, shelf, calcMarginsOffsets, left, top) {
       this.shelf_x = left;
       this.shelf_y = top;
-      let formula = parseInt(
+
+      // Calculate margins and offsets
+      if (calcMarginsOffsets === true) {
+        let totalArray = this.shelves;
+        let total = totalArray.length;
+
+        let x = 0,
+          offsetFactor = total + 1,
+          totalFactor;
+
+        let exp = Math.trunc(this.planogramHeight / offsetFactor);
+
+        for (x; x < total; x++) {
+          let sizeExp = Math.trunc(this.shelves[x].h / 2);
+          totalFactor = this.planogramHeight - (x + 1) * exp - sizeExp;
+
+          let domElement = document.querySelector(`#vdr_shelf-${x}`);
+
+          domElement.style.transform = `translate(0px, ${totalFactor}px)`;
+
+          this.shelf_y = totalFactor;
+
+          console.log("Positioned y at:", totalFactor);
+        }
+      }
+
+      // Fixes negative values in some rare cases
+      if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
+      if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
+
+      let pHeight = parseInt(
         ((this.shelf_y + +shelf.h) / this.planogramHeight) * 100
       );
       if (!this.shelves[pos]["proportionalHeight"]) {
-        this.shelves[pos]["proportionalHeight"] = formula;
-      } else this.shelves[pos].proportionalHeight = formula;
+        this.shelves[pos]["proportionalHeight"] = pHeight;
+      } else this.shelves[pos].proportionalHeight = pHeight;
 
-      console.log("shelf after formula", this.shelves[pos]);
-      console.log("formula", formula);
+      console.log("proportionalHeight (h)", pHeight);
     },
     tweak_vdr(index, pos, product, calcMarginsOffsets, left, top) {
       this.product_x = left;

@@ -1,5 +1,15 @@
 <template>
   <div id="__results-box" class="__result-box">
+    <div style="min-height: 4px" class="mx-3">
+      <v-progress-linear
+        v-if="loading || !(products.length <= totalRecords)"
+        :size="4"
+        color="primary"
+        class="my-3"
+        indeterminate
+      >
+      </v-progress-linear>
+    </div>
     <v-text-field
       v-model="searchItem.nombre"
       label="Buscar productos"
@@ -20,8 +30,11 @@
     </v-text-field>
     <div id="__results" class="mx-3">
       <div v-for="(product, index) in products" :key="index">
-        <!-- TODO: v-if="product.archivos", non-if for test -->
-        <v-list-item style="background-color: #424242" class="my-1 py-2">
+        <v-list-item
+          v-if="product.archivos && product.activo"
+          style="background-color: #424242"
+          class="my-1 py-2"
+        >
           <v-img
             :lazy-src="require('@/assets/no-disponible.jpg')"
             class="__product-img mr-3"
@@ -57,15 +70,21 @@
           </v-list-item-action>
         </v-list-item>
       </div>
+      <v-btn
+        v-if="products.length"
+        depressed
+        medium
+        block
+        color="#424242"
+        class="my-3"
+        @click="nextPage"
+        :loading="loading"
+        :disabled="loading"
+      >
+        Cargar más
+        <v-icon small color="primary" class="ml-1" right> fas fa-plus </v-icon>
+      </v-btn>
     </div>
-    <v-progress-circular
-      v-if="loading"
-      style="position: relative; z-index: 100; bottom: 0; left: 45%"
-      :size="70"
-      :width="7"
-      color="primary"
-      indeterminate
-    ></v-progress-circular>
   </div>
 </template>
 <script>
@@ -97,10 +116,10 @@ export default {
       this.search();
     },
     async search() {
+      this.loading = true;
       clearTimeout(this.searchTimeout);
       let endpoint = `Articulos/Filtrados`;
       this.searchTimeout = setTimeout(() => {
-        this.loading = true;
         this.$http
           .post(
             endpoint,
@@ -139,11 +158,12 @@ export default {
     const listElm = document.querySelector("#__results-box");
     listElm.style.height = `${Math.ceil(window.innerHeight * 0.75)}px`;
     listElm.style.maxHeight = listElm.style.height;
+    /*
     listElm.addEventListener("scroll", () => {
       if (listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight) {
         this.nextPage();
       }
-    });
+    }); */
   },
 };
 </script>

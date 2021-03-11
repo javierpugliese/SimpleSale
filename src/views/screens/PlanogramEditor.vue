@@ -161,7 +161,7 @@
                 @dragging="(left, top) => xy('Shelf', left, top)"
                 @dragstop="
                   (left, top) =>
-                    getProportionalHeight(index, shelf, true, left, top)
+                    getProportionalHeight(index, shelf, false, left, top)
                 "
                 @created="
                   (left, top) =>
@@ -593,8 +593,8 @@ export default {
         let exp = Math.trunc(this.planogramHeight / offsetFactor);
 
         for (x; x < total; x++) {
-          let sizeExp = Math.trunc(this.shelves[x].h / 2);
-          totalFactor = this.planogramHeight - (x + 1) * exp - sizeExp;
+          totalFactor =
+            this.planogramHeight - (x + 1) * exp - this.shelves[x].h;
 
           let domElement = document.querySelector(`#vdr_shelf-${x}`);
 
@@ -603,21 +603,39 @@ export default {
           this.shelf_y = totalFactor;
 
           console.log("Positioned y at:", totalFactor);
+
+          // Fixes negative values in some rare cases
+          if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
+          if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
+
+          let pHeight = parseInt(
+            ((this.shelf_y + +shelf.h) / this.planogramHeight) * 100
+          );
+
+          if (!this.shelves[x]["proportionalHeight"]) {
+            this.shelves[x]["proportionalHeight"] = pHeight;
+          } else this.shelves[x].proportionalHeight = pHeight;
+
+          console.log("proportionalHeight (h)", pHeight);
+
+          let sync = {
+            x: {
+              left: this.shelf_x,
+              right: 0,
+            },
+            y: {
+              top: this.shelf_y,
+              bottom: 0,
+            },
+          };
+
+          if (!this.shelves[pos]["lastSync"]) {
+            this.shelves[pos]["lastSync"] = sync;
+          } else this.shelves[pos].lastSync = sync;
+
+          console.log("lastSync", sync);
         }
       }
-
-      // Fixes negative values in some rare cases
-      if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
-      if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
-
-      let pHeight = parseInt(
-        ((this.shelf_y + +shelf.h) / this.planogramHeight) * 100
-      );
-      if (!this.shelves[pos]["proportionalHeight"]) {
-        this.shelves[pos]["proportionalHeight"] = pHeight;
-      } else this.shelves[pos].proportionalHeight = pHeight;
-
-      console.log("proportionalHeight (h)", pHeight);
     },
     tweak_vdr(index, pos, product, calcMarginsOffsets, left, top) {
       this.product_x = left;
@@ -715,7 +733,17 @@ export default {
     async save() {
       this.loading = true;
       const planogram = await this.$http
-        .post("Gondolas", Object.assign({}, this.editedItem))
+        .post(
+          "Gondolas",
+          Object.assign(
+            {},
+            {
+              nombre: this.editedItem.nombre,
+              titulo: this.editedItem.titulo,
+              idFondo: +this.backgroundId,
+            }
+          )
+        )
         .then((res) => {
           if (res) {
             this.snackbar = true;

@@ -370,6 +370,9 @@ export default {
     );
 
     removeEvent(window, "resize", this.checkParentSize);
+
+    // Added by Javier
+    this.$emit("destroying", this.left, this.top);
   },
 
   methods: {

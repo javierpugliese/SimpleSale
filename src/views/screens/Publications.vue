@@ -26,6 +26,8 @@
         :calculate-widths="true"
         :disable-pagination="true"
         :hide-default-footer="true"
+        show-select
+        v-model="publicationsSelected"
       >
         <template v-slot:item.archivo="{ item }">
           <v-img
@@ -64,6 +66,24 @@
             <v-toolbar-title>Lista de Publicaciones</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
+            <v-scale-transition v-if="publicationsSelected.length">
+              <div class="text-overline">
+                {{ publicationsSelected.length }} seleccionado(s)
+              </div>
+            </v-scale-transition>
+            <v-scale-transition v-if="publicationsSelected.length">
+              <v-btn
+                color="red"
+                dense
+                class="mx-2"
+                :loading="loading"
+                :disabled="loading"
+                @click="deleteItems"
+              >
+                <v-icon class="mr-2">fas fa-trash-alt</v-icon>
+                Eliminar seleccionados
+              </v-btn>
+            </v-scale-transition>
             <v-scale-transition>
               <v-dialog
                 v-model="dialogSearch"
@@ -90,9 +110,10 @@
                   <v-card-title>
                     <span class="headline">Opciones de búsqueda</span>
                   </v-card-title>
+                  <v-divider></v-divider>
                   <v-card-text>
                     <v-container>
-                      <v-row>
+                      <v-row dense>
                         <v-col cols="12">
                           <v-text-field
                             v-model="searchItem.nombre"
@@ -103,27 +124,23 @@
                             clearable
                             dense
                             single-line
+                            :hide-details="true"
                           ></v-text-field>
                         </v-col>
                       </v-row>
                     </v-container>
                   </v-card-text>
-
+                  <v-divider></v-divider>
                   <v-card-actions>
                     <v-spacer></v-spacer>
-                    <v-btn
-                      color="info"
-                      text
-                      large
-                      @click="dialogSearch = false"
-                    >
+                    <v-btn color="info" text @click="closeSearch">
                       Cerrar
                     </v-btn>
                     <v-btn
                       color="success"
-                      large
-                      @click="dialogSearch = false"
-                      :disabled="loading"
+                      @click="search"
+                      :loading="loading"
+                      :disabled="loading || searchItem.nombre.length < 4"
                     >
                       Aplicar
                     </v-btn>
@@ -405,6 +422,7 @@ export default {
     dialogGallery: false,
     modal: false,
     publications: [],
+    publicationsSelected: [],
     editedIndex: -1,
     editedId: -1,
     backgroundId: -1,
@@ -418,6 +436,7 @@ export default {
     searchItem: {
       nombre: "",
     },
+    searchTimeout: null,
     searchItemDefault: { nombre: "" },
     snackbar: false,
     snackbarText: "",
@@ -452,6 +471,52 @@ export default {
   },
 
   methods: {
+    closeSearch() {
+      this.dialogSearch = false;
+      this.$nextTick = () => {
+        Object.assign(this.searchItem, this.searchItemDefault);
+      };
+    },
+    async search() {
+      this.loading = true;
+      this.publications = [];
+      clearTimeout(this.searchTimeout);
+      let endpoint = `Publicaciones/nombre/${this.searchItem.nombre.trim()}`;
+      this.searchTimeout = setTimeout(() => {
+        this.$http
+          .get(endpoint)
+          .then((res) => {
+            if (res && res.data && res.data.length) {
+              let array = res.data;
+              let i = 0;
+              let arr = array.length;
+              for (i; i < arr; i++) {
+                this.publications.push(array[i]);
+              }
+            }
+          })
+          .catch((err) => {
+            console.log("error", err);
+          })
+          .finally(() => {
+            this.loading = false;
+            this.dialogSearch = false;
+          });
+      }, 1000);
+    },
+    async deleteItems() {
+      let ids = this.publicationsSelected.map((item) => item.id);
+      let x = 0;
+      let arr = ids.length;
+      if (arr) {
+        this.loading = true;
+        for (x; x < arr; x++) {
+          await this.$http.delete(`Publicaciones/${ids[x]}`);
+        }
+        this.loading = false;
+        this.initialize();
+      } else return;
+    },
     clearBackground() {
       this.backgroundId = -1;
       this.backgroundData = {};
@@ -489,14 +554,15 @@ export default {
     },
     /* Return file from product. Displays in datatable */
     getProductImage(item) {
-      if (item.archivo) return item.archivo.url || item.archivo;
-      // modificar
+      if (item.archivo && item.archivo.url) return item.archivo.url;
       else return false;
     },
     /* Init */
     async initialize() {
       this.loading = true;
       this.publications = [];
+      this.publicationsSelected = [];
+      Object.assign(this.searchItem, this.searchItemDefault);
 
       const publications = this.$http.get("Publicaciones");
 

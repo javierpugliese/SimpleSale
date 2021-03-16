@@ -319,10 +319,16 @@
 
                 <v-card height="auto">
                   <v-card-title>Elegir un fondo</v-card-title>
+                  <v-divider></v-divider>
                   <v-card-text>
-                    <Gallery :paginationFixed="false" @selected="getBackground">
-                    </Gallery>
+                    <!-- Gallery component -->
+                    <simple-gallery
+                      :paginationFixed="false"
+                      @fileSelected="getChildData"
+                    >
+                    </simple-gallery>
                   </v-card-text>
+                  <v-divider></v-divider>
                   <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn
@@ -336,15 +342,7 @@
                       :disabled="loading || requesting"
                       :loading="loading || requesting"
                     >
-                      Cancelar
-                    </v-btn>
-                    <v-btn
-                      color="success"
-                      :disabled="loading || requesting"
-                      :loading="loading || requesting"
-                      @click="getBackgroundData"
-                    >
-                      Aplicar
+                      Cerrar
                     </v-btn>
                   </v-card-actions>
                 </v-card>
@@ -446,12 +444,11 @@
 </template>
 
 <script>
-import Gallery from "../Gallery.vue";
+import SimpleGallery from "../../components/SimpleGallery";
 import ProductListInfiniteScroll from "../../components/ProductListInfiniteScroll.vue";
-//import html2canvas from "html2canvas";
 export default {
   name: "PlanogramEditor",
-  components: { Gallery, ProductListInfiniteScroll },
+  components: { SimpleGallery, ProductListInfiniteScroll },
   data: () => ({
     width: 40,
     height: 40,
@@ -728,9 +725,15 @@ export default {
       console.log("handleProduct", obj);
       this.showMenu(window.event, obj);
     },
-    getBackground(val) {
-      console.log("backgroundId", val);
-      if (val > 0) this.backgroundId = +val;
+    getChildData(object) {
+      console.log("Received data:", object);
+      if (typeof object === "object") {
+        if (object.id && object.url) {
+          this.backgroundId = +object.id;
+          this.planogramSrc = object.url.toString();
+        }
+        this.dialogGallery = false;
+      }
     },
     async save() {
       this.loading = true;
@@ -836,25 +839,6 @@ export default {
         }
       }
       this.loading = false;
-    },
-    async getBackgroundData() {
-      this.requesting = true;
-      await this.$http
-        .get(`Archivos/${+this.backgroundId}`)
-        .then((res) => {
-          if (res && res.data) {
-            this.backgroundData = Object.assign({}, res.data);
-            this.planogramSrc = this.backgroundData.url.toString();
-          }
-        })
-        .catch((err) => {
-          console.log("error", err);
-          this.backgroundData = {};
-        })
-        .finally(() => {
-          this.requesting = false;
-          this.dialogGallery = false;
-        });
     },
     sendToShelf(pos) {
       const image = new Image();

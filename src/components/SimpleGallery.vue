@@ -1,0 +1,912 @@
+<template>
+  <div class="simple-gallery">
+    <v-toolbar color="grey darken-4" dark>
+      <v-scale-transition>
+        <v-app-bar-nav-icon>
+          <v-icon>fas fa-image</v-icon>
+        </v-app-bar-nav-icon>
+      </v-scale-transition>
+      <v-scroll-y-transition>
+        <v-toolbar-title v-text="`Galería de Fondos de Pantalla`">
+        </v-toolbar-title>
+      </v-scroll-y-transition>
+      <v-spacer></v-spacer>
+      <v-scale-transition>
+        <v-dialog
+          v-model="dialogSearch"
+          width="50%"
+          overlay-color="blue"
+          overlay-opacity="0.2"
+          scrollable
+          persistent
+        >
+          <template v-slot:activator="{ on, attrs }">
+            <v-btn
+              color="secondary"
+              dark
+              class="mx-2"
+              v-bind="attrs"
+              v-on="on"
+              :loading="loading"
+              :disabled="true"
+            >
+              <v-icon class="mr-2">fas fa-search</v-icon>
+              Buscar
+            </v-btn>
+          </template>
+          <v-card height="auto">
+            <v-card-title>
+              <span class="headline">Opciones de búsqueda</span>
+            </v-card-title>
+            <v-divider></v-divider>
+            <v-card-text>
+              <v-container fluid>
+                <v-row dense>
+                  <v-col cols="12" sm="4">
+                    <v-text-field
+                      v-model="searchItem.nombre"
+                      label="Nombre"
+                      counter="50"
+                      maxlength="50"
+                      outlined
+                      clearable
+                      dense
+                      :hide-details="true"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <v-autocomplete
+                      v-model="searchItem.idTipo"
+                      :items="fileTypes"
+                      label="Tipo de archivo"
+                      maxlength="50"
+                      clearable
+                      outlined
+                      small-chips
+                      dense
+                      :hide-details="true"
+                    ></v-autocomplete>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <v-dialog
+                      ref="dialog"
+                      v-model="dialogDates"
+                      :return-value.sync="searchDates"
+                      persistent
+                      width="290px"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          :value="computedDateFormattedMomentjs"
+                          clearable
+                          label="Rango de Fechas"
+                          readonly
+                          prepend-icon="fas fa-calendar-alt"
+                          no-title
+                          outlined
+                          dense
+                          v-bind="attrs"
+                          v-on="on"
+                          @click:clear="searchDates = []"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker v-model="searchDates" scrollable range>
+                        <v-spacer></v-spacer>
+                        <v-btn
+                          text
+                          color="primary"
+                          @click="dialogDates = false"
+                        >
+                          Cancelar
+                        </v-btn>
+                        <v-btn
+                          text
+                          color="primary"
+                          @click="$refs.dialog.save(searchDates)"
+                        >
+                          Aceptar
+                        </v-btn>
+                      </v-date-picker>
+                    </v-dialog>
+                  </v-col>
+                </v-row>
+              </v-container>
+            </v-card-text>
+            <v-divider></v-divider>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="info" text large @click="dialogSearch = false">
+                Cerrar
+              </v-btn>
+              <v-btn
+                color="success"
+                large
+                @click="dialogSearch = false"
+                :disabled="loading"
+              >
+                Aplicar
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-scale-transition>
+      <v-scale-transition>
+        <v-btn
+          :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
+          @click="
+            dialog = true;
+            showFileInput = true;
+          "
+          :icon="$vuetify.breakpoint.xsOnly ? true : false"
+          class="mx-1"
+          :disabled="loading"
+        >
+          <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
+            fas fa-cloud-upload-alt
+          </v-icon>
+          {{ !$vuetify.breakpoint.xsOnly ? "Subir archivo" : "" }}
+        </v-btn>
+      </v-scale-transition>
+    </v-toolbar>
+
+    <!-- Snackbar http status messages -->
+    <v-scale-transition>
+      <v-snackbar v-model="snackbar" :color="snackbarColor" top right>
+        {{ snackbarText }}
+
+        <template v-slot:action="{ attrs }">
+          <v-btn color="pink" text v-bind="attrs" @click="snackbar = false">
+            Cerrar
+          </v-btn>
+        </template>
+      </v-snackbar>
+    </v-scale-transition>
+
+    <!-- Snackbar for file upload progress -->
+    <v-scale-transition>
+      <v-snackbar
+        v-model="uploading"
+        color="#333333"
+        :timeout="-1"
+        :multi-line="true"
+        top
+        right
+      >
+        <p class="text-button text-center">Subiendo archivo(s)...</p>
+        <v-progress-linear
+          v-model="fileTotalProgress"
+          height="50"
+          color="#55AA99"
+        >
+          <div class="d-flex flex-column justify-center my-3">
+            <strong class="text-overline">
+              {{ fileName.length > 40 ? truncateString(fileName) : fileName }}
+            </strong>
+            <strong class="text-center">
+              {{ Math.ceil(fileTotalProgress) }}%
+            </strong>
+          </div>
+        </v-progress-linear>
+      </v-snackbar>
+    </v-scale-transition>
+
+    <!-- Dialog for file upload alert -->
+    <v-dialog
+      v-model="dialogUploading"
+      width="50%"
+      overlay-color="blue"
+      overlay-opacity="0.2"
+      scrollable
+      persistent
+    >
+      <v-card height="auto">
+        <v-card-title>
+          <span class="headline">Subiendo archivos</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <div class="text-h3 text-center mb-3">
+                  No cierre esta ventana o el navegador.
+                </div>
+                <v-progress-linear
+                  striped
+                  indeterminate
+                  color="info"
+                ></v-progress-linear>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="info" text large @click="dialogUploading = false">
+            Entendido
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-row dense>
+      <v-col class="d-flex flex-row flex-wrap flex-grow-1 mb-16">
+        <div v-if="loading" class="d-flex flex-row flex-wrap flex-grow-1">
+          <v-skeleton-loader
+            class="mx-3 my-1"
+            v-for="(n, index) in 50"
+            :key="index"
+            :width="135"
+            :height="240"
+            type="image"
+          ></v-skeleton-loader>
+        </div>
+        <div
+          class="d-flex justify-center ma-10"
+          v-else-if="!loading && backgrounds.length <= 0"
+          style="width: 100vw"
+        >
+          <v-sheet
+            color="secondary"
+            class="d-flex flex-column text-h6 text-center pa-5"
+          >
+            <p class="text-overline">
+              No hay resultados disponibles ó la página seleccionada no existe.
+            </p>
+            <v-btn
+              large
+              class="mx-1"
+              color="primary"
+              @click="
+                {
+                  (page = 1), initialize();
+                }
+              "
+            >
+              <v-icon class="mr-3">fas fa-sync-alt</v-icon>
+              Recargar
+            </v-btn>
+          </v-sheet>
+        </div>
+        <v-img
+          v-for="file in backgrounds"
+          :key="`background-${file.id}`"
+          :id="`__BACKGROUND_IMG-${file.id}`"
+          class="ma-3 background"
+          :lazy-src="require('@/assets/no-disponible.jpg')"
+          :src="file.url || require('@/assets/no-disponible.jpg')"
+          :height="240"
+          :width="135"
+          :max-height="240"
+          :max-width="135"
+          @dblclick.stop="emitFile(file)"
+          style="position: relative; z-index: 0"
+        >
+          <template v-slot:placeholder>
+            <v-row class="fill-height ma-0" align="center" justify="center">
+              <v-progress-circular
+                indeterminate
+                color="info"
+              ></v-progress-circular>
+            </v-row>
+          </template>
+        </v-img>
+      </v-col>
+    </v-row>
+    <v-row
+      :class="paginationFixed ? '__pagination pa-2' : '__bg-pagination pa-2'"
+      no-gutters
+      dense
+      style="border-top: 1px solid #343434"
+    >
+      <v-col cols="12" sm="4" class="d-flex justify-start align-center">
+        <v-select
+          v-model="itemsPerPage"
+          :items="itemsPerPageItems"
+          filled
+          outlined
+          dense
+          label="Fondos por página"
+          :hide-details="true"
+          :loading="loading"
+          :disabled="loading"
+          @change="page = 1"
+        ></v-select>
+      </v-col>
+      <v-col cols="12" sm="4" class="d-flex justify-center align-center">
+        <v-pagination
+          v-model="page"
+          :length="pages"
+          :total-visible="7"
+          @input="goToPage"
+          elevation="3"
+          color="#343434"
+          width="30"
+        ></v-pagination>
+      </v-col>
+      <v-col cols="12" sm="4" class="d-flex justify-end align-center">
+        <p
+          v-show="!loading && backgrounds.length"
+          class="text-overline text-dark my-auto pr-3"
+        >
+          {{
+            itemsPerPage > totalRecords
+              ? `Mostrando ${totalRecords} resultados.`
+              : `Mostrando ${itemsPerPage} de ${totalRecords} resultados.`
+          }}
+        </p>
+      </v-col>
+    </v-row>
+
+    <v-dialog
+      v-model="dialog"
+      width="50%"
+      :fullscreen="$vuetify.breakpoint.xsOnly"
+      :hide-overlay="$vuetify.breakpoint.xsOnly"
+      scrollable
+      overlay-color="blue"
+      overlay-opacity="0.2"
+      persistent
+    >
+      <v-card height="auto">
+        <v-card-title>
+          <span class="headline">{{ formTitle }}</span>
+        </v-card-title>
+
+        <v-card-text>
+          <v-sheet class="pa-5" color="blue-grey darken-4">
+            <v-row dense>
+              <v-col cols="12">
+                <v-alert
+                  v-model="fileUploadDetailsAlert"
+                  dense
+                  border="left"
+                  type="info"
+                >
+                  Imagenes <strong>4K</strong> verticales (2160x3840), máximo
+                  <strong>10MB</strong> por imagen, formato
+                  <strong>JPG</strong>.
+                </v-alert>
+                <v-alert
+                  v-model="fileUploadDetailsAlert"
+                  dense
+                  border="left"
+                  type="info"
+                >
+                  Videos en formato <strong>MP4</strong>, máximo
+                  <strong>250MB</strong> por video.
+                </v-alert>
+              </v-col>
+              <v-col :cols="editedIndex > -1 ? 8 : 12" class="d-flex">
+                <v-row dense>
+                  <v-col cols="12" sm="6" class="align-self-end">
+                    <v-alert
+                      v-if="fileAlerts.length"
+                      outlined
+                      type="error"
+                      prominent
+                      border="left"
+                    >
+                      <div
+                        class="my-1"
+                        v-for="(alert, index) in fileAlerts"
+                        :key="index"
+                      >
+                        - {{ alert }}
+                      </div>
+                    </v-alert>
+                    <v-alert
+                      v-if="videoAlerts.length"
+                      outlined
+                      type="error"
+                      prominent
+                      border="left"
+                    >
+                      <div
+                        class="my-1"
+                        v-for="(alert, index) in videoAlerts"
+                        :key="index"
+                      >
+                        - {{ alert }}
+                      </div>
+                    </v-alert>
+                  </v-col>
+                </v-row>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="12" sm="8">
+                <v-text-field
+                  v-model="editedItem.nombre"
+                  label="Nombre"
+                  counter="50"
+                  maxlength="50"
+                  outlined
+                  clearable
+                  single-line
+                  dense
+                >
+                </v-text-field>
+                <v-file-input
+                  v-show="showFileInput"
+                  v-model="file"
+                  counter
+                  label="Archivo"
+                  accept=".jpg, .mp4"
+                  placeholder="Elegir archivo..."
+                  prepend-icon=""
+                  outlined
+                  single-line
+                  dense
+                  :show-size="1000"
+                  @change="onFileUpload"
+                >
+                  <template v-slot:selection="{ index, text }">
+                    <v-chip v-if="index < 2" color="info" dark label small>
+                      {{ text }}
+                    </v-chip>
+                  </template>
+                </v-file-input>
+              </v-col>
+              <v-col cols="12" sm="4" class="d-flex justify-center">
+                <v-img
+                  :src="fileURL || `${editedItem.url}?${new Date()}`"
+                  alt=" "
+                  :contain="true"
+                  :aspect-ratio="16 / 9"
+                  class="d-block grey-lighten-2 white--text ma-0 p-0 __background-small"
+                  gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                  style="border: 1px solid white"
+                >
+                  <div style="position: absolute; top: 0; right: 0">
+                    <v-btn
+                      v-if="editedIndex > -1 && editedId > -1 && !showFileInput"
+                      icon
+                      :disabled="loading || uploading"
+                      @click="showFileInput = true"
+                    >
+                      <v-icon color="warning"> fas fa-pencil-alt </v-icon>
+                    </v-btn>
+                    <v-btn
+                      v-if="!(editedIndex > -1 && editedId > -1) && fileURL"
+                      icon
+                      :disabled="loading || uploading"
+                      @click="
+                        file = null;
+                        fileURL = null;
+                      "
+                    >
+                      <v-icon color="red"> fas fa-times </v-icon>
+                    </v-btn>
+                  </div>
+
+                  <template v-slot:placeholder>
+                    <v-row
+                      v-if="fileURL"
+                      class="fill-height ma-0"
+                      align="center"
+                      justify="center"
+                    >
+                      <v-progress-circular
+                        indeterminate
+                        color="info"
+                      ></v-progress-circular>
+                    </v-row>
+                    <div class="text-overline text-center">Vista previa</div>
+                  </template>
+                </v-img>
+              </v-col>
+            </v-row>
+          </v-sheet>
+        </v-card-text>
+
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            color="info"
+            text
+            @click="close"
+            :disabled="loading || uploading"
+          >
+            Cerrar
+          </v-btn>
+          <v-btn
+            color="red"
+            text
+            @click="dialogDelete = true"
+            v-if="editedIndex > -1"
+            :disabled="loading"
+          >
+            Eliminar
+          </v-btn>
+          <v-btn
+            color="success"
+            @click="save"
+            :loading="loading"
+            :disabled="loading || (editedIndex > -1 && !file)"
+          >
+            <v-icon class="mr-2"> fas fa-save </v-icon>
+            Guardar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+    <v-dialog v-model="dialogDelete" max-width="500px">
+      <v-card>
+        <v-card-title class="headline">
+          ¿Eliminar este(os) archivo(s)?
+        </v-card-title>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="closeDelete"
+            >Cancelar</v-btn
+          >
+          <v-btn
+            color="blue darken-1"
+            @click="deleteItemConfirm()"
+            :loading="loading"
+          >
+            Aceptar
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+  </div>
+</template>
+
+<script>
+import moment from "moment";
+export default {
+  name: "SimpleGallery",
+  components: {},
+  props: {
+    // prop to control pagination style class
+    paginationFixed: {
+      type: Boolean,
+      default: true,
+    },
+  },
+  data: () => ({
+    page: 1,
+    pages: 1,
+    itemsPerPage: 25,
+    totalRecords: 0,
+    loading: false,
+    uploading: false,
+    search: "",
+    fileType: -1,
+    fileTypes: [
+      { text: "Imagen", value: 0 },
+      { text: "Video", value: 1 },
+    ],
+    backgrounds: [],
+    file: null,
+    showFileInput: true,
+    dialog: false,
+    dialogDelete: false,
+    dialogSearch: false,
+    dialogUploading: false,
+    dialogDates: false,
+    searchDates: [],
+    editedIndex: -1,
+    editedId: -1,
+    snackbar: false,
+    snackbarText: "",
+    snackbarColor: "black",
+    fileName: "",
+    fileTotalProgress: 0,
+    fileURL: "",
+    fileAlerts: [],
+    fileUploadDetailsAlert: true,
+    videoAlerts: [],
+    itemsPerPageItems: [
+      { text: "5 fondos", value: 5 },
+      { text: "10 fondos", value: 10 },
+      { text: "25 fondos", value: 25 },
+      { text: "50 fondos", value: 50 },
+      { text: "100 fondos", value: 100 },
+    ],
+    editedItem: {
+      nombre: "",
+      url: "",
+      idArchivoOriginal: -1,
+    },
+    defaultItem: {
+      nombre: "",
+      url: "",
+      idArchivoOriginal: -1,
+    },
+    searchItem: {
+      nombre: "",
+      idTipo: -1,
+    },
+    searchItemDefault: {
+      nombre: "",
+      idTipo: -1,
+    },
+  }),
+
+  watch: {
+    dialogDelete(val) {
+      val || this.closeDelete();
+    },
+    itemsPerPage() {
+      this.initialize();
+    },
+    fileTotalProgress(val) {
+      if (val >= 100) {
+        this.fileName = "Finalizando...";
+        val = 0;
+      }
+    },
+    uploading(val) {
+      if (val === true) this.dialogUploading = true;
+      else this.dialogUploading = false;
+    },
+    editedId(val) {
+      console.log("editedId", val);
+    },
+    editedIndex(val) {
+      console.log("editedIndex", val);
+    },
+    fileType(val) {
+      console.log("fileType", val);
+    },
+  },
+
+  computed: {
+    formTitle() {
+      return this.editedIndex === -1 ? "Nuevo Fondo" : "Editar Fondo";
+    },
+    computedDateFormattedMomentjs() {
+      if (this.searchDates) {
+        let dates = [...this.searchDates];
+        let date = 0;
+        let arr = dates.length;
+        for (date; date < arr; date++) {
+          let formattedDate = moment(dates[date]).format("DD/MM/YYYY");
+          dates[date] = formattedDate;
+        }
+        return dates.join(" ~ ");
+      }
+      return [];
+    },
+  },
+
+  methods: {
+    goToPage(value) {
+      this.page = value;
+      this.initialize();
+    },
+    previousPage() {
+      this.page--;
+      this.initialize();
+    },
+    nextPage() {
+      this.page++;
+      this.initialize();
+    },
+    onFileUpload(file) {
+      this.file = file;
+      this.fileURL = "";
+      this.fileAlerts = [];
+      if (file) {
+        var url = URL.createObjectURL(file);
+        if (this.file.name.match(/.(jpg|jpeg)$/i)) {
+          if (this.file.size > 10000000) {
+            this.fileAlerts.push(
+              `El archivo ${this.file.name} supera los 10MB.`
+            );
+            this.file = null;
+            URL.revokeObjectURL(file);
+          }
+          let image = new Image();
+          image.src = url;
+          let filename = this.file.name;
+          image.onload = () => {
+            if (image.width == 2160 && image.height == 3840) {
+              this.fileURL = url;
+            } else {
+              this.fileAlerts.push(
+                `El archivo ${filename} no es una imagen 4k vertical (2160x3840).`
+              );
+              this.file = null;
+              URL.revokeObjectURL(file);
+            }
+          };
+        } else if (this.file.name.match(/.(mp4)$/i)) {
+          this.fileURL = null;
+          if (this.file.size > 250000000) {
+            this.fileAlerts(`El archivo ${this.file.name} supera los 250MB.`);
+            this.file = null;
+            URL.revokeObjectURL(file);
+          }
+        } else {
+          this.fileAlerts.push(
+            `El archivo ${this.file.name} no coincide con los formatos soportados.`
+          );
+          this.file = null;
+          URL.revokeObjectURL(file);
+        }
+      } else {
+        this.fileURL = "";
+        this.file = null;
+      }
+    },
+    truncateString(str, n) {
+      return str.length > n ? str.substr(0, n - 1) + "&hellip;" : str;
+    },
+    async initialize() {
+      this.fileType = -1;
+      this.backgrounds = [];
+      this.loading = true;
+      this.uploading = false;
+      this.file = null;
+      this.fileTotalProgress = 0;
+      this.fileUploadDetailsAlert = true;
+
+      const fileType = await this.$http.get("TipoArchivos/nombre/Fondo");
+      if (fileType && fileType.data) {
+        this.fileType = fileType.data[0].id;
+        if (this.fileType > 0) {
+          await this.$http
+            .get(`Archivos/SizeAndTipo/`, {
+              params: {
+                idTipo: +this.fileType,
+                size: "Small",
+                pageNumber: this.page,
+                pageSize: this.itemsPerPage,
+              },
+            })
+            .then((res) => {
+              if (res && res.data) {
+                this.page = res.data.pageNumber;
+                this.pages = res.data.totalPages;
+                this.totalRecords = res.data.totalRecords;
+                this.backgrounds = res.data.list;
+              }
+            })
+            .catch(() => {
+              this.snackbarText =
+                "¡ERROR! Ocurrió un error al obtener los resultados.";
+              this.snackbarColor = "danger";
+              this.snackbar = true;
+            });
+        }
+      }
+      this.loading = false;
+    },
+    async emitFile(item) {
+      this.loading = true;
+      let endpoint = `Archivos/${item.idArchivoOriginal}`;
+      const req = await this.$http.get(endpoint);
+      const response = await JSON.parse(JSON.stringify(req));
+      if (response.status >= 200 && response.data) {
+        console.log("fileSelected", Object.assign({}, response.data));
+        this.$emit("fileSelected", Object.assign({}, response.data));
+        this.snackbarText = "Fondo aplicado exitosamente.";
+        this.snackbarColor = "success";
+        this.snackbar = true;
+      } else {
+        this.snackbarText = "¡ERROR! No se pudo aplicar el fondo.";
+        this.snackbarColor = "danger";
+        this.snackbar = true;
+        this.$emit("fileSelected", Object.assign({}, {}));
+      }
+      this.loading = false;
+    },
+
+    async deleteItemConfirm() {
+      this.loading = true;
+      this.dialogDelete = false;
+      await this.$http
+        .delete(`Archivos/${this.editedId}`)
+        .then((res) => {
+          if (res) {
+            this.snackbarText = "Operación realizada exitosamente.";
+            this.snackbarColor = "success";
+            this.snackbar = true;
+          }
+        })
+        .catch((err) => {
+          if (err) {
+            console.log(err);
+            this.snackbarText = "¡ERROR! Operación cancelada.";
+            this.snackbarColor = "danger";
+            this.snackbar = true;
+          }
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+      this.closeDelete();
+      this.initialize();
+    },
+
+    close() {
+      this.dialog = false;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+        this.editedId = -1;
+        this.file = null;
+        this.fileURL = "";
+        this.fileAlerts = [];
+      });
+    },
+
+    closeDelete() {
+      this.dialogDelete = false;
+      this.dialog = false;
+      this.$nextTick(() => {
+        this.editedItem = Object.assign({}, this.defaultItem);
+        this.editedIndex = -1;
+        this.editedId = -1;
+        this.file = null;
+        this.fileURL = "";
+        this.fileAlerts = [];
+      });
+    },
+
+    async save() {
+      this.loading = true;
+      this.uploading = true;
+      this.dialog = false;
+      const fd = new FormData();
+      fd.append("idTipo", +this.fileType);
+      fd.append("nombre", this.editedItem.nombre);
+      fd.append("small", true);
+      fd.append("medium", true);
+      fd.append("large", true);
+      fd.append("file", this.file);
+      let filename = this.file.name;
+      await this.$http
+        .post("Archivos", fd, {
+          onUploadProgress: (pEvt) => {
+            this.fileName = filename;
+            this.fileTotalProgress = parseInt(
+              Math.round((pEvt.loaded / pEvt.total) * 100)
+            );
+          },
+        })
+        .finally(() => {
+          this.uploading = false;
+          this.loading = false;
+        });
+      this.close();
+      this.initialize();
+    },
+  },
+  mounted() {
+    this.initialize();
+  },
+};
+</script>
+<style scoped>
+.background:hover {
+  cursor: pointer;
+}
+.__pagination {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background-color: #333333;
+}
+.__bg-pagination {
+  background-color: #333333;
+}
+.__background-small {
+  position: relative;
+  max-height: 170px;
+  max-width: 20vh;
+  min-height: 170px;
+  min-width: 20vh;
+}
+.__background-medium {
+  position: relative;
+  max-height: 40vh;
+  max-width: 20vh;
+  min-height: 40vh;
+  min-width: 20vh;
+}
+</style>

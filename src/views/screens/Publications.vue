@@ -21,7 +21,6 @@
         sort-by="nombre"
         class="elevation-1 table-cursor"
         striped
-        dense
         :fixed-header="true"
         :calculate-widths="true"
         :disable-pagination="true"
@@ -62,7 +61,7 @@
         </template>
 
         <template v-slot:top>
-          <v-toolbar flat>
+          <v-toolbar>
             <v-toolbar-title>Lista de Publicaciones</v-toolbar-title>
             <v-divider class="mx-4" inset vertical></v-divider>
             <v-spacer></v-spacer>
@@ -83,70 +82,6 @@
                 <v-icon class="mr-2">fas fa-trash-alt</v-icon>
                 Eliminar seleccionados
               </v-btn>
-            </v-scale-transition>
-            <v-scale-transition>
-              <v-dialog
-                v-model="dialogSearch"
-                width="30%"
-                overlay-color="blue"
-                overlay-opacity="0.2"
-                scrollable
-                persistent
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    color="secondary"
-                    dark
-                    class="mx-2"
-                    v-bind="attrs"
-                    v-on="on"
-                    :loading="loading"
-                  >
-                    <v-icon class="mr-2">fas fa-search</v-icon>
-                    Buscar
-                  </v-btn>
-                </template>
-                <v-card height="auto">
-                  <v-card-title>
-                    <span class="headline">Opciones de búsqueda</span>
-                  </v-card-title>
-                  <v-divider></v-divider>
-                  <v-card-text>
-                    <v-container>
-                      <v-row dense>
-                        <v-col cols="12">
-                          <v-text-field
-                            v-model="searchItem.nombre"
-                            label="Nombre"
-                            counter="50"
-                            maxlength="50"
-                            outlined
-                            clearable
-                            dense
-                            single-line
-                            :hide-details="true"
-                          ></v-text-field>
-                        </v-col>
-                      </v-row>
-                    </v-container>
-                  </v-card-text>
-                  <v-divider></v-divider>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn color="info" text @click="closeSearch">
-                      Cerrar
-                    </v-btn>
-                    <v-btn
-                      color="success"
-                      @click="search"
-                      :loading="loading"
-                      :disabled="loading || searchItem.nombre.length < 4"
-                    >
-                      Aplicar
-                    </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
             </v-scale-transition>
             <v-dialog
               v-model="dialog"
@@ -245,35 +180,26 @@
                                     <v-card-title>
                                       Asignar un fondo a la publicación
                                     </v-card-title>
+                                    <v-divider></v-divider>
                                     <v-card-text>
-                                      <Gallery
+                                      <!-- Gallery component -->
+                                      <simple-gallery
                                         :paginationFixed="false"
-                                        @selected="getBackground"
+                                        @fileSelected="getChildData"
                                       >
-                                      </Gallery>
+                                      </simple-gallery>
                                     </v-card-text>
+                                    <v-divider></v-divider>
                                     <v-card-actions>
                                       <v-spacer></v-spacer>
                                       <v-btn
                                         color="info"
                                         text
-                                        @click="
-                                          dialogGallery = false;
-                                          backgroundId = -1;
-                                          backgroundData = {};
-                                        "
+                                        @click="closeGallery"
                                         :disabled="loading || requesting"
                                         :loading="loading || requesting"
                                       >
-                                        Cancelar
-                                      </v-btn>
-                                      <v-btn
-                                        color="success"
-                                        :disabled="loading || requesting"
-                                        :loading="loading || requesting"
-                                        @click="getBackgroundData"
-                                      >
-                                        Aplicar
+                                        Cerrar
                                       </v-btn>
                                     </v-card-actions>
                                   </v-card>
@@ -313,7 +239,7 @@
                                 v-if="backgroundData.url"
                                 icon
                                 style="position: absolute; top: 0; right: 0"
-                                @click="clearBackground"
+                                @click="clearBgData"
                               >
                                 <v-icon color="red"> fas fa-times </v-icon>
                               </v-btn>
@@ -365,6 +291,26 @@
               </v-card>
             </v-dialog>
           </v-toolbar>
+          <v-row dense class="my-3">
+            <v-col cols="12" sm="6" md="4">
+              <v-text-field
+                v-model="searchItem.nombre"
+                label="Buscar por nombre"
+                placeholder="Nombre..."
+                class="mx-2"
+                maxlength="50"
+                filled
+                clearable
+                dense
+                @click:clear="initialize"
+                @input="search"
+                @paste="search"
+                @keyup.esc="initialize"
+                :hide-details="true"
+              ></v-text-field>
+            </v-col>
+          </v-row>
+          <v-divider></v-divider>
         </template>
         <template v-slot:no-data>
           No hay publicaciones disponibles
@@ -380,12 +326,12 @@
 <script>
 import moment from "moment";
 import ScheduleForm from "../../components/ScheduleForm.vue";
-import Gallery from "../Gallery.vue";
+import SimpleGallery from "../../components/SimpleGallery.vue";
 export default {
   name: "Publications",
   components: {
     ScheduleForm,
-    Gallery,
+    SimpleGallery,
   },
   data: () => ({
     loading: false,
@@ -418,7 +364,6 @@ export default {
     ],
     dialog: false,
     dialogDelete: false,
-    dialogSearch: false,
     dialogGallery: false,
     modal: false,
     publications: [],
@@ -471,38 +416,44 @@ export default {
   },
 
   methods: {
-    closeSearch() {
-      this.dialogSearch = false;
+    clearBgData() {
+      this.backgroundId = -1;
+      this.backgroundData = {};
+    },
+    closeGallery() {
+      this.dialogGallery = false;
       this.$nextTick = () => {
-        Object.assign(this.searchItem, this.searchItemDefault);
+        this.backgroundId = -1;
+        this.backgroundData = {};
       };
     },
     async search() {
-      this.loading = true;
-      this.publications = [];
-      clearTimeout(this.searchTimeout);
-      let endpoint = `Publicaciones/nombre/${this.searchItem.nombre.trim()}`;
-      this.searchTimeout = setTimeout(() => {
-        this.$http
-          .get(endpoint)
-          .then((res) => {
-            if (res && res.data && res.data.length) {
-              let array = res.data;
-              let i = 0;
-              let arr = array.length;
-              for (i; i < arr; i++) {
-                this.publications.push(array[i]);
+      if (this.searchItem.nombre.length > 3) {
+        this.loading = true;
+        this.publications = [];
+        clearTimeout(this.searchTimeout);
+        let endpoint = `Publicaciones/nombre/${this.searchItem.nombre.trim()}`;
+        this.searchTimeout = setTimeout(() => {
+          this.$http
+            .get(endpoint)
+            .then((res) => {
+              if (res && res.data && res.data.length) {
+                let array = res.data;
+                let i = 0;
+                let arr = array.length;
+                for (i; i < arr; i++) {
+                  this.publications.push(array[i]);
+                }
               }
-            }
-          })
-          .catch((err) => {
-            console.log("error", err);
-          })
-          .finally(() => {
-            this.loading = false;
-            this.dialogSearch = false;
-          });
-      }, 1000);
+            })
+            .catch((err) => {
+              console.log("error", err);
+            })
+            .finally(() => {
+              this.loading = false;
+            });
+        }, 1000);
+      }
     },
     async deleteItems() {
       let ids = this.publicationsSelected.map((item) => item.id);
@@ -517,31 +468,15 @@ export default {
         this.initialize();
       } else return;
     },
-    clearBackground() {
-      this.backgroundId = -1;
-      this.backgroundData = {};
-    },
-    getBackground(val) {
-      console.log("backgroundId", val);
-      if (val > 0) this.backgroundId = +val;
-    },
-    async getBackgroundData() {
-      this.requesting = true;
-      await this.$http
-        .get(`Archivos/${+this.backgroundId}`)
-        .then((res) => {
-          if (res && res.data) {
-            this.backgroundData = Object.assign({}, res.data);
-          }
-        })
-        .catch((err) => {
-          console.log("error", err);
-          this.backgroundData = {};
-        })
-        .finally(() => {
-          this.requesting = false;
-          this.dialogGallery = false;
-        });
+    getChildData(object) {
+      console.log("Received data:", object);
+      if (typeof object === "object") {
+        if (object.id && object.url) {
+          this.backgroundId = +object.id;
+          this.backgroundData = object;
+        }
+        this.dialogGallery = false;
+      }
     },
     /** Removes duplicate keys in array */
     removeArrDuplicates(array) {
@@ -654,7 +589,7 @@ export default {
             Object.assign(
               {},
               {
-                nombre: this.editedItem.nombre,
+                nombre: this.editedItem.nombre.trim(),
                 idArchivoFondo: this.backgroundId,
               }
             )
@@ -684,8 +619,8 @@ export default {
             Object.assign(
               {},
               {
-                nombre: this.editedItem.nombre,
-                idArchivoFondo: this.backgroundId,
+                nombre: this.editedItem.nombre.trim(),
+                idArchivo: this.backgroundId,
               }
             )
           )

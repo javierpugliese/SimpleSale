@@ -30,17 +30,14 @@
             v-model="editedScheduleItem.fechaInicio"
             scrollable
             dense
+            @input="
+              $refs.dialogInitDate.save(editedScheduleItem.fechaInicio);
+              modalInitDateClose();
+            "
           >
             <v-spacer></v-spacer>
-            <v-btn text color="primary" @click="modalInitDate = false">
-              Cancelar
-            </v-btn>
-            <v-btn
-              text
-              color="primary"
-              @click="$refs.dialogInitDate.save(editedScheduleItem.fechaInicio)"
-            >
-              Aceptar
+            <v-btn text color="primary" @click="modalInitDateClose">
+              Cerrar
             </v-btn>
           </v-date-picker>
         </v-dialog>
@@ -65,17 +62,17 @@
               v-on="on"
             ></v-text-field>
           </template>
-          <v-date-picker v-model="editedScheduleItem.fechaFin" scrollable>
+          <v-date-picker
+            v-model="editedScheduleItem.fechaFin"
+            @input="
+              $refs.dialogEndDate.save(editedScheduleItem.fechaFin);
+              modalEndDateClose();
+            "
+            scrollable
+          >
             <v-spacer></v-spacer>
-            <v-btn text color="primary" @click="modalEndDate = false">
+            <v-btn text color="primary" @click="modalEndDateClose">
               Cancelar
-            </v-btn>
-            <v-btn
-              text
-              color="primary"
-              @click="$refs.dialogEndDate.save(editedScheduleItem.fechaFin)"
-            >
-              Aceptar
             </v-btn>
           </v-date-picker>
         </v-dialog>
@@ -279,6 +276,34 @@ export default {
       return this.editedScheduleItem.fechaFin
         ? moment(this.editedScheduleItem.fechaFin).format("DD/MM/YYYY")
         : "";
+    },
+  },
+  methods: {
+    modalInitDateClose() {
+      this.modalInitDate = false;
+      this.$nextTick = () => {
+        this.editedScheduleItem.fechaInicio = "";
+      };
+    },
+    modalEndDateClose() {
+      this.modalEndDate = false;
+      this.$nextTick = () => {
+        this.editedScheduleItem.fechaFin = "";
+      };
+    },
+    modal2Close() {
+      this.modal2 = false;
+      this.$nextTick = () => {
+        this.time = "";
+        this.editedScheduleItem.horaInicio = "";
+      };
+    },
+    modal3Close() {
+      this.modal3 = false;
+      this.$nextTick = () => {
+        this.time1 = "";
+        this.editedScheduleItem.horaFin = "";
+      };
     },
   },
 };

@@ -18,7 +18,7 @@
         :loading="loading"
         @click:row="editItem"
         loading-text="Cargando..."
-        sort-by="nombre"
+        :sort-by.sync="sortBy"
         class="elevation-1 table-cursor"
         striped
         :fixed-header="true"
@@ -336,6 +336,7 @@ export default {
   data: () => ({
     loading: false,
     requesting: false,
+    sortBy: "creado",
     headers: [
       {
         text: "Vista Previa",

@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" temporary app>
+    <v-navigation-drawer v-model="drawer" v-if="logged" temporary app>
       <v-list-item class="px-2 py-1">
         <v-list-item-avatar>
           <v-avatar color="blue-grey lighten-1">
@@ -69,7 +69,7 @@
       </template>
     </v-navigation-drawer>
 
-    <v-app-bar app dark>
+    <v-app-bar v-if="logged" app dark>
       <v-app-bar-nav-icon @click="drawer = true"></v-app-bar-nav-icon>
       <div class="d-flex align-center">
         <!-- <v-img
@@ -96,9 +96,12 @@
 
     <v-main>
       <!-- Provides the application the proper gutter -->
-      <v-container fluid>
+      <v-container :fluid="logged">
         <!-- If using vue-router -->
-        <router-view></router-view>
+        <router-view v-if="logged"></router-view>
+        <div v-else>
+          <login @logged="isLogged"></login>
+        </div>
       </v-container>
     </v-main>
 
@@ -109,13 +112,15 @@
 
 <script>
 import moment from "moment";
+import Login from "./views/Login.vue";
 moment.locale("es");
 export default {
   name: "App",
 
-  components: {},
+  components: { Login },
 
   data: () => ({
+    logged: false,
     drawer: false,
     mini: true,
     items: [{ title: "Galería", icon: "fas fa-image", link: "/" }],
@@ -236,6 +241,13 @@ export default {
       },
     ],
   }),
+  methods: {
+    isLogged(bool) {
+      if (typeof bool == "boolean") {
+        this.logged = true;
+      } else this.logged = false;
+    },
+  },
 };
 </script>
 <style>

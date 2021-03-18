@@ -13,12 +13,31 @@ Vue.config.productionTip = false;
 
 //axios.defaults.baseURL = "https://touch-test-app.azurewebsites.net/";
 axios.defaults.baseURL = "http://200.10.96.221:8080/";
+//axios.defaults.withCredentials = true;
+
+const USERNAME = "simplisale";
+const PASSWORD = "vt4gdm¡n-";
+
+/* axios.defaults.auth = {
+  username: USERNAME,
+  password: PASSWORD
+} */
+
+const token = `${USERNAME}:${PASSWORD}`;
+const encodedToken = Buffer.from(token).toString('base64');
+//const headers = { 'Authorization': 'Basic '+ encodedToken };
+const authorization = 'Basic ' + encodedToken;
+//axios.defaults.headers.common['Authorization'] = authorization;
+
+//axios.defaults.headers.common['Authorization'] = authorization;
+//axios.defaults.headers.common['Access-Control-Allow-Origin'] = "*";
 
 axios.interceptors.request.use(
   config => {
     console.log(
       `${config.method.toUpperCase()} request sent to ${config.baseURL}${config.url} at ${new Date()}`
     );
+    console.log('Authorization', authorization)
     return config;
   },
   error => {

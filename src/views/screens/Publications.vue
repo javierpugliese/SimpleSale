@@ -491,8 +491,16 @@ export default {
     },
     /* Return file from product. Displays in datatable */
     getProductImage(item) {
-      if (item.archivo && item.archivo.url) return item.archivo.url;
-      else return false;
+      if (item.archivo && item.archivo.url) {
+        return item.archivo.url;
+        /* if (item.archivo.miniaturas) {
+          let miniaturas = item.archivo.miniaturas.filter(
+            (m) => m.size == "small"
+          );
+          console.log("min", miniaturas)
+          
+        } */
+      } else return false;
     },
     /* Init */
     async initialize() {

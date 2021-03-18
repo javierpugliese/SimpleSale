@@ -30,6 +30,7 @@
             v-model="editedScheduleItem.fechaInicio"
             scrollable
             dense
+            :allowed-dates="disablePastDates"
             @input="
               $refs.dialogInitDate.save(editedScheduleItem.fechaInicio);
               modalInitDateClose();
@@ -57,6 +58,7 @@
               readonly
               outlined
               dense
+              :disabled="!editedScheduleItem.fechaInicio"
               hide-details
               v-bind="attrs"
               v-on="on"
@@ -68,6 +70,7 @@
               $refs.dialogEndDate.save(editedScheduleItem.fechaFin);
               modalEndDateClose();
             "
+            :allowed-dates="disablePastEndDates"
             scrollable
           >
             <v-spacer></v-spacer>
@@ -98,14 +101,19 @@
               v-on="on"
             ></v-text-field>
           </template>
-          <v-time-picker v-if="modal2" v-model="time" full-width>
+          <v-time-picker
+            v-if="modal2"
+            v-model="time"
+            :allowed-minutes="allowedMinutes"
+            format="24hr"
+            @click:minute="
+              $refs.dialog2.save(time);
+              modal2Close();
+            "
+            full-width
+          >
             <v-spacer></v-spacer>
-            <v-btn text color="primary" @click="modal2 = false">
-              Cancelar
-            </v-btn>
-            <v-btn text color="primary" @click="$refs.dialog2.save(time)">
-              Aceptar
-            </v-btn>
+            <v-btn text color="primary" @click="modal2Close"> Cerrar </v-btn>
           </v-time-picker>
         </v-dialog>
       </v-col>
@@ -130,12 +138,19 @@
               v-on="on"
             ></v-text-field>
           </template>
-          <v-time-picker v-if="modal3" v-model="time1" full-width>
+          <v-time-picker
+            v-if="modal3"
+            v-model="time1"
+            :allowed-minutes="allowedMinutes"
+            format="24hr"
+            @click:minute="
+              $refs.dialog3.save(time1);
+              modal3Close();
+            "
+            full-width
+          >
             <v-spacer></v-spacer>
-            <v-btn text color="primary" @click="modal3 = false"> Cancel </v-btn>
-            <v-btn text color="primary" @click="$refs.dialog3.save(time1)">
-              Aceptar
-            </v-btn>
+            <v-btn text color="primary" @click="modal3Close"> Cerrar </v-btn>
           </v-time-picker>
         </v-dialog>
       </v-col>
@@ -243,6 +258,7 @@ export default {
     regions: [],
     zones: [],
     sectors: [],
+    allowedMinutes: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
     editedScheduleItem: {
       provinces: [],
       locations: [],
@@ -266,6 +282,7 @@ export default {
       horaFin: "",
     },
   }),
+  watch: {},
   computed: {
     moment_initDateFormatted() {
       return this.editedScheduleItem.fechaInicio
@@ -279,6 +296,26 @@ export default {
     },
   },
   methods: {
+    disablePastDates(val) {
+      let date = new Date().toISOString().substr(0, 10);
+      //this.editedScheduleItem.fechaFin = date;
+      /* let endDate = new Date(this.editedScheduleItem.fechaFin || new Date())
+          .toISOString()
+          .substr(0, 10);
+        if (new Date(endDate) < new Date(date)) {
+          this.editedScheduleItem.fechaInicio = date;
+        } */
+      return val >= date;
+    },
+    disablePastEndDates(val) {
+      return (
+        val >=
+        new Date(this.editedScheduleItem.fechaInicio)
+          .toISOString()
+          .substr(0, 10)
+      );
+    },
+
     modalInitDateClose() {
       this.modalInitDate = false;
       this.$nextTick = () => {

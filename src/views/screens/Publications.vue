@@ -19,6 +19,7 @@
         @click:row="editItem"
         loading-text="Cargando..."
         :sort-by.sync="sortBy"
+        :sort-desc="true"
         class="elevation-1 table-cursor"
         striped
         :fixed-header="true"
@@ -236,7 +237,7 @@
                               "
                             >
                               <v-btn
-                                v-if="backgroundData.url"
+                                v-if="backgroundData.url && !(editedIndex > -1)"
                                 icon
                                 style="position: absolute; top: 0; right: 0"
                                 @click="clearBgData"
@@ -526,6 +527,9 @@ export default {
       this.editedIndex = this.publications.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
+      if (item.archivo) {
+        this.backgroundData = Object.assign({}, item.archivo);
+      } else this.backgroundData = {};
       this.dialog = true;
     },
 

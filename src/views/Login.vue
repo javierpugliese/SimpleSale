@@ -72,7 +72,7 @@
 <script>
 export default {
   name: "Login",
-  components: {},
+  components: {},  
   data: () => ({
     loading: false,
     showPwd: false,

@@ -55,6 +55,13 @@ const routes = [
     }
   },
   {
+    path: "/pantallas/planogramas/:id",
+    name: "PlanogramListById",
+    component: function () {
+      return import( /* webpackChunkName: "planogram-list" */ "../views/screens/PlanogramEditor.vue");
+    }
+  },
+  {
     path: "/pantallas/planogramas/editor",
     name: "PlanogramEditor",
     component: function () {

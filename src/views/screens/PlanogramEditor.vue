@@ -423,7 +423,20 @@
           </v-row>
 
           <v-row dense>
-            <v-col cols="6">
+            <v-col cols="12" sm="6" v-if="editedId > -1">
+              <v-btn
+                large
+                block
+                color="danger"
+                :disabled="loading"
+                :loading="loading"
+                @click="deletePlanogram"
+              >
+                <v-icon class="mr-2">fas fa-trash-alt</v-icon>
+                Eliminar planograma
+              </v-btn>
+            </v-col>
+            <v-col cols="12" sm="6">
               <v-btn
                 large
                 block
@@ -489,21 +502,39 @@ export default {
     dialogGallery: false,
     backgroundId: -1,
     backgroundData: {},
+    editedId: -1,
+    editedIndex: -1,
     editedItem: {
-      nombre: "",
       titulo: "",
+      colorTitulo: "",
+      colorFondo: "",
+      colorEncabezado: "",
+      idEncabezado: -1,
       idFondo: -1,
+      imagen: "",
+      estantes: [],
     },
     defaultItem: {
-      nombre: "",
       titulo: "",
+      colorTitulo: "",
+      colorFondo: "",
+      colorEncabezado: "",
+      idEncabezado: -1,
       idFondo: -1,
+      imagen: "",
+      estantes: [],
     },
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
   }),
   watch: {
+    editedId(val) {
+      console.log("editedId", val);
+    },
+    editedIndex(val) {
+      console.log("editedIndex", val);
+    },
     backgroundData(val) {
       console.log("backgroundData", val);
     },
@@ -564,6 +595,28 @@ export default {
     },
   },
   methods: {
+    async deletePlanogram() {
+      let endpoint = `Gondolas/${this.editedId}`;
+      this.loading = true;
+      await this.$http
+        .delete(endpoint)
+        .then((res) => {
+          if (res) {
+            this.snackbar = true;
+            this.snackbarColor = "success";
+            this.snackbarText = "Planograma eliminado exitosamente.";
+          }
+          this.loading = false;
+          this.$router.replace({ name: "PlanogramList" });
+        })
+        .catch((err) => {
+          console.log("error", err);
+          this.snackbar = true;
+          this.snackbarColor = "danger";
+          this.snackbarText = "Ocurrió un error al eliminar el planograma.";
+          this.loading = false;
+        });
+    },
     xy(type, left, top) {
       if (typeof type === "string") {
         if (type == "Shelf") {
@@ -591,12 +644,24 @@ export default {
         let exp = Math.trunc(this.planogramHeight / offsetFactor);
 
         for (x; x < total; x++) {
-          totalFactor =
-            this.planogramHeight - (x + 1) * exp - this.shelves[x].h;
-
           let domElement = document.querySelector(`#vdr_shelf-${x}`);
 
-          domElement.style.transform = `translate(0px, ${totalFactor}px)`;
+          if (this.editedId > -1) {
+            let factorY =
+              Math.trunc((totalArray[x].originH * this.planogramHeight) / 100) -
+              totalArray[x].h;
+            console.log("factorY", factorY);
+            domElement.style.transform = `translate(0px, ${factorY}px)`;
+          } else {
+            totalFactor =
+              this.planogramHeight - (x + 1) * exp - this.shelves[x].h;
+
+            domElement.style.transform = `translate(0px, ${totalFactor}px)`;
+          }
+
+          if (!this.shelves[x]["originY"]) {
+            this.shelves[x]["originY"] = this.shelves[x].h;
+          } else this.shelves[x].originY = this.shelves[x].h;
 
           this.shelf_y = totalFactor;
 
@@ -737,33 +802,64 @@ export default {
     },
     async save() {
       this.loading = true;
-      const planogram = await this.$http
-        .post(
-          "Gondolas",
-          Object.assign(
-            {},
-            {
-              nombre: this.editedItem.nombre,
-              titulo: this.editedItem.titulo,
-              idFondo: +this.backgroundId,
-            }
+      var planogram;
+      if (this.editedId > -1 && this.editedIndex > -1) {
+        planogram = await this.$http
+          .put(
+            `Gondolas/${this.editedId}`,
+            Object.assign(
+              {},
+              {
+                nombre: this.editedItem.nombre,
+                titulo: this.editedItem.titulo,
+                idFondo: +this.backgroundId,
+              }
+            )
           )
-        )
-        .then((res) => {
-          if (res) {
+          .then((res) => {
+            if (res) {
+              this.snackbar = true;
+              this.snackbarColor = "success";
+              this.snackbarText = "Planograma actualizado.";
+              return +res.data.idObjeto;
+            }
+          })
+          .catch((err) => {
+            console.log("error", err);
             this.snackbar = true;
-            this.snackbarColor = "success";
-            this.snackbarText = "Planograma creado.";
-            return +res.data.idObjeto;
-          }
-        })
-        .catch((err) => {
-          console.log("error", err);
-          this.snackbar = true;
-          this.snackbarColor = "black";
-          this.snackbarText = "Operación cancelada.";
-          return null;
-        });
+            this.snackbarColor = "black";
+            this.snackbarText = "Operación cancelada.";
+            return null;
+          });
+      } else {
+        planogram = await this.$http
+          .post(
+            "Gondolas",
+            Object.assign(
+              {},
+              {
+                nombre: this.editedItem.nombre,
+                titulo: this.editedItem.titulo,
+                idFondo: +this.backgroundId,
+              }
+            )
+          )
+          .then((res) => {
+            if (res) {
+              this.snackbar = true;
+              this.snackbarColor = "success";
+              this.snackbarText = "Planograma creado.";
+              return +res.data.idObjeto;
+            }
+          })
+          .catch((err) => {
+            console.log("error", err);
+            this.snackbar = true;
+            this.snackbarColor = "black";
+            this.snackbarText = "Operación cancelada.";
+            return null;
+          });
+      }
 
       if (planogram) {
         var i = 0;
@@ -782,27 +878,48 @@ export default {
             {
               color: color,
               altura: +s.proportionalHeight,
-              orden: i,
+              orden: +s.originY,
               idGondola: planogram,
             }
           );
 
-          await this.$http
-            .post("Estantes", shelfData)
-            .then((response) => {
-              if (response && response.data) {
-                const obj = { id: +response.data.idObjeto, index: i };
-                console.log("shelf obj then", obj);
-                ids.push(obj);
-                this.snackbar = true;
-                this.snackbarColor = "success";
-                this.snackbarText = "Estante insertado.";
-              }
-            })
-            .catch((err) => {
-              console.log("error", err);
-              this.loading = false;
-            });
+          if (this.editedId > -1 && this.editedIndex > -1) {
+            // update shelf
+            await this.$http
+              .put(`Estantes/${this.editedId}`, shelfData)
+              .then((response) => {
+                if (response && response.data) {
+                  const obj = { id: +response.data.idObjeto, index: i };
+                  console.log("shelf obj then", obj);
+                  ids.push(obj);
+                  this.snackbar = true;
+                  this.snackbarColor = "success";
+                  this.snackbarText = "Estante actualizado.";
+                }
+              })
+              .catch((err) => {
+                console.log("error", err);
+                this.loading = false;
+              });
+          } else {
+            // post shelf
+            await this.$http
+              .post("Estantes", shelfData)
+              .then((response) => {
+                if (response && response.data) {
+                  const obj = { id: +response.data.idObjeto, index: i };
+                  console.log("shelf obj then", obj);
+                  ids.push(obj);
+                  this.snackbar = true;
+                  this.snackbarColor = "success";
+                  this.snackbarText = "Estante insertado.";
+                }
+              })
+              .catch((err) => {
+                console.log("error", err);
+                this.loading = false;
+              });
+          }
         }
 
         if (ids.length) {
@@ -832,9 +949,15 @@ export default {
             }
 
             // send shelf products to api
-            await this.$http.post(`Estantes/${_id.id}/Articulos`, {
-              articulos: payloadProducts,
-            });
+            if (this.editedId > -1 && this.editedIndex > -1) {
+              await this.$http.put(`Estantes/${_id.id}/Articulos`, {
+                articulos: payloadProducts,
+              });
+            } else {
+              await this.$http.post(`Estantes/${_id.id}/Articulos`, {
+                articulos: payloadProducts,
+              });
+            }
           } // end for ids
         }
       }
@@ -876,7 +999,7 @@ export default {
       if (typeof object === "object") {
         const c = object;
         if (c["r"] && c["g"] && c["b"] && c["a"] >= 0) {
-          return `rgba(${c.r}, ${c.g}, ${c.b}, ${parseInt(c.a).toFixed(2)})`;
+          return `rgba(${c.r},${c.g},${c.b},${parseInt(c.a).toFixed(2)})`;
         }
       }
       return;
@@ -888,20 +1011,113 @@ export default {
           const obj = {
             color: this.shelf_color,
             h: this.shelf_h,
+            originH: this.shelf_pHeight,
             storedProducts: [],
           };
-          this.shelves.push(obj);
-        } else alert("No hay más espacio disponible.");
-      } else
-        alert(
-          `El mínimo de altura del estante debe ser de ${this.minShelfHeight}px`
-        );
+          if (this.editedId > -1) this.shelves.unshift(obj);
+          else this.shelves.push(obj);
+        } else {
+          this.snackbar = true;
+          this.snackbarColor = "danger";
+          this.snackbarText = "No hay más espacio disponible.";
+        }
+      } else {
+        this.snackbar = true;
+        this.snackbarColor = "danger";
+        this.snackbarText = `El mínimo de altura del estante debe ser de ${this.minShelfHeight}px`;
+      }
+    },
+    async initialize() {
+      this.loading = true;
+      this.products = [];
+      this.editedId = -1;
+      this.editedIndex = -1;
+
+      console.log("route params", this.$route.params);
+      if (this.$route.params) {
+        this.editedId = +this.$route.params.id || -1;
+        this.editedIndex = +this.$route.params.id || -1;
+        if (typeof this.editedId == "number" && this.editedId > -1) {
+          let planogramEndpoint = `Gondolas/${this.editedId}`;
+          // Get planogram nested data
+          await this.$http
+            .get(planogramEndpoint)
+            .then((res) => {
+              if (res && res.data) {
+                Object.assign(this.editedItem, res.data);
+                this.snackbar = true;
+                this.snackbarColor = "success";
+                this.snackbarText = "Datos obtenidos del planograma.";
+              }
+            })
+            .catch((err) => {
+              console.log("error", err);
+              this.snackbar = true;
+              this.snackbarColor = "danger";
+              this.snackbarText =
+                "¡ERROR! No se pudieron obtener datos del planograma.";
+              this.loading = false;
+              this.$route.replace({ name: "PlanogramList" });
+            });
+          // Load background
+          await this.$http
+            .get(`Archivos/${this.editedItem.idFondo}`)
+            .then((res) => {
+              if (res && res.data) {
+                this.getChildData(Object.assign({}, res.data));
+                this.snackbar = true;
+                this.snackbarColor = "success";
+                this.snackbarText = "Fondo del planograma cargado.";
+              }
+            })
+            .catch((err) => {
+              console.log("error", err);
+              this.snackbar = true;
+              this.snackbarColor = "danger";
+              this.snackbarText =
+                "¡ERROR! No se pudo obtener el fondo del planograma.";
+            });
+
+          if (this.editedItem.estantes.length) {
+            for (let s of this.editedItem.estantes) {
+              console.log("altura", s.altura);
+
+              // handle color
+              let color = s.color;
+              if (color.indexOf("rgba(") === 0) {
+                let pars = color.indexOf(","),
+                  repars = color.indexOf(",", pars + 1);
+                var rgba = {
+                  r: parseInt(color.substr(5, pars)),
+                  g: parseInt(color.substr(pars + 1, repars)),
+                  b: parseInt(
+                    color.substr(
+                      color.indexOf(",", pars + 1) + 1,
+                      color.indexOf(",", repars)
+                    )
+                  ),
+                  a: parseFloat(
+                    color.substr(
+                      color.indexOf(",", repars + 1) + 1,
+                      color.indexOf(")")
+                    )
+                  ),
+                };
+              }
+
+              this.shelf_color = rgba;
+              this.shelf_h = s.orden;
+              this.shelf_pHeight = s.altura;
+              this.addShelf();
+            }
+          }
+        }
+      }
+      this.loading = false;
     },
   },
   mounted: function () {
-    this.loading = true;
-    this.products = [];
-    this.loading = false;
+    this.initialize();
   },
 };
 </script>

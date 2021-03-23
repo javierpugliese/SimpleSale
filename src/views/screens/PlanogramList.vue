@@ -270,26 +270,19 @@ export default {
     async initialize() {
       this.loading = true;
       this.planograms = [];
-      this.products = [];
 
       const planograms = this.$http.get("Gondolas");
-      const products = this.$http.get("Articulos", {
-        params: { pageNumber: 1, pageSize: 100000 },
-      });
 
-      const promises = [planograms, products];
+      const promises = [planograms];
 
       await this.$http
         .all(promises)
         .then(
           this.$http.spread((...responses) => {
             const planogramsRes = responses[0];
-            const productsRes = responses[1];
 
             if (planogramsRes && planogramsRes.data)
               this.planograms = planogramsRes.data;
-            if (productsRes && productsRes.data.list)
-              this.products = productsRes.data.list;
           })
         )
         .catch((errors) => {
@@ -305,6 +298,10 @@ export default {
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
       this.dialog = true;
+      this.$router.push({
+        name: "PlanogramListById",
+        params: { id: this.editedId.toString() },
+      });
     },
 
     async deleteItemConfirm() {
@@ -356,48 +353,6 @@ export default {
 
     /* Request api to insert or update*/
     async save() {
-      if (this.editedIndex > -1 && this.editedId > -1) {
-        this.loading = true;
-        await this.$http
-          .put(`Gondolas/${this.editedId}`, Object.assign({}, {}))
-          .then((res) => {
-            if (res) {
-              this.snackbarText = "Operación realizada exitosamente.";
-              this.snackbarColor = "success";
-              this.snackbar = true;
-            }
-          })
-          .catch((err) => {
-            if (err) {
-              this.snackbarText = "¡ERROR! Operación cancelada.";
-              this.snackbarColor = "danger";
-              this.snackbar = true;
-            }
-          })
-          .finally(() => {
-            this.loading = false;
-          });
-      } else {
-        this.loading = true;
-        await this.$http
-          .post("Articulos", Object.assign({}, {}))
-          .then((res) => {
-            if (res) {
-              this.snackbarText = "Operación realizada exitosamente.";
-              this.snackbarColor = "success";
-              this.snackbar = true;
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-            if (err) {
-              this.snackbarText = "¡ERROR! Operación cancelada.";
-              this.snackbarColor = "danger";
-              this.snackbar = true;
-            }
-          })
-          .finally(() => (this.loading = false));
-      }
       this.close();
       this.initialize();
     },

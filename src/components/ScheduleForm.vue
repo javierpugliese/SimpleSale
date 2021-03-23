@@ -31,10 +31,7 @@
             scrollable
             dense
             :allowed-dates="disablePastDates"
-            @input="
-              $refs.dialogInitDate.save(editedScheduleItem.fechaInicio);
-              modalInitDateClose();
-            "
+            @input="saveInitDate"
           >
             <v-spacer></v-spacer>
             <v-btn text color="primary" @click="modalInitDateClose">
@@ -66,10 +63,7 @@
           </template>
           <v-date-picker
             v-model="editedScheduleItem.fechaFin"
-            @input="
-              $refs.dialogEndDate.save(editedScheduleItem.fechaFin);
-              modalEndDateClose();
-            "
+            @input="saveEndDate"
             :allowed-dates="disablePastEndDates"
             scrollable
           >
@@ -174,12 +168,13 @@
           dense
           single-line
           hide-details
+          @change="getLocations"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" sm="6">
         <v-autocomplete
           v-model="editedScheduleItem.locations"
-          :items="locations"
+          :items="syncedLocations"
           label="Localidades"
           maxlength="50"
           multiple
@@ -255,6 +250,7 @@ export default {
     time1: "",
     provinces: [],
     locations: [],
+    syncedLocations: [],
     regions: [],
     zones: [],
     sectors: [],
@@ -296,15 +292,110 @@ export default {
     },
   },
   methods: {
-    disablePastDates(val) {
-      let date = new Date().toISOString().substr(0, 10);
-      //this.editedScheduleItem.fechaFin = date;
-      /* let endDate = new Date(this.editedScheduleItem.fechaFin || new Date())
+    getLocations() {
+      this.syncedLocations = this.locations.filter((x) =>
+        this.editedScheduleItem.provinces.includes(+x.provinceId)
+      );
+    },
+    async initialize() {
+      this.loading = true;
+      this.regions = [];
+      this.zones = [];
+      this.sectors = [];
+      this.provinces = [];
+      this.locations = [];
+      this.syncLocations = [];
+
+      const regionsReq = this.$http.get("Regiones");
+      const zonesReq = this.$http.get("Zonas");
+      const sectorsReq = this.$http.get("Sectores");
+      const provincesReq = this.$http.get("Provincias");
+      const locationsReq = this.$http.get("Localidades"); // TODO: Use province endpoint to filter
+
+      const promises = [
+        regionsReq,
+        zonesReq,
+        sectorsReq,
+        provincesReq,
+        locationsReq,
+      ];
+
+      await this.$http
+        .all(promises)
+        .then(
+          this.$http.spread(async (...responses) => {
+            const regionsRes = responses[0];
+            const zonesRes = responses[1];
+            const sectorsRes = responses[2];
+            const provincesRes = responses[3];
+            const locationsRes = responses[4];
+
+            if (regionsRes && regionsRes.data) {
+              this.regions = regionsRes.data.map((r) => ({
+                text: r.nombre,
+                value: r.id,
+              }));
+            }
+            if (zonesRes && zonesRes.data) {
+              this.zones = zonesRes.data.map((z) => ({
+                text: z.nombre,
+                value: z.id,
+              }));
+            }
+            if (sectorsRes && sectorsRes.data) {
+              this.sectors = sectorsRes.data.map((s) => ({
+                text: s.nombre,
+                value: s.id,
+              }));
+            }
+            if (provincesRes && provincesRes.data) {
+              this.provinces = await provincesRes.data.map((s) => ({
+                text: s.nombre,
+                value: s.id,
+              }));
+              if (locationsRes && locationsRes.data) {
+                this.locations = locationsRes.data.map((s) => ({
+                  text: s.nombre,
+                  value: s.id,
+                  provinceId: s.idProvincia,
+                }));
+              }
+            }
+          })
+        )
+        .catch((errors) => {
+          console.log(errors);
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+    },
+    saveInitDate() {
+      let initDate = new Date(this.editedScheduleItem.fechaInicio)
+        .toISOString()
+        .substr(0, 10);
+
+      if (this.editedScheduleItem.fechaFin) {
+        let endDate = new Date(this.editedScheduleItem.fechaFin)
           .toISOString()
           .substr(0, 10);
-        if (new Date(endDate) < new Date(date)) {
-          this.editedScheduleItem.fechaInicio = date;
-        } */
+        if (moment(initDate.toString()).isBefore(endDate.toString())) {
+          this.$refs.dialogInitDate.save(this.editedScheduleItem.fechaInicio);
+          this.modalInitDateClose();
+          return;
+        } else {
+          this.editedScheduleItem.fechaFin = "";
+        }
+      }
+      this.$refs.dialogInitDate.save(this.editedScheduleItem.fechaInicio);
+      this.modalInitDateClose();
+    },
+    saveEndDate() {
+      this.$refs.dialogEndDate.save(this.editedScheduleItem.fechaFin);
+      this.modalEndDateClose();
+    },
+    disablePastDates(val) {
+      let date = new Date().toISOString().substr(0, 10);
       return val >= date;
     },
     disablePastEndDates(val) {
@@ -342,6 +433,9 @@ export default {
         this.editedScheduleItem.horaFin = "";
       };
     },
+  },
+  mounted: function () {
+    this.initialize();
   },
 };
 </script>

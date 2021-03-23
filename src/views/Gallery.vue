@@ -19,12 +19,6 @@
         </v-toolbar-title>
       </v-scroll-y-transition>
       <v-spacer></v-spacer>
-      <v-scale-transition v-if="selectTool">
-        <v-radio-group class="mt-5" v-model="multiSelect" row>
-          <v-radio label="Simple" color="red" :value="false"></v-radio>
-          <v-radio label="Múltiple" color="red" :value="true"></v-radio>
-        </v-radio-group>
-      </v-scale-transition>
       <v-scale-transition v-if="!selectTool">
         <v-dialog
           v-model="dialogSearch"
@@ -42,6 +36,7 @@
               v-bind="attrs"
               v-on="on"
               :loading="loading"
+              disabled
             >
               <v-icon class="mr-2">fas fa-search</v-icon>
               Buscar
@@ -183,7 +178,7 @@
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
           @click="selectAll"
-          :disabled="loading || !multiSelect"
+          :disabled="loading"
         >
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-check-double
@@ -329,48 +324,37 @@
             </v-btn>
           </v-sheet>
         </div>
-        <v-radio-group v-else v-model="selected" row>
-          <v-img
-            v-for="file in backgrounds"
-            :key="`background-${file.id}`"
-            class="ma-3 background"
-            :lazy-src="require('@/assets/no-disponible.jpg')"
-            :src="file.url || require('@/assets/no-disponible.jpg')"
-            :height="240"
-            :width="135"
-            :max-height="240"
-            :max-width="135"
-            @click="selectTool ? undefined : editItem(file)"
-            style="position: relative; z-index: 0"
-          >
-            <template v-slot:placeholder>
-              <v-row class="fill-height ma-0" align="center" justify="center">
-                <v-progress-circular
-                  indeterminate
-                  color="info"
-                ></v-progress-circular>
-              </v-row>
-            </template>
+        <v-img
+          v-for="file in backgrounds"
+          :key="`background-${file.id}`"
+          class="ma-3 background"
+          :lazy-src="require('@/assets/no-disponible.jpg')"
+          :src="file.url || require('@/assets/no-disponible.jpg')"
+          :height="240"
+          :width="135"
+          :max-height="240"
+          :max-width="135"
+          @click="selectTool ? undefined : editItem(file)"
+          style="position: relative; z-index: 0"
+        >
+          <template v-slot:placeholder>
+            <v-row class="fill-height ma-0" align="center" justify="center">
+              <v-progress-circular
+                indeterminate
+                color="info"
+              ></v-progress-circular>
+            </v-row>
+          </template>
 
-            <v-checkbox
-              v-if="selectTool && multiSelect"
-              v-model="selection"
-              color="whitesmoke"
-              label=""
-              :value="file.idArchivoOriginal"
-              style="position: absolute; z-index: 1; top: 0; right: 0"
-            ></v-checkbox>
-
-            <v-radio
-              v-else-if="selectTool && !multiSelect"
-              label=""
-              color="whitesmoke"
-              class="mt-4"
-              style="position: absolute; z-index: 2; top: 0; right: 0"
-              :value="file.idArchivoOriginal"
-            ></v-radio>
-          </v-img>
-        </v-radio-group>
+          <v-checkbox
+            v-if="selectTool"
+            v-model="selection"
+            color="whitesmoke"
+            label=""
+            :value="file.idArchivoOriginal"
+            style="position: absolute; z-index: 1; top: 0; right: 0"
+          ></v-checkbox>
+        </v-img>
       </v-col>
     </v-row>
     <v-row
@@ -656,8 +640,6 @@ export default {
     selectTool: false,
     search: "",
     selection: [],
-    multiSelect: true,
-    selected: -1,
     fileType: -1,
     fileTypes: [
       { text: "Imagen", value: 0 },
@@ -736,20 +718,8 @@ export default {
     fileType(val) {
       console.log("fileType", val);
     },
-    selected(val) {
-      console.log("selected", val);
-      if (val && typeof val === "number") {
-        this.selection.splice(this.selection.indexOf(val), 1);
-        this.selection.push(val);
-        // send event to parent
-        this.$emit("selected", val);
-      }
-    },
     selection(val) {
       console.log("selection", val);
-    },
-    multiSelect(val) {
-      if (val == false) this.selection = [];
     },
   },
 

@@ -535,6 +535,7 @@ export default {
       this.editedIndex = this.publications.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.editedId = item.id || -1;
+      this.backgroundId = item.id || -1;
       if (item.archivo) {
         this.backgroundData = Object.assign({}, item.archivo);
       } else this.backgroundData = {};

@@ -243,9 +243,12 @@ export default {
   }),
   methods: {
     isLogged(bool) {
-      if (typeof bool == "boolean") {
-        this.logged = true;
-      } else this.logged = false;
+      console.log("isLogged", bool);
+      if (bool == true) this.logged = true;
+      else {
+        this.logged = false;
+        return;
+      }
     },
   },
 };

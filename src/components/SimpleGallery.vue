@@ -764,6 +764,7 @@ export default {
                 this.pages = res.data.totalPages;
                 this.totalRecords = res.data.totalRecords;
                 this.backgrounds = res.data.list;
+                this.page = res.data.totalPages;
               }
             })
             .catch(() => {

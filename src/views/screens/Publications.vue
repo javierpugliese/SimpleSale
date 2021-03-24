@@ -491,15 +491,14 @@ export default {
     },
     /* Return file from product. Displays in datatable */
     getProductImage(item) {
-      if (item.archivo && item.archivo.url) {
-        return item.archivo.url;
-        /* if (item.archivo.miniaturas) {
+      if (item.archivo) {
+        if (item.archivo.miniaturas) {
           let miniaturas = item.archivo.miniaturas.filter(
-            (m) => m.size == "small"
+            (m) => m.size == "Small"
           );
-          console.log("min", miniaturas)
-          
-        } */
+          return miniaturas[0].url;
+        }
+        return item.archivo.url;
       } else return false;
     },
     /* Init */
@@ -604,7 +603,7 @@ export default {
               {},
               {
                 nombre: this.editedItem.nombre.trim(),
-                idArchivoFondo: this.backgroundId,
+                idArchivo: this.backgroundId,
               }
             )
           )
@@ -627,33 +626,40 @@ export default {
           });
       } else {
         this.loading = true;
-        await this.$http
-          .post(
-            "Publicaciones",
-            Object.assign(
-              {},
-              {
-                nombre: this.editedItem.nombre.trim(),
-                idArchivo: this.backgroundId,
-              }
+        if (this.backgroundId > -1) {
+          await this.$http
+            .post(
+              "Publicaciones",
+              Object.assign(
+                {},
+                {
+                  nombre: this.editedItem.nombre.trim(),
+                  idArchivo: this.backgroundId,
+                }
+              )
             )
-          )
-          .then((res) => {
-            if (res) {
-              this.snackbarText = "Operación realizada exitosamente.";
-              this.snackbarColor = "success";
-              this.snackbar = true;
-            }
-          })
-          .catch((err) => {
-            console.log(err);
-            if (err) {
-              this.snackbarText = "¡ERROR! Operación cancelada.";
-              this.snackbarColor = "danger";
-              this.snackbar = true;
-            }
-          })
-          .finally(() => (this.loading = false));
+            .then((res) => {
+              if (res) {
+                this.snackbarText = "Operación realizada exitosamente.";
+                this.snackbarColor = "success";
+                this.snackbar = true;
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+              if (err) {
+                this.snackbarText = "¡ERROR! Operación cancelada.";
+                this.snackbarColor = "danger";
+                this.snackbar = true;
+              }
+            })
+            .finally(() => (this.loading = false));
+        } else {
+          this.snackbarText =
+            "Seleccione un fondo o gondola antes de publicar.";
+          this.snackbarColor = "warning";
+          this.snackbar = true;
+        }
       }
       this.close();
       this.initialize();

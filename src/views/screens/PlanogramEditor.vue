@@ -406,6 +406,7 @@
                 <v-col cols="12">
                   <v-switch
                     v-model="showShelfClass"
+                    disabled
                     label="Mostrar límites de los estantes."
                   ></v-switch>
                 </v-col>
@@ -472,6 +473,7 @@ export default {
     shelf_h: Math.trunc(window.innerHeight * 0.75 * 0.15),
     shelf_w: 0,
     shelf_color: { r: 0, g: 0, b: 0, a: 1 },
+    shelf_id: -1,
     product_x: 0,
     product_y: 0,
     product_w: 0,
@@ -781,8 +783,30 @@ export default {
 
       console.log("Resize result (w, h):", w, h);
     },
-    removeShelf(index) {
+    async removeShelf(index) {
       let pos = this.shelves.indexOf(this.shelves[index]);
+      if (this.shelves[pos].id > -1) {
+        let endpoint = `Estantes/${this.shelves[pos].id}`;
+        this.loading = true;
+        await this.$http
+          .delete(endpoint)
+          .then((res) => {
+            if (res) {
+              this.snackbar = true;
+              this.snackbarColor = "success";
+              this.snackbarText = `Se eliminó el estante del planograma.`;
+            }
+            this.loading = false;
+          })
+          .catch((err) => {
+            console.log("error", err);
+            this.snackbar = true;
+            this.snackbarColor = "warning";
+            this.snackbarText = `¡Error! No se pudo eliminar el estante ${pos}.`;
+            this.loading = false;
+          });
+        this.loading = false;
+      }
       this.space_y = this.space_y + this.shelves[pos].h;
       this.shelves.splice(pos, 1);
     },
@@ -860,7 +884,7 @@ export default {
             return null;
           });
       }
-
+      console.log("planogram id", planogram);
       if (planogram) {
         var i = 0;
         let arr = this.shelves.length;
@@ -883,10 +907,10 @@ export default {
             }
           );
 
-          if (this.editedId > -1 && this.editedIndex > -1) {
+          if (this.editedId > -1) {
             // update shelf
             await this.$http
-              .put(`Estantes/${this.editedId}`, shelfData)
+              .put(`Estantes/${this.shelves[i].id}`, shelfData)
               .then((response) => {
                 if (response && response.data) {
                   const obj = { id: +response.data.idObjeto, index: i };
@@ -929,34 +953,36 @@ export default {
             var payloadProducts = [];
 
             let products = this.shelves[_id.index].storedProducts;
-            for (let a = 0; a < products.length; a++) {
-              let p = products[a];
-              let data = Object.assign(
-                {},
-                {
-                  idEstante: +_id.id,
-                  idArticulo: p.id,
-                  nombre: "",
-                  origenX: p.proportionalSize.pWidth,
-                  origenY: p.proportionalSize.pHeight,
-                  cantidadX: 1,
-                  cantidadY: 1,
-                  alto: Math.trunc((p.size.h / this.planogramHeight) * 1000),
-                  ancho: Math.trunc((p.size.w / this.planogramWidth) * 1000),
-                }
-              );
-              payloadProducts.push(data);
-            }
+            if (products.length) {
+              for (let a = 0; a < products.length; a++) {
+                let p = products[a];
+                let data = Object.assign(
+                  {},
+                  {
+                    idEstante: +_id.id,
+                    idArticulo: p.id,
+                    nombre: "",
+                    origenX: p.proportionalSize.pWidth,
+                    origenY: p.proportionalSize.pHeight,
+                    cantidadX: 1,
+                    cantidadY: 1,
+                    alto: Math.trunc((p.size.h / this.planogramHeight) * 1000),
+                    ancho: Math.trunc((p.size.w / this.planogramWidth) * 1000),
+                  }
+                );
+                payloadProducts.push(data);
+              }
 
-            // send shelf products to api
-            if (this.editedId > -1 && this.editedIndex > -1) {
-              await this.$http.put(`Estantes/${_id.id}/Articulos`, {
-                articulos: payloadProducts,
-              });
-            } else {
-              await this.$http.post(`Estantes/${_id.id}/Articulos`, {
-                articulos: payloadProducts,
-              });
+              // send shelf products to api
+              if (this.editedId > -1) {
+                await this.$http.put(`Estantes/${_id.id}/Articulos`, {
+                  articulos: payloadProducts,
+                });
+              } else {
+                await this.$http.post(`Estantes/${_id.id}/Articulos`, {
+                  articulos: payloadProducts,
+                });
+              }
             }
           } // end for ids
         }
@@ -1012,6 +1038,7 @@ export default {
             color: this.shelf_color,
             h: this.shelf_h,
             originH: this.shelf_pHeight,
+            id: this.shelf_id,
             storedProducts: [],
           };
           if (this.editedId > -1) this.shelves.unshift(obj);
@@ -1032,6 +1059,7 @@ export default {
       this.products = [];
       this.editedId = -1;
       this.editedIndex = -1;
+      this.shelf_id = -1;
 
       console.log("route params", this.$route.params);
       if (this.$route.params) {
@@ -1108,8 +1136,10 @@ export default {
               this.shelf_color = rgba;
               this.shelf_h = s.orden;
               this.shelf_pHeight = s.altura;
+              this.shelf_id = s.id;
               this.addShelf();
             }
+            this.shelf_id = -1;
           }
         }
       }

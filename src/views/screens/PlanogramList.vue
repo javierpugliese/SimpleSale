@@ -46,6 +46,7 @@
                     color="secondary"
                     dark
                     class="mx-2"
+                    disabled
                     v-bind="attrs"
                     v-on="on"
                     :loading="loading"

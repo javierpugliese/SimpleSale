@@ -6,8 +6,7 @@ import Gallery from "../views/Gallery.vue";
 
 Vue.use(VueRouter);
 
-const routes = [
-  {
+const routes = [{
     path: "/",
     name: "Gallery",
     component: Gallery
@@ -45,6 +44,13 @@ const routes = [
     name: "Publications",
     component: function () {
       return import( /* webpackChunkName: "publications" */ "../views/screens/Publications.vue");
+    }
+  },
+  {
+    path: "/programaciones/nueva",
+    name: "NewSchedule",
+    component: function () {
+      return import( /* webpackChunkName: "new-schedule" */ "../views/screens/NewSchedule.vue");
     }
   },
   {

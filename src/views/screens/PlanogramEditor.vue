@@ -84,7 +84,7 @@
         <v-row dense>
           <v-col cols="12">
             <v-sheet color="secondary" class="text-h6 text-center pa-3">
-              Plantillas y productos
+              Productos
             </v-sheet>
           </v-col>
         </v-row>
@@ -141,7 +141,6 @@
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
                 :id="`vdr_shelf-${index}`"
-                :class-name="showShelfClass ? 'vdr' : ' '"
                 :w="planogramWidth"
                 :h="+shelf.h"
                 :resizable="false"
@@ -264,208 +263,246 @@
 
       <!-- Planogram settings -->
       <v-col cols="12" md="5">
-        <v-row class="d-flex flex-column justify-center" dense>
-          <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-3">
-              Configuración del planograma
-            </v-sheet>
-          </v-col>
-          <v-row dense>
-            <v-col cols="12" class="d-flex flex-column">
-              <div class="text-h6 text-left">Parámetros</div>
-              <v-divider class="my-1"></v-divider>
+        <v-form v-model="isFormValid">
+          <v-row class="d-flex flex-column justify-center" dense>
+            <v-col cols="12">
+              <v-sheet color="secondary" class="text-h6 text-center pa-3">
+                Configuración del planograma
+              </v-sheet>
             </v-col>
-          </v-row>
-          <v-row dense>
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="editedItem.nombre"
-                label="Nombre"
-                maxlength="50"
-                outlined
-                clearable
-                dense
-                single-line
-                :hide-details="true"
-              ></v-text-field>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-text-field
-                v-model="editedItem.titulo"
-                label="Título"
-                maxlength="50"
-                outlined
-                clearable
-                dense
-                single-line
-                :hide-details="true"
-              ></v-text-field>
-            </v-col>
-          </v-row>
+            <v-row dense>
+              <v-col cols="12" class="d-flex flex-column">
+                <div class="text-h6 text-left">Parámetros</div>
+                <v-divider class="my-1"></v-divider>
+              </v-col>
+            </v-row>
+            <v-row dense>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="editedItem.nombre"
+                  label="Nombre"
+                  maxlength="35"
+                  hint="Al menos 5 caracteres."
+                  :rules="[rules.required, rules.min]"
+                  filled
+                  clearable
+                  dense
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="editedItem.titulo"
+                  label="Título"
+                  maxlength="35"
+                  hint="Al menos 5 caracteres."
+                  :rules="[rules.required, rules.min]"
+                  filled
+                  clearable
+                  dense
+                ></v-text-field>
+              </v-col>
+            </v-row>
 
-          <v-row dense>
-            <v-col cols="6">
-              <div class="text-h6 text-left">Fondo</div>
-            </v-col>
-            <v-col cols="6" class="d-flex justify-end">
-              <v-dialog
-                v-model="dialogGallery"
-                width="85%"
-                overlay-color="blue"
-                overlay-opacity="0.2"
-                scrollable
-                persistent
-              >
-                <template v-slot:activator="{ on, attrs }">
-                  <v-btn
-                    color="success"
-                    dark
-                    small
-                    v-bind="attrs"
-                    v-on="on"
-                    width="50%"
-                    :disabled="loading"
-                    :loading="loading"
-                  >
-                    Elegir fondo
-                  </v-btn>
-                </template>
-
-                <v-card height="auto">
-                  <v-card-title>Elegir un fondo</v-card-title>
-                  <v-divider></v-divider>
-                  <v-card-text>
-                    <!-- Gallery component -->
-                    <simple-gallery
-                      :paginationFixed="false"
-                      @fileSelected="getChildData"
-                    >
-                    </simple-gallery>
-                  </v-card-text>
-                  <v-divider></v-divider>
-                  <v-card-actions>
-                    <v-spacer></v-spacer>
+            <v-row dense>
+              <v-col cols="6">
+                <div class="text-h6 text-left">Fondo</div>
+              </v-col>
+              <v-col cols="6" class="d-flex justify-end">
+                <v-dialog
+                  v-model="dialogGallery"
+                  width="85%"
+                  overlay-color="blue"
+                  overlay-opacity="0.2"
+                  scrollable
+                  persistent
+                >
+                  <template v-slot:activator="{ on, attrs }">
                     <v-btn
-                      color="info"
-                      text
-                      @click="
-                        dialogGallery = false;
-                        backgroundId = -1;
-                        backgroundData = {};
-                      "
-                      :disabled="loading || requesting"
-                      :loading="loading || requesting"
+                      color="success"
+                      dark
+                      small
+                      v-bind="attrs"
+                      v-on="on"
+                      width="50%"
+                      :disabled="loading"
+                      :loading="loading"
                     >
-                      Cerrar
+                      Elegir fondo
                     </v-btn>
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-            </v-col>
-            <v-col cols="12">
-              <v-divider></v-divider>
-            </v-col>
-          </v-row>
+                  </template>
 
-          <v-row dense>
-            <v-col cols="6">
-              <div class="text-h6 text-left">Estantes</div>
-            </v-col>
-            <v-col cols="6" class="d-flex justify-end">
-              <v-btn
-                @click="addShelf"
-                :disabled="loading"
-                :loading="loading"
-                color="#55AA99"
-                dark
-                small
-                width="50%"
-              >
-                Agregar estante
-              </v-btn>
-            </v-col>
-            <v-col cols="12">
-              <v-divider></v-divider>
-            </v-col>
-          </v-row>
+                  <v-card height="auto">
+                    <v-card-title>Elegir un fondo</v-card-title>
+                    <v-divider></v-divider>
+                    <v-card-text>
+                      <!-- Gallery component -->
+                      <simple-gallery
+                        :paginationFixed="false"
+                        @fileSelected="getChildData"
+                      >
+                      </simple-gallery>
+                    </v-card-text>
+                    <v-divider></v-divider>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn
+                        color="info"
+                        text
+                        @click="
+                          dialogGallery = false;
+                          backgroundId = -1;
+                          backgroundData = {};
+                        "
+                        :disabled="loading || requesting"
+                        :loading="loading || requesting"
+                      >
+                        Cerrar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </v-col>
+              <v-col cols="12">
+                <v-divider></v-divider>
+              </v-col>
+            </v-row>
 
-          <v-row dense>
-            <v-col cols="6">
-              <div class="text-overline">Opciones</div>
-            </v-col>
-            <v-col cols="6">
-              <div class="text-overline">Color</div>
-            </v-col>
-          </v-row>
+            <v-row dense>
+              <v-col cols="6">
+                <div class="text-h6 text-left">Estantes</div>
+              </v-col>
+              <v-col cols="6" class="d-flex justify-end">
+                <v-btn
+                  @click="addShelf"
+                  :disabled="loading || shelf_h < 105"
+                  :loading="loading"
+                  color="#55AA99"
+                  dark
+                  small
+                  width="50%"
+                >
+                  Agregar estante
+                </v-btn>
+              </v-col>
+              <v-col cols="12">
+                <v-divider></v-divider>
+              </v-col>
+            </v-row>
 
-          <v-row dense class="mt-2">
-            <v-col cols="12" sm="6">
-              <v-row dense>
-                <v-col cols="12" sm="6">
-                  <v-text-field
-                    v-model.number="shelf_h"
-                    label="Altura estante"
-                    outlined
-                    clearable
-                    dense
-                    single-line
-                    :hide-details="true"
-                    :disabled="false"
-                  ></v-text-field>
-                </v-col>
-                <v-col cols="12" sm="6" class="d-flex align-center"> </v-col>
-              </v-row>
+            <v-row dense class="mt-2">
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  label="Color de la base"
+                  placeholder="Seleccionar un color..."
+                  :value="rgba(shelf_color)"
+                  @click.stop="dialogColor = true"
+                  filled
+                  dense
+                  hide-details
+                  readonly
+                  clearable
+                >
+                </v-text-field>
+                <v-dialog
+                  v-model="dialogColor"
+                  width="384"
+                  overlay-color="blue"
+                  overlay-opacity="0.2"
+                  persistent
+                >
+                  <v-card height="auto" color="#272727">
+                    <v-card-title> Color de la base del estante </v-card-title>
+                    <v-divider></v-divider>
+                    <v-card-text class="d-flex justify-center pa-3">
+                      <v-color-picker
+                        v-model="shelf_color"
+                        label="Color de la base"
+                        dot-size="24"
+                        mode="rgba"
+                        show-swatches
+                        swatches-max-height="200"
+                        hide-mode-switch
+                      ></v-color-picker>
+                    </v-card-text>
+                    <v-divider></v-divider>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn text color="info" @click="dialogColor = false">
+                        Cerrar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model.number="shelf_h"
+                  label="Altura del estante"
+                  hint="Altura mínima: 105."
+                  :rules="[rules.shelfMin, rules.shelfMax]"
+                  filled
+                  clearable
+                  dense
+                ></v-text-field>
+              </v-col>
+            </v-row>
 
-              <v-row dense>
-                <v-col cols="12">
-                  <v-switch
-                    v-model="showShelfClass"
-                    disabled
-                    label="Mostrar límites de los estantes."
-                  ></v-switch>
-                </v-col>
-              </v-row>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-color-picker
-                v-model="shelf_color"
-                label="Color de la base"
-                dot-size="25"
-                hide-mode-switch
-                mode="rgba"
-              ></v-color-picker>
-            </v-col>
+            <v-row dense>
+              <v-col cols="12" sm="6" v-if="editedId > -1">
+                <v-btn
+                  large
+                  block
+                  color="danger"
+                  :disabled="loading"
+                  :loading="loading"
+                  @click.stop="dialogDelete = true"
+                >
+                  <v-icon class="mr-2">fas fa-trash-alt</v-icon>
+                  Eliminar planograma
+                </v-btn>
+                <v-dialog
+                  v-model="dialogDelete"
+                  persistent
+                  overlay-color="blue"
+                  overlay-opacity="0.2"
+                  width="384"
+                >
+                  <v-card height="auto">
+                    <v-card-title>¿Desea eliminar el planograma?</v-card-title>
+                    <v-divider></v-divider>
+                    <v-card-actions>
+                      <v-spacer></v-spacer>
+                      <v-btn text color="info" @click="dialogDelete = false">
+                        Cerrar
+                      </v-btn>
+                      <v-btn
+                        color="info"
+                        @click="deletePlanogram"
+                        :loading="loading"
+                        :disabled="loading"
+                      >
+                        Aceptar
+                      </v-btn>
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-btn
+                  large
+                  block
+                  color="success"
+                  :disabled="loading || !isFormValid"
+                  :loading="loading"
+                  @click="save"
+                >
+                  <v-icon class="mr-2">fas fa-save</v-icon>
+                  Guardar planograma
+                </v-btn>
+              </v-col>
+            </v-row>
           </v-row>
-
-          <v-row dense>
-            <v-col cols="12" sm="6" v-if="editedId > -1">
-              <v-btn
-                large
-                block
-                color="danger"
-                :disabled="loading"
-                :loading="loading"
-                @click="deletePlanogram"
-              >
-                <v-icon class="mr-2">fas fa-trash-alt</v-icon>
-                Eliminar planograma
-              </v-btn>
-            </v-col>
-            <v-col cols="12" sm="6">
-              <v-btn
-                large
-                block
-                color="success"
-                :disabled="loading"
-                :loading="loading"
-                @click="save"
-              >
-                <v-icon class="mr-2">fas fa-save</v-icon>
-                Guardar planograma
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-row>
+        </v-form>
       </v-col>
     </v-row>
   </div>
@@ -497,7 +534,6 @@ export default {
     space_y: Math.trunc(window.innerHeight * 0.75),
 
     shelf_active: true,
-    showShelfClass: true,
     loading: false,
     loadingSearch: false,
     requesting: false,
@@ -507,7 +543,19 @@ export default {
     menu: false,
     menu_x: 0,
     menu_y: 0,
-
+    isFormValid: false,
+    rules: {
+      required: (value) => !!value || "Campo obligatorio.",
+      min: (v) => (v != null ? v.length >= 5 || "Mínimo 5 caracteres." : false),
+      shelfMin: (val) =>
+        +val >= Math.trunc(window.innerHeight * 0.75 * 0.15) ||
+        `La altura mínima es ${Math.trunc(window.innerHeight * 0.75 * 0.15)}.`,
+      shelfMax: (val) =>
+        +val <= Math.trunc(window.innerHeight * 0.75 * 0.15) * 2 ||
+        `La altura máxima es ${
+          Math.trunc(window.innerHeight * 0.75 * 0.15) * 2
+        }.`,
+    },
     products: [],
     shelves: [],
     searchMode: false,
@@ -516,11 +564,14 @@ export default {
     planogramSrc: "",
     dialogSearch: false,
     dialogGallery: false,
+    dialogColor: false,
+    dialogDelete: false,
     backgroundId: -1,
     backgroundData: {},
     editedId: -1,
     editedIndex: -1,
     editedItem: {
+      nombre: "",
       titulo: "",
       colorTitulo: "",
       colorFondo: "",
@@ -531,6 +582,7 @@ export default {
       estantes: [],
     },
     defaultItem: {
+      nombre: "",
       titulo: "",
       colorTitulo: "",
       colorFondo: "",
@@ -607,6 +659,11 @@ export default {
     minShelfHeight() {
       let val = Math.trunc(window.innerHeight * 0.75 * 0.15);
       console.log("[Computed] minShelfHeight", val);
+      return val;
+    },
+    maxShelfHeight() {
+      let val = Math.trunc(window.innerHeight * 0.75 * 0.15) * 2;
+      console.log("[Computed] maxShelfHeight", val);
       return val;
     },
   },
@@ -1085,11 +1142,9 @@ export default {
     rgba(object) {
       if (typeof object === "object") {
         const c = object;
-        if (c["r"] && c["g"] && c["b"] && c["a"] >= 0) {
-          return `rgba(${c.r},${c.g},${c.b},${parseInt(c.a).toFixed(2)})`;
-        }
+        return `rgba(${c.r},${c.g},${c.b},${Number(c.a).toFixed(2)})`;
       }
-      return;
+      return `rgba(0,0,0,1.00)`;
     },
     addShelf(items) {
       if (this.shelf_h >= this.minShelfHeight) {

@@ -61,6 +61,13 @@ const routes = [{
     }
   },
   {
+    path: "/moveable",
+    name: "PlanogramListMoveable",
+    component: function () {
+      return import( /* webpackChunkName: "planogram-list" */ "../views/screens/PlanogramListMoveable.vue");
+    }
+  },
+  {
     path: "/pantallas/planogramas/:id",
     name: "PlanogramListById",
     component: function () {

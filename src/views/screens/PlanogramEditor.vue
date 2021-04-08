@@ -171,7 +171,7 @@
                 "
                 @created="
                   (left, top) =>
-                    setInitialOffsets(left, top, shelf, 'Shelf', index)
+                    setInitialOffsets(left, top, shelf, 'Shelf', index, 0)
                 "
               >
                 <vdr
@@ -211,7 +211,14 @@
                   "
                   @created="
                     (left, top) =>
-                      setInitialOffsets(left, top, product, 'Product', index)
+                      setInitialOffsets(
+                        left,
+                        top,
+                        product,
+                        'Product',
+                        index,
+                        pos
+                      )
                   "
                   @resizestop="
                     (x, y, width, height) =>
@@ -702,7 +709,7 @@ export default {
       }
     },
     // Calculate margins and offsets
-    setInitialOffsets(left, top, vdrData, type, index) {
+    setInitialOffsets(left, top, vdrData, type, index, pos) {
       if (typeof type === "string") {
         // Calculate for shelves
         if (type === "Shelf") {
@@ -771,27 +778,57 @@ export default {
           }
           console.log("");
 
-          let products = this.shelves[index].storedProducts;
-          let total = products.length;
+          let product = this.shelves[index].storedProducts[pos];
+          //let total = products.length;
           let sHeight = this.shelves[index].h;
 
-          let x = 0,
+          /* let x = 0,
             offsetFactor = total + 1,
-            totalFactor,
-            y;
+            y; */
 
-          let exp = Math.trunc(this.planogramWidth / offsetFactor);
+          //let exp = Math.trunc(this.planogramWidth / offsetFactor);
+          var domElement = document.querySelector(`#_SP_VDR-${index}-${pos}`);
+          var totalFactor = Math.trunc(
+            (product.origin.wPercentage * this.planogramWidth) / 100
+          );
+          var y = Math.trunc((product.origin.hPercentage * sHeight) / 100);
+          console.log("PRODUCTS POSITIONS: (x,y)", totalFactor, y);
+          domElement.style.transform = `translate(${totalFactor}px, ${y}px)`;
 
-          for (x; x < total; x++) {
+          this.product_x = totalFactor;
+          this.product_y = y;
+
+          if (this.product_x <= 0) this.product_x = left + Math.abs(left);
+          if (this.product_y <= 0) this.product_y = top + Math.abs(top);
+
+          let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
+          let pHeight = parseInt(
+            (this.product_y / this.shelves[index].h) * 100
+          );
+
+          const size = {
+            pWidth: pWidth,
+            pHeight: pHeight,
+          };
+
+          if (!product["proportionalSize"]) {
+            product["proportionalSize"] = size;
+          } else product.proportionalSize = size;
+
+          console.log("proportionalSize (w, h)", pWidth, pHeight);
+
+          console.log("Positioned x at:", totalFactor);
+          console.log("Positioned y at:", y);
+
+          /* for (x; x < total; x++) {
             let domElement = document.querySelector(`#_SP_VDR-${index}-${x}`);
             if (this.editedId > -1) {
-              //totalFactor = this.planogramWidth - (x + 1) * exp - sizeExp;
-              /* totalFactor = Math.trunc(
+              var totalFactor = Math.trunc(
                 (products[x].origin.wPercentage * this.planogramWidth) / 100
               );
               y = Math.trunc((products[x].origin.hPercentage * sHeight) / 100);
-              console.log("PRODUCTS POSITIONS: (x,y)", totalFactor, y); */
-              //domElement.style.transform = `translate(${100}px, ${0}px)`;
+              console.log("PRODUCTS POSITIONS: (x,y)", totalFactor, y);
+              domElement.style.transform = `translate(${totalFactor}px, ${y}px)`;
             } else {
               let sizeExp = Math.trunc(products[x].size.w / 2);
               totalFactor = this.planogramWidth - (x + 1) * exp - sizeExp;
@@ -801,13 +838,11 @@ export default {
                   products[x].size.h -
                   Math.trunc(this.baseShelfHeight / 2)
               );
-
-              //domElement.style.transform = `translate(${totalFactor}px, ${y}px)`;
             }
 
             this.product_x = totalFactor;
             this.product_y = y;
-            // Fixes negative values in some rare cases
+
             if (this.product_x <= 0) this.product_x = left + Math.abs(left);
             if (this.product_y <= 0) this.product_y = top + Math.abs(top);
 
@@ -831,7 +866,7 @@ export default {
 
             console.log("Positioned x at:", totalFactor);
             console.log("Positioned y at:", y);
-          }
+          } */
         }
       }
     },
@@ -944,7 +979,7 @@ export default {
     async save() {
       this.loading = true;
       var planogram;
-      if (this.editedId > -1 && this.editedIndex > -1) {
+      if (this.editedId > -1) {
         planogram = await this.$http
           .put(
             `Gondolas/${this.editedId}`,
@@ -953,7 +988,7 @@ export default {
               {
                 nombre: this.editedItem.nombre,
                 titulo: this.editedItem.titulo,
-                idFondo: +this.backgroundId,
+                idFondo: +this.backgroundId || +this.editedItem.idFondo,
               }
             )
           )
@@ -1002,6 +1037,8 @@ export default {
           });
       }
       console.log("planogram id", planogram);
+      if (this.editedId > -1) planogram = this.editedId;
+
       if (planogram) {
         var i = 0;
         let arr = this.shelves.length;
@@ -1104,7 +1141,7 @@ export default {
           } // end for ids
         }
       }
-      this.$router.replace({ name: "PlanogramList" });
+      //this.$router.replace({ name: "PlanogramList" });
       this.loading = false;
     },
     sendToShelf(pos) {
@@ -1158,7 +1195,7 @@ export default {
             storedProducts: this.editedId > -1 && items.length ? items : [],
           };
           // Change
-          if (this.editedId > -1) this.shelves.unshift(obj);
+          if (this.editedId > -1) this.shelves.push(obj);
           else this.shelves.push(obj);
         } else {
           this.snackbar = true;
@@ -1292,7 +1329,7 @@ export default {
                 if (!this.productBeingStored["size"]) {
                   this.productBeingStored["size"] = size;
                 }
-                /* let origin = Object.assign(
+                let origin = Object.assign(
                   {},
                   {
                     wPercentage: s.articulos[pr].origenX,
@@ -1301,7 +1338,7 @@ export default {
                 );
                 if (!this.productBeingStored["origin"]) {
                   this.productBeingStored["origin"] = origin;
-                } */
+                }
                 productsToStore.push(this.productBeingStored);
                 console.log(
                   "PRODUCTO A PUNTO DE ROMPERSE:",

@@ -716,14 +716,49 @@ export default {
           this.shelf_x = left;
           this.shelf_y = top;
 
-          let total = this.shelves.length,
+          var total = this.shelves.length,
             x = 0,
             offsetFactor = total + 1,
-            totalFactor;
+            factorY;
 
           let exp = Math.trunc(this.planogramHeight / offsetFactor);
+          let domElement = document.querySelector(`#vdr_shelf-${index}`);
 
-          for (x; x < total; x++) {
+          var shelf = this.shelves[index];
+
+          if (this.editedId > -1) {
+            factorY =
+              Math.trunc((shelf.originH * this.planogramHeight) / 100) -
+              shelf.h +
+              (x === 0 ? this.baseShelfHeight : 0);
+            console.log("factorY", factorY);
+          } else {
+            factorY = this.planogramHeight - (index + 1) * exp - shelf.h;
+          }
+          domElement.style.transform = `translate(0px, ${factorY}px)`;
+
+          if (!shelf["originY"]) {
+            shelf["originY"] = shelf.h;
+          } else shelf.originY = shelf.h;
+
+          this.shelf_y = factorY;
+
+          console.log("Positioned y at:", factorY);
+
+          if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
+          if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
+
+          let pHeight = parseInt(
+            ((this.shelf_y + +vdrData.h) / this.planogramHeight) * 100
+          );
+
+          if (!shelf["proportionalHeight"]) {
+            shelf["proportionalHeight"] = pHeight;
+          } else shelf.proportionalHeight = pHeight;
+
+          console.log("proportionalHeight (h)", pHeight);
+
+          /*  for (x; x < total; x++) {
             let domElement = document.querySelector(`#vdr_shelf-${x}`);
 
             if (this.editedId > -1) {
@@ -749,8 +784,7 @@ export default {
             this.shelf_y = totalFactor;
 
             console.log("Positioned y at:", totalFactor);
-
-            // Fixes negative values in some rare cases
+            
             if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
             if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
 
@@ -763,7 +797,7 @@ export default {
             } else this.shelves[x].proportionalHeight = pHeight;
 
             console.log("proportionalHeight (h)", pHeight);
-          }
+          } */
         }
         // Calculate for products
         else if (type === "Product") {
@@ -776,7 +810,6 @@ export default {
               this.product_h = vdrData.size.h;
             }
           }
-          console.log("");
 
           let product = this.shelves[index].storedProducts[pos];
           //let total = products.length;
@@ -1329,7 +1362,7 @@ export default {
                 if (!this.productBeingStored["size"]) {
                   this.productBeingStored["size"] = size;
                 }
-                let origin = Object.assign(
+                var origin = Object.assign(
                   {},
                   {
                     wPercentage: s.articulos[pr].origenX,
@@ -1373,6 +1406,7 @@ export default {
 .shelf_img {
   max-width: 100%;
   height: 100%;
+  width: 100%;
 }
 
 .__background-small {

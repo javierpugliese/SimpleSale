@@ -496,7 +496,7 @@ export default {
           let miniaturas = item.archivo.miniaturas.filter(
             (m) => m.size == "Small"
           );
-          return miniaturas[0].url;
+          return miniaturas[0] ? miniaturas[0].url : "";
         }
         return item.archivo.url;
       } else return false;
@@ -518,7 +518,7 @@ export default {
           this.$http.spread((...responses) => {
             const publicationsRes = responses[0];
             if (publicationsRes && publicationsRes.data) {
-              this.publications = publicationsRes.data;
+              this.publications = publicationsRes.data.list;
             }
           })
         )

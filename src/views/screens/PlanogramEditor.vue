@@ -1067,7 +1067,7 @@ export default {
               .put(`Estantes/${this.shelves[i].id}`, shelfData)
               .then((response) => {
                 if (response && response.data) {
-                  const obj = { id: +response.data.idObjeto, index: i };
+                  const obj = { id: +this.shelves[i].id, index: i };
                   console.log("shelf obj then", obj);
                   ids.push(obj);
                   this.snackbar = true;

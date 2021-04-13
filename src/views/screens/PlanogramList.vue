@@ -283,7 +283,7 @@ export default {
             const planogramsRes = responses[0];
 
             if (planogramsRes && planogramsRes.data)
-              this.planograms = planogramsRes.data;
+              this.planograms = planogramsRes.data.list;
           })
         )
         .catch((errors) => {

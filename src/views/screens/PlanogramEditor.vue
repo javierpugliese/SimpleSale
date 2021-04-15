@@ -118,6 +118,7 @@
               :resizable="false"
               :z="100"
               :handles="[]"
+              class="ma-0 pa-0"
               id="__PLANOGRAM_VDR"
             >
               <img
@@ -140,6 +141,7 @@
               <vdr
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
+                class="ma-0 pa-0"
                 :id="`vdr_shelf-${index}`"
                 :w="planogramWidth"
                 :h="+shelf.h"
@@ -178,6 +180,7 @@
                   v-for="(product, pos) in shelf.storedProducts"
                   v-bind:key="`product-${pos}`"
                   v-bind:id="`_SP_VDR-${index}-${pos}`"
+                  class="ma-0 pa-0"
                   :w="product.size.w"
                   :h="product.size.h"
                   :min-width="10"
@@ -729,8 +732,8 @@ export default {
           if (this.editedId > -1) {
             factorY =
               Math.trunc((shelf.originH * this.planogramHeight) / 100) -
-              shelf.h +
-              (x === 0 ? this.baseShelfHeight : 0);
+              shelf.h /* +
+              (x === 0 ? this.baseShelfHeight : 0); */
             console.log("factorY", factorY);
           } else {
             factorY = this.planogramHeight - (index + 1) * exp - shelf.h;

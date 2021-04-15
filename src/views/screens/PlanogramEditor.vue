@@ -195,7 +195,7 @@
                   :z="102"
                   :snap="true"
                   :snap-tolerance="2"
-                  :handles="['tr']"
+                  :handles="['tl']"
                   axis="both"
                   @dragging="(left, top) => xy('Product', left, top)"
                   @dragstop="
@@ -953,7 +953,7 @@ export default {
         }
       }
     },
-    tweakOnResize(index, pos, x, y, width, height) {
+    tweakOnResize(index, pos, product, x, y, width, height) {
       this.product_x = x;
       this.product_y = y;
       this.product_w = width;
@@ -1094,8 +1094,8 @@ export default {
             }
           );
 
-          if (this.editedId > -1) {
-            // update shelf
+          // update shelf
+          if (this.shelves[i].id > -1) {
             await this.$http
               .put(`Estantes/${this.shelves[i].id}`, shelfData)
               .then((response) => {

@@ -118,8 +118,8 @@
                   :loading="loading"
                   to="/pantallas/planogramas/editor"
                 >
-                  <v-icon class="mr-2">fas fa-location-arrow</v-icon>
-                  Ir al editor
+                  <v-icon class="mr-2">fas fa-plus</v-icon>
+                  Nuevo Planograma
                 </v-btn>
               </template>
               <v-card height="auto">

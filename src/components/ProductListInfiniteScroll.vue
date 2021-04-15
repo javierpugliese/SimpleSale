@@ -30,11 +30,7 @@
     </v-text-field>
     <div id="__results" class="mx-3">
       <div v-for="(product, index) in products" :key="index">
-        <v-list-item
-          v-if="product.archivos && product.activo"
-          style="background-color: #424242"
-          class="my-1 py-2"
-        >
+        <v-list-item style="background-color: #424242" class="my-1 py-2">
           <v-img
             :lazy-src="require('@/assets/no-disponible.jpg')"
             class="__product-img mr-3"
@@ -53,17 +49,39 @@
 
           <v-list-item-content>
             <v-list-item-title>
-              {{ product.nombre }} - $<strong>{{ product.precio }}</strong>
+              <v-tooltip color="#000" top>
+                <template v-slot:activator="{ on, attrs }">
+                  <span v-bind="attrs" v-on="on">{{ product.nombre }}</span>
+                </template>
+
+                <span
+                  style="
+                    overflow-wrap: break-word;
+                    word-wrap: break-word;
+                    word-break: break-word;
+                    white-space: pre-wrap;
+                  "
+                >
+                  {{ product.nombre }}
+                </span>
+              </v-tooltip>
             </v-list-item-title>
+
             <v-list-item-subtitle>
-              <strong>SKU</strong> {{ product.sku }}
+              <strong>SKU</strong> {{ product.sku }} -
+              <strong>$ {{ Number(product.precio).toFixed(2) }}</strong>
             </v-list-item-subtitle>
           </v-list-item-content>
 
           <v-list-item-action>
-            <v-btn depressed small @click="$emit(`itemSelected`, product)">
-              Enviar a estante
-              <v-icon small color="orange darken-4" class="ml-1" right>
+            <v-btn
+              class="ma-0 pa-0"
+              depressed
+              small
+              @click="$emit(`itemSelected`, product)"
+              icon
+            >
+              <v-icon small color="orange darken-4" class="ma-0 pa-0" right>
                 fas fa-external-link-alt
               </v-icon>
             </v-btn>

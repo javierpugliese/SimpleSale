@@ -1,6 +1,6 @@
 <template>
   <div class="planogram-editor">
-    <v-toolbar color="grey-darken-1" dark>
+    <v-toolbar class="mb-3" color="grey-darken-1" dark>
       <v-scale-transition>
         <v-app-bar-nav-icon>
           <v-icon>fas fa-mobile-alt</v-icon>
@@ -110,7 +110,7 @@
               :h="planogramHeight"
               :parent="false"
               :debug="false"
-              :min-width="planogramWidth"
+              :min-width="planogramWidth + 1"
               :min-height="planogramHeight"
               :isConflictCheck="false"
               :snap="false"
@@ -143,7 +143,8 @@
                 v-bind:key="`shelf-${index}`"
                 class="ma-0 pa-0"
                 :id="`vdr_shelf-${index}`"
-                :w="planogramWidth"
+                :x="0"
+                :w="planogramWidth - 1"
                 :h="+shelf.h"
                 :resizable="false"
                 :draggable="shelf_active"
@@ -732,7 +733,7 @@ export default {
           if (this.editedId > -1) {
             factorY =
               Math.trunc((shelf.originH * this.planogramHeight) / 100) -
-              shelf.h /* +
+              shelf.h; /* +
               (x === 0 ? this.baseShelfHeight : 0); */
             console.log("factorY", factorY);
           } else {

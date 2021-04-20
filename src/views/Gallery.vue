@@ -538,52 +538,72 @@
                 </v-file-input>
               </v-col>
               <v-col cols="12" sm="4" class="d-flex justify-center">
-                <v-img
-                  :src="fileURL || `${editedItem.url}?${new Date()}`"
-                  alt=" "
-                  :contain="true"
-                  :aspect-ratio="16 / 9"
-                  class="d-block grey-lighten-2 white--text ma-0 p-0 __background-small"
-                  gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
-                  style="border: 1px solid white"
-                >
-                  <div style="position: absolute; top: 0; right: 0">
-                    <v-btn
-                      v-if="editedIndex > -1 && editedId > -1 && !showFileInput"
-                      icon
-                      :disabled="loading || uploading"
-                      @click="showFileInput = true"
-                    >
-                      <v-icon color="warning"> fas fa-pencil-alt </v-icon>
-                    </v-btn>
-                    <v-btn
-                      v-if="!(editedIndex > -1 && editedId > -1) && fileURL"
-                      icon
-                      :disabled="loading || uploading"
-                      @click="
-                        file = null;
-                        fileURL = null;
-                      "
-                    >
-                      <v-icon color="red"> fas fa-times </v-icon>
-                    </v-btn>
-                  </div>
+                <div class="d-flex flex-column">
+                  <v-img
+                    :src="fileURL || `${editedItem.url}?${new Date()}`"
+                    alt=" "
+                    :contain="true"
+                    :aspect-ratio="16 / 9"
+                    :height="240"
+                    :width="135"
+                    :max-height="240"
+                    :max-width="135"
+                    class="d-block grey-lighten-2 white--text ma-0 p-0 __background-small"
+                    gradient="to bottom, rgba(0,0,0,.1), rgba(0,0,0,.5)"
+                    style="border: 1px solid white"
+                  >
+                    <div style="position: absolute; top: 0; right: 0">
+                      <v-btn
+                        v-if="
+                          editedIndex > -1 && editedId > -1 && !showFileInput
+                        "
+                        icon
+                        :disabled="loading || uploading"
+                        @click="showFileInput = true"
+                      >
+                        <v-icon color="warning"> fas fa-pencil-alt </v-icon>
+                      </v-btn>
+                      <v-btn
+                        v-if="!(editedIndex > -1 && editedId > -1) && fileURL"
+                        icon
+                        :disabled="loading || uploading"
+                        @click="
+                          file = null;
+                          fileURL = null;
+                        "
+                      >
+                        <v-icon color="red"> fas fa-times </v-icon>
+                      </v-btn>
+                    </div>
 
-                  <template v-slot:placeholder>
-                    <v-row
-                      v-if="fileURL"
-                      class="fill-height ma-0"
-                      align="center"
-                      justify="center"
-                    >
-                      <v-progress-circular
-                        indeterminate
-                        color="info"
-                      ></v-progress-circular>
-                    </v-row>
-                    <div class="text-overline text-center">Vista previa</div>
-                  </template>
-                </v-img>
+                    <template v-slot:placeholder>
+                      <v-row
+                        v-if="fileURL"
+                        class="fill-height ma-0"
+                        align="center"
+                        justify="center"
+                      >
+                        <v-progress-circular
+                          indeterminate
+                          color="info"
+                        ></v-progress-circular>
+                      </v-row>
+                      <div class="text-overline text-center">Vista previa</div>
+                    </template>
+                  </v-img>
+                  <a
+                    v-bind:href="editedItem.url"
+                    target="_blank"
+                    style="
+                      background: rgba(0, 0, 0, 0.5);
+                      text-decoration: none !important;
+                      color: white;
+                    "
+                    class="text-center text-white pa-1 mx-auto"
+                  >
+                    VER ORIGINAL
+                  </a>
+                </div>
               </v-col>
             </v-row>
           </v-sheet>

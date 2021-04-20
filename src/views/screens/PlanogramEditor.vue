@@ -431,7 +431,7 @@
                         dot-size="24"
                         mode="rgba"
                         show-swatches
-                        swatches-max-height="200"
+                        swatches-max-height="128"
                         hide-mode-switch
                       ></v-color-picker>
                     </v-card-text>
@@ -449,7 +449,7 @@
                 <v-text-field
                   v-model.number="shelf_h"
                   label="Altura del estante"
-                  hint="Altura mínima: 105."
+                  :hint="`Altura mínima: ${minShelfHeight}.`"
                   :rules="[rules.shelfMin, rules.shelfMax]"
                   filled
                   clearable
@@ -532,7 +532,7 @@ export default {
     y: 0,
     shelf_x: 0,
     shelf_y: 0,
-    shelf_h: Math.trunc(window.innerHeight * 0.75 * 0.15),
+    shelf_h: 0,
     shelf_w: 0,
     shelf_color: { r: 0, g: 0, b: 0, a: 1 },
     shelf_id: -1,
@@ -607,50 +607,7 @@ export default {
     snackbarText: "",
     snackbarColor: "black",
   }),
-  watch: {
-    editedId(val) {
-      console.log("editedId", val);
-    },
-    editedIndex(val) {
-      console.log("editedIndex", val);
-    },
-    backgroundData(val) {
-      console.log("backgroundData", val);
-    },
-    planogramSrc(val) {
-      console.log("planogramSrc", val);
-    },
-    shelves(val) {
-      console.log("[Observer] shelves", val);
-    },
-    productBeingStored(val) {
-      console.log("[Observer] productBeingStored", val);
-    },
-    space_y(val) {
-      console.log("[Observer] space_y", val);
-    },
-    shelf_x(val) {
-      console.log("[Observer] shelf_x", val);
-    },
-    shelf_y(val) {
-      console.log("[Observer] shelf_y", val);
-    },
-    shelf_h(val) {
-      console.log("[Observer] shelf_h", val);
-    },
-    product_x(val) {
-      console.log("[Observer] product_x", val);
-    },
-    product_y(val) {
-      console.log("[Observer] product_y", val);
-    },
-    product_w(val) {
-      console.log("[Observer] product_w", val);
-    },
-    product_h(val) {
-      console.log("[Observer] product_h", val);
-    },
-  },
+  watch: {},
   computed: {
     planogramHeight() {
       let val = Math.trunc(window.innerHeight * 0.75);
@@ -1251,6 +1208,7 @@ export default {
       this.editedId = -1;
       this.editedIndex = -1;
       this.shelf_id = -1;
+      this.shelf_h = this.minShelfHeight;
 
       console.log("route params", this.$route.params);
       if (this.$route.params) {

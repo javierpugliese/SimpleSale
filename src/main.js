@@ -11,8 +11,8 @@ import "./components/vdr_gorkys_modified/components/vue-draggable-resizable.css"
 
 Vue.config.productionTip = false;
 
-axios.defaults.baseURL = "https://touch-test-app.azurewebsites.net/";
-//axios.defaults.baseURL = "http://200.10.96.221:8080/";
+//axios.defaults.baseURL = "https://touch-test-app.azurewebsites.net/";
+axios.defaults.baseURL = "http://200.10.96.221:8080/";
 //axios.defaults.withCredentials = true;
 
 const USERNAME = "simplisale";

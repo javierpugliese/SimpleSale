@@ -354,6 +354,25 @@
             :value="file.idArchivoOriginal"
             style="position: absolute; z-index: 1; top: 0; right: 0"
           ></v-checkbox>
+
+          <v-tooltip color="#000" top>
+            <template v-slot:activator="{ on, attrs }">
+              <div class="background-title" v-bind="attrs" v-on="on">
+                {{ file.nombre }}
+              </div>
+            </template>
+
+            <span
+              style="
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+                word-break: break-word;
+                white-space: pre-wrap;
+              "
+            >
+              {{ file.nombre }}
+            </span>
+          </v-tooltip>
         </v-img>
       </v-col>
     </v-row>
@@ -1020,6 +1039,26 @@ export default {
 };
 </script>
 <style scoped>
+.background-title {
+  position: absolute;
+  bottom: 0;
+  background: rgb(0, 0, 0);
+  background: rgba(0, 0, 0, 0.5); /* Black see-through */
+  color: #f1f1f1;
+  width: 100%;
+  transition: 0.5s ease;
+  color: white;
+  font-size: 0.8rem;
+  padding: 0.1rem;
+  max-height: 3.5rem;
+  text-align: center;
+  overflow: hidden;
+  display: -webkit-box;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .background:hover {
   cursor: pointer;
 }

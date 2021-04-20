@@ -152,7 +152,7 @@
                 :grid="[1, 1]"
                 :parent="true"
                 :active="shelf_active"
-                :handles="['tm', 'mr']"
+                :handles="['tr']"
                 class-name-dragging="shelf__dragging"
                 :debug="false"
                 :isConflictCheck="true"
@@ -385,7 +385,7 @@
               <v-col cols="6" class="d-flex justify-end">
                 <v-btn
                   @click="addShelf"
-                  :disabled="loading || shelf_h < 105"
+                  :disabled="loading || shelf_h < minShelfHeight"
                   :loading="loading"
                   color="#55AA99"
                   dark
@@ -868,12 +868,9 @@ export default {
       if (typeof type === "string") {
         // Shelves
         if (type === "Shelf") {
-          this.shelf_x = left;
-          this.shelf_y = top;
-
-          // Fixes negative values in some rare cases
-          if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
-          if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
+          // Fixes negative values in weird cases
+          this.shelf_x = left <= 0 ? left + Math.abs(left) : left;
+          this.shelf_y = top <= 0 ? top + Math.abs(top) : top;
 
           let pHeight = parseInt(
             ((this.shelf_y + +vdrData.h) / this.planogramHeight) * 100
@@ -887,11 +884,9 @@ export default {
         }
         // Products
         else if (type === "Product") {
-          this.product_x = left;
-          this.product_y = top;
-          // Fixes negative values in some rare cases
-          if (this.product_x <= 0) this.product_x = left + Math.abs(left);
-          if (this.product_y <= 0) this.product_y = top + Math.abs(top);
+          // Fixes negative values in weird cases
+          this.product_x = left <= 0 ? left + Math.abs(left) : left;
+          this.product_y = top <= 0 ? top + Math.abs(top) : top;
 
           let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
           let pHeight = parseInt(
@@ -1081,7 +1076,6 @@ export default {
               .then((response) => {
                 if (response && response.data) {
                   const obj = { id: +response.data.idObjeto, index: i };
-                  console.log("shelf obj then", obj);
                   ids.push(obj);
                   this.snackbar = true;
                   this.snackbarColor = "success";
@@ -1302,7 +1296,7 @@ export default {
                   .then((res) => {
                     if (res && res.data) {
                       this.productBeingStored = Object.assign({}, res.data);
-                    } else console.log("ACA NO ESTUVO OKEY :(");
+                    }
                     this.loading = false;
                   })
                   .catch((err) => {
@@ -1321,7 +1315,6 @@ export default {
                     ),
                   }
                 );
-                console.log("SIZES --------------------- (w, h)", size);
                 if (!this.productBeingStored["size"]) {
                   this.productBeingStored["size"] = size;
                 }
@@ -1336,10 +1329,6 @@ export default {
                   this.productBeingStored["origin"] = origin;
                 }
                 productsToStore.push(this.productBeingStored);
-                console.log(
-                  "PRODUCTO A PUNTO DE ROMPERSE:",
-                  this.productBeingStored
-                );
               }
 
               this.addShelf(productsToStore);

@@ -329,7 +329,11 @@
           :key="`background-${file.id}`"
           class="ma-3 background"
           :lazy-src="require('@/assets/no-disponible.jpg')"
-          :src="file.url || require('@/assets/no-disponible.jpg')"
+          :src="
+            file.url.match(/.(mp4|webm)$/i)
+              ? require('@/assets/video_unavailable.jpg')
+              : file.url || require('@/assets/no-disponible.jpg')
+          "
           :height="240"
           :width="135"
           :max-height="240"
@@ -340,7 +344,9 @@
           <template v-slot:placeholder>
             <v-row class="fill-height ma-0" align="center" justify="center">
               <v-progress-circular
-                indeterminate
+                :indeterminate="
+                  file.url.match(/.(jpg|jpeg|webp)$/i) ? true : false
+                "
                 color="info"
               ></v-progress-circular>
             </v-row>
@@ -842,21 +848,40 @@ export default {
         this.fileType = fileType.data[0].id;
         if (this.fileType > 0) {
           await this.$http
-            .get(`Archivos/SizeAndTipo/`, {
-              params: {
-                idTipo: +this.fileType,
-                size: "Small",
-                pageNumber: this.page,
-                pageSize: this.itemsPerPage,
-              },
-            })
+            .post(
+              `Archivos/Filtrados/`,
+              { idTipoArchivo: +this.fileType, eliminado: false },
+              {
+                params: {
+                  pageNumber: this.page,
+                  pageSize: this.itemsPerPage,
+                },
+              }
+            )
             .then((res) => {
               if (res && res.data) {
                 this.page = res.data.pageNumber;
                 this.pages = res.data.totalPages;
                 this.totalRecords = res.data.totalRecords;
                 this.backgrounds = res.data.list;
+
+                let thumbsList = [];
+                for (let bg of res.data.list) {
+                  if (bg.miniaturas && bg.miniaturas.length) {
+                    let t = bg.miniaturas.filter((b) => b.size === "Small");
+                    thumbsList.push(t[0]);
+                  } else {
+                    if (bg.url.match(/.(mp4|webm)$/i)) {
+                      thumbsList.push(bg);
+                    }
+                  }
+                }
+                this.backgrounds = thumbsList;
+
+                //let thumbs = res.data.list.filter((t) => t.size === "Small");
                 this.page = res.data.totalPages;
+
+                console.log(this.backgrounds);
               }
             })
             .catch(() => {

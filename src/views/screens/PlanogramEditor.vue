@@ -914,20 +914,21 @@ export default {
         }
       }
     },
-    tweakOnResize(index, pos, product, x, y, width, height) {
-      this.product_x = x;
-      this.product_y = y;
-      this.product_w = width;
-      this.product_h = height;
+    tweakOnResize(index, pos, data, x, y, width, height) {
+      // Fixes negative values in weird cases
+      this.product_x = x <= 0 ? x + Math.abs(x) : x;
+      this.product_y = y <= 0 ? y + Math.abs(y) : y;
+      this.product_w = width <= 0 ? width + Math.abs(width) : width;
+      this.product_h = height <= 0 ? height + Math.abs(height) : height;
 
-      let storedProduct = this.shelves[index].storedProducts[pos];
-      storedProduct.size.w = Math.ceil(this.product_w);
-      storedProduct.size.h = Math.ceil(this.product_h);
+      // Sync product
+      let product = this.shelves[index].storedProducts[pos];
+      product.size.w = width;
+      product.size.h = height;
 
-      let w = storedProduct.size.w;
-      let h = storedProduct.size.h;
+      let productData = Object.assign({}, data);
 
-      console.log("Resize result (w, h):", w, h);
+      console.log("Resize result (w, h):", width, height);
     },
     async removeShelf(index) {
       let pos = this.shelves.indexOf(this.shelves[index]);

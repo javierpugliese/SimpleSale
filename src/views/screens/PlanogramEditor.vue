@@ -1410,7 +1410,6 @@ export default {
   border-radius: 50%;
   height: 14px;
   width: 14px;
-  box-model: border-box;
   -webkit-transition: all 300ms linear;
   -ms-transition: all 300ms linear;
   transition: all 300ms linear;

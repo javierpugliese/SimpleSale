@@ -36,7 +36,7 @@
               v-bind="attrs"
               v-on="on"
               :loading="loading"
-              disabled
+              :disabled="loading"
             >
               <v-icon class="mr-2">fas fa-search</v-icon>
               Buscar
@@ -77,42 +77,34 @@
                   </v-col>
                   <v-col cols="12" sm="4">
                     <v-dialog
-                      ref="dialog"
-                      v-model="dialogDates"
-                      :return-value.sync="searchDates"
+                      ref="dialogInitDate"
+                      v-model="modalInitDate"
+                      :return-value.sync="searchItem.fechaAltaInicio"
                       persistent
                       width="290px"
                     >
                       <template v-slot:activator="{ on, attrs }">
                         <v-text-field
-                          :value="computedDateFormattedMomentjs"
-                          clearable
-                          label="Rango de Fechas"
+                          :value="moment_initDateFormatted"
+                          label="Fecha inicial de alta"
                           readonly
-                          prepend-icon="fas fa-calendar-alt"
-                          no-title
                           outlined
                           dense
+                          hide-details
                           v-bind="attrs"
                           v-on="on"
-                          @click:clear="searchDates = []"
                         ></v-text-field>
                       </template>
-                      <v-date-picker v-model="searchDates" scrollable range>
+                      <v-date-picker
+                        v-model="searchItem.fechaAltaInicio"
+                        scrollable
+                        dense
+                        :allowed-dates="disablePastDates"
+                        @input="saveInitDate"
+                      >
                         <v-spacer></v-spacer>
-                        <v-btn
-                          text
-                          color="primary"
-                          @click="dialogDates = false"
-                        >
-                          Cancelar
-                        </v-btn>
-                        <v-btn
-                          text
-                          color="primary"
-                          @click="$refs.dialog.save(searchDates)"
-                        >
-                          Aceptar
+                        <v-btn text color="primary" @click="modalInitDateClose">
+                          Cerrar
                         </v-btn>
                       </v-date-picker>
                     </v-dialog>
@@ -152,7 +144,7 @@
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-cloud-upload-alt
           </v-icon>
-          {{ !$vuetify.breakpoint.xsOnly ? "Subir archivo" : "" }}
+          {{ !$vuetify.breakpoint.xsOnly ? "Subir" : "" }}
         </v-btn>
       </v-scale-transition>
       <v-scale-transition v-if="!selectTool">
@@ -169,7 +161,7 @@
           <v-icon :class="$vuetify.breakpoint.xsOnly ? '' : 'mr-2'">
             fas fa-object-group
           </v-icon>
-          {{ !$vuetify.breakpoint.xsOnly ? "Herramienta de Selección" : "" }}
+          {{ !$vuetify.breakpoint.xsOnly ? "Seleccionar" : "" }}
         </v-btn>
       </v-scale-transition>
       <v-scale-transition v-if="selectTool">
@@ -697,7 +689,8 @@ export default {
     dialogDelete: false,
     dialogSearch: false,
     dialogUploading: false,
-    dialogDates: false,
+    modalInitDate: false,
+    modalEndDate: false,
     searchDates: [],
     editedIndex: -1,
     editedId: -1,
@@ -729,11 +722,15 @@ export default {
     },
     searchItem: {
       nombre: "",
-      idTipo: -1,
+      idTipoArchivo: -1,
+      fechaAltaInicio: "",
+      fechaAltaFin: "",
     },
     searchItemDefault: {
       nombre: "",
-      idTipo: -1,
+      idTipoArchivo: -1,
+      fechaAltaInicio: "",
+      fechaAltaFin: "",
     },
   }),
 
@@ -772,22 +769,35 @@ export default {
     formTitle() {
       return this.editedIndex === -1 ? "Nuevo Fondo" : "Editar Fondo";
     },
-    computedDateFormattedMomentjs() {
-      if (this.searchDates) {
-        let dates = [...this.searchDates];
-        let date = 0;
-        let arr = dates.length;
-        for (date; date < arr; date++) {
-          let formattedDate = moment(dates[date]).format("DD/MM/YYYY");
-          dates[date] = formattedDate;
-        }
-        return dates.join(" ~ ");
-      }
-      return [];
+    moment_initDateFormatted() {
+      return this.searchItem.fechaAltaInicio
+        ? moment(this.searchItem.fechaAltaInicio).format("DD/MM/YYYY")
+        : "";
+    },
+    moment_endDateFormatted() {
+      return this.searchItem.fechaAltaFin
+        ? moment(this.searchItem.fechaAltaFin).format("DD/MM/YYYY")
+        : "";
     },
   },
 
   methods: {
+    modalInitDateClose() {
+      this.modalInitDate = false;
+      this.$nextTick = () => {
+        this.searchItem.fechaAltaInicio = "";
+      };
+    },
+    modalEndDateClose() {
+      this.modalEndDate = false;
+      this.$nextTick = () => {
+        this.searchItem.fechaAltaFin = "";
+      };
+    },
+    disablePastDates(val) {
+      let date = new Date().toISOString().substr(0, 10);
+      return val >= date;
+    },
     goToPage(value) {
       this.page = value;
       this.initialize();

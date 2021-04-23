@@ -64,7 +64,7 @@
                   </v-col>
                   <v-col cols="12" sm="4">
                     <v-autocomplete
-                      v-model="searchItem.idTipo"
+                      v-model="searchItem.idTipoArchivo"
                       :items="fileTypes"
                       label="Tipo de archivo"
                       maxlength="50"
@@ -99,11 +99,45 @@
                         v-model="searchItem.fechaAltaInicio"
                         scrollable
                         dense
-                        :allowed-dates="disablePastDates"
+                        :allowed-dates="disableFutureDates"
                         @input="saveInitDate"
                       >
                         <v-spacer></v-spacer>
                         <v-btn text color="primary" @click="modalInitDateClose">
+                          Cerrar
+                        </v-btn>
+                      </v-date-picker>
+                    </v-dialog>
+                  </v-col>
+                  <v-col cols="12" sm="4">
+                    <v-dialog
+                      ref="dialogEndDate"
+                      v-model="modalEndDate"
+                      :return-value.sync="searchItem.fechaAltaFin"
+                      persistent
+                      width="290px"
+                    >
+                      <template v-slot:activator="{ on, attrs }">
+                        <v-text-field
+                          :value="moment_endDateFormatted"
+                          label="Fecha final de alta"
+                          readonly
+                          outlined
+                          dense
+                          hide-details
+                          v-bind="attrs"
+                          v-on="on"
+                        ></v-text-field>
+                      </template>
+                      <v-date-picker
+                        v-model="searchItem.fechaAltaFin"
+                        scrollable
+                        dense
+                        :allowed-dates="disableFutureDates"
+                        @input="saveEndDate"
+                      >
+                        <v-spacer></v-spacer>
+                        <v-btn text color="primary" @click="modalEndDateClose">
                           Cerrar
                         </v-btn>
                       </v-date-picker>
@@ -121,7 +155,10 @@
               <v-btn
                 color="success"
                 large
-                @click="dialogSearch = false"
+                @click="
+                  searchMode = true;
+                  initialize();
+                "
                 :disabled="loading"
               >
                 Aplicar
@@ -584,6 +621,7 @@
                     </template>
                   </v-img>
                   <a
+                    v-if="editedIndex > -1"
                     v-bind:href="editedItem.url"
                     target="_blank"
                     style="
@@ -675,13 +713,10 @@ export default {
     loading: false,
     uploading: false,
     selectTool: false,
-    search: "",
+    searchTimeout: null,
     selection: [],
     fileType: -1,
-    fileTypes: [
-      { text: "Imagen", value: 0 },
-      { text: "Video", value: 1 },
-    ],
+    fileTypes: [],
     backgrounds: [],
     file: null,
     showFileInput: true,
@@ -703,6 +738,7 @@ export default {
     fileAlerts: [],
     fileUploadDetailsAlert: true,
     videoAlerts: [],
+    searchMode: false,
     itemsPerPageItems: [
       { text: "5 fondos", value: 5 },
       { text: "10 fondos", value: 10 },
@@ -725,16 +761,25 @@ export default {
       idTipoArchivo: -1,
       fechaAltaInicio: "",
       fechaAltaFin: "",
+      eliminado: false,
     },
     searchItemDefault: {
       nombre: "",
       idTipoArchivo: -1,
       fechaAltaInicio: "",
       fechaAltaFin: "",
+      eliminado: false,
     },
   }),
 
   watch: {
+    // watch nested properties
+    "searchItem.fechaAltaInicio"(newVal, oldVal) {
+      console.log("searchItem.fechaAltaInicio", newVal, oldVal);
+    },
+    "searchItem.fechaAltaFin"(newVal, oldVal) {
+      console.log("searchItem.fechaAltaFin", newVal, oldVal);
+    },
     dialogDelete(val) {
       val || this.closeDelete();
     },
@@ -782,6 +827,14 @@ export default {
   },
 
   methods: {
+    saveInitDate() {
+      this.$refs.dialogInitDate.save(this.searchItem.fechaAltaInicio);
+      this.modalInitDateClose();
+    },
+    saveEndDate() {
+      this.$refs.dialogEndDate.save(this.searchItem.fechaAltaFin);
+      this.modalEndDateClose();
+    },
     modalInitDateClose() {
       this.modalInitDate = false;
       this.$nextTick = () => {
@@ -794,9 +847,9 @@ export default {
         this.searchItem.fechaAltaFin = "";
       };
     },
-    disablePastDates(val) {
+    disableFutureDates(val) {
       let date = new Date().toISOString().substr(0, 10);
-      return val >= date;
+      return val <= date;
     },
     goToPage(value) {
       this.page = value;
@@ -864,6 +917,13 @@ export default {
     truncateString(str, n) {
       return str.length > n ? str.substr(0, n - 1) + "&hellip;" : str;
     },
+    dialogSearchClose() {
+      this.dialogSearch = false;
+      this.$nextTick = () => {
+        this.searchMode = false;
+        this.searchItem = this.searchItemDefault;
+      };
+    },
     async initialize() {
       this.fileType = -1;
       this.backgrounds = [];
@@ -872,57 +932,89 @@ export default {
       this.file = null;
       this.fileTotalProgress = 0;
       this.fileUploadDetailsAlert = true;
+      this.page = 1;
+      if (!this.searchMode) this.fileTypes = [];
 
-      const fileType = await this.$http.get("TipoArchivos/nombre/Fondo");
-      if (fileType && fileType.data) {
-        this.fileType = fileType.data[0].id;
-        if (this.fileType > 0) {
-          await this.$http
-            .post(
-              `Archivos/Filtrados/`,
-              { idTipoArchivo: +this.fileType, eliminado: false },
-              {
-                params: {
-                  pageNumber: this.page,
-                  pageSize: this.itemsPerPage,
-                },
-              }
-            )
-            .then((res) => {
-              if (res && res.data) {
-                this.page = res.data.pageNumber;
-                this.pages = res.data.totalPages;
-                this.totalRecords = res.data.totalRecords;
-                this.backgrounds = res.data.list;
-
-                let thumbsList = [];
-                for (let bg of res.data.list) {
-                  if (bg.miniaturas && bg.miniaturas.length) {
-                    let t = bg.miniaturas.filter((b) => b.size === "Small");
-                    thumbsList.push(t[0]);
-                  } else {
-                    if (bg.url.match(/.(mp4|webm)$/i)) {
-                      thumbsList.push(bg);
-                    }
-                  }
-                }
-                this.backgrounds = thumbsList;
-
-                //let thumbs = res.data.list.filter((t) => t.size === "Small");
-                this.page = res.data.totalPages;
-
-                console.log(this.backgrounds);
-              }
-            })
-            .catch(() => {
-              this.snackbarText =
-                "¡ERROR! Ocurrió un error al obtener los resultados.";
-              this.snackbarColor = "danger";
-              this.snackbar = true;
-            });
-        }
+      // Get filetypes
+      const filetypes = await this.$http.get("TipoArchivos");
+      if (
+        filetypes &&
+        filetypes.data &&
+        filetypes.data.length &&
+        filetypes.status === 200
+      ) {
+        let filters = ["Fondo", "FondoVideo"]; // Change as project manager says
+        let filteredFileTypes = [...filetypes.data].filter(
+          (ft) => filters.includes(ft.nombre) && ft.eliminado === false
+        );
+        // Manual mapping
+        let img = filteredFileTypes[0],
+          video = filteredFileTypes[1];
+        this.fileTypes = [
+          { text: "Imagenes", value: img.id },
+          { text: "Videos", value: video.id },
+        ];
+        // Defaults
+        this.searchItem.idTipoArchivo = img.id;
+        this.fileType = img.id;
       }
-      this.loading = false;
+
+      const data = {};
+      if (this.searchMode) {
+        if (this.searchItem.nombre) data["nombre"] = this.searchItem.nombre;
+        if (this.searchItem.idTipoArchivo > -1)
+          data["idTipoArchivo"] = this.searchItem.idTipoArchivo;
+        if (this.searchItem.fechaAltaInicio)
+          data["fechaAltaInicio"] = this.searchItem.fechaAltaInicio;
+        if (this.searchItem.fechaAltaFin)
+          data["fechaAltaFin"] = this.searchItem.fechaAltaFin;
+        data["eliminado"] = false;
+      } else {
+        Object.assign(data, {
+          idTipoArchivo: +this.fileType,
+          eliminado: false,
+        });
+      }
+
+      await this.$http
+        .post(`Archivos/Filtrados/`, data, {
+          params: {
+            pageNumber: this.page,
+            pageSize: this.itemsPerPage,
+          },
+        })
+        .then((res) => {
+          if (res && res.data && res.status === 200) {
+            this.page = res.data.pageNumber;
+            this.pages = res.data.totalPages;
+            this.totalRecords = res.data.totalRecords;
+            this.backgrounds = res.data.list;
+
+            let thumbsList = [];
+            for (let bg of res.data.list) {
+              if (bg.miniaturas && bg.miniaturas.length) {
+                let t = bg.miniaturas.filter((b) => b.size === "Small");
+                thumbsList.push(t[0]);
+              } else {
+                if (bg.url.match(/.(mp4|webm)$/i)) {
+                  thumbsList.push(bg);
+                }
+              }
+            }
+            this.backgrounds = thumbsList;
+            this.page = res.data.totalPages;
+          } else return Promise.reject("");
+        })
+        .catch(() => {
+          this.snackbarText =
+            "¡ERROR! Ocurrió un error al obtener los resultados.";
+          this.snackbarColor = "danger";
+          this.snackbar = true;
+        })
+        .finally(() => {
+          this.loading = false;
+        });
+      this.dialogSearchClose();
     },
 
     editItem(item) {

@@ -154,7 +154,6 @@ export default {
               for (i; i < arr; i++) {
                 this.products.push(array[i]);
               }
-              //this.products = res.data.list;
               this.pages = res.data.totalPages;
               this.totalRecords = res.data.totalRecords;
             }
@@ -165,7 +164,7 @@ export default {
           .finally(() => {
             this.loading = false;
           });
-      }, 1000);
+      }, 1250);
     },
     async initialize() {
       this.loading = true;
@@ -176,12 +175,6 @@ export default {
     const listElm = document.querySelector("#__results-box");
     listElm.style.height = `${Math.ceil(window.innerHeight * 0.75)}px`;
     listElm.style.maxHeight = listElm.style.height;
-    /*
-    listElm.addEventListener("scroll", () => {
-      if (listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight) {
-        this.nextPage();
-      }
-    }); */
   },
 };
 </script>

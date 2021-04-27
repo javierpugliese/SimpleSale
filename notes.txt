@@ -6,3 +6,16 @@ ERRORES
 - En algunas ocaciones se duplica un estante.
 - Al elimiar un estante, se deforman las imagenes, algunos estantes cambian de posicion
 - Al crear nuevo planograma, la primera vez que se guardan, se guardan bien, al volver a guardar otra vez, se dublican los estantes
+
+
+
+270 * 480
+redimensionar las imagenes a valores optimos (ej. 83px -> 80px/85px)
+mostrar bien los errores
+crear cuadro de dialogo, para poder eliminar producto
+resize de estante
+
+
+NOTIFICACIONES
+fecha y hora.
+copiar info + depuracion en el portapapeles

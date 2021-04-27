@@ -1,5 +1,6 @@
 <template>
   <v-app>
+
     <v-navigation-drawer v-model="drawer" v-if="logged" temporary app>
       <v-list-item class="px-2 py-1">
         <v-list-item-avatar>
@@ -105,19 +106,24 @@
       </v-container>
     </v-main>
 
+    <Notifications_status/>
+
     <!-- <v-footer app>
     </v-footer> -->
   </v-app>
 </template>
 
 <script>
+
 import moment from "moment";
 import Login from "./views/Login.vue";
+import Notifications_status from "./components/Notifications_status.vue";
+
 moment.locale("es");
 export default {
   name: "App",
 
-  components: { Login },
+  components: { Login, Notifications_status },
 
   data: () => ({
     logged: false,

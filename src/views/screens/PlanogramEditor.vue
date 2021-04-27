@@ -142,7 +142,7 @@
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
                 class="ma-0 pa-0"
-                :style="`borderColor: ${rgba(shelf.color)}`"
+                :style="`borderColor: ${rgba(shelf.color)}; border: none; backgroundColor: rgba(15,15,15,.1)`"
                 :id="`vdr_shelf-${index}`"
                 :x="0"
                 :y="Math.trunc(shelf.originY)"
@@ -184,6 +184,7 @@
                   v-bind:key="`product-${pos}`"
                   v-bind:id="`_SP_VDR-${index}-${pos}`"
                   class="ma-0 pa-0"
+                  :style="'border: none'"
                   :x="Math.trunc( product.size.originX )"
                   :y="Math.trunc( product.size.originY )"
                   :w="product.size.w"
@@ -246,11 +247,12 @@
                   </div>
                 </vdr>
                 <!-- Shelf base -->
-                <div class="d-flex ma-0" :style="{ height: `${shelf.h}px` }">
+                <!-- <div class="d-flex ma-0" :style="{ height: `${shelf.h}px` }"> -->
+                <div class="d-flex ma-0" :style="{ position: 'absolute', bottom: 0 }">
                   <v-sheet
-                    class="align-self-end"
+                    class="align-self-end my-class-base-shelf"
                     :width="planogramWidth"
-                    :height="baseShelfHeight"
+                    :height="6"
                     :color="rgba(shelf.color)"
                   >
                     <div class="shelf-actions-left text-overline text-center">
@@ -546,7 +548,7 @@ export default {
     product_h: 0,
 
     // Planogram
-    space_y: Math.trunc(window.innerHeight * 0.75),
+    space_y: 500,
 
     shelf_active: true,
     loading: false,
@@ -629,12 +631,14 @@ export default {
   watch: {},
   computed: {
     planogramHeight() {
-      let val = Math.trunc(window.innerHeight * 0.75);
+      // let val = Math.trunc(window.innerHeight * 0.75);
+      let val = 500;
       // console.log("[Computed] planogramHeight", val);
       return val;
     },
     planogramWidth() {
-      let val = Math.trunc((this.planogramHeight / 16) * 9);
+      // let val = Math.trunc((this.planogramHeight / 16) * 9);
+      let val = 250;
       // console.log("[Computed] planogramWidth", val);
       return val;
     },
@@ -697,6 +701,8 @@ export default {
 
       if (typeof type === "string") {
 
+        if( isNaN(left) ) left = 0;
+
         console.log( "SET PROPORTIONAL:", left, top);
         let shelf = this.shelves[index];
 
@@ -717,11 +723,13 @@ export default {
 
           let product = this.shelves[index].storedProducts[pos];
 
-          let pWidth = Math.trunc( ((vdrData.size.w*100)/this.planogramWidth) * 100000 );
-          let pHeight = Math.trunc( ((vdrData.size.h*100)/shelf.h) * 100000 );
+          let pWidth = Math.trunc( ((vdrData.size.w*100)/this.planogramWidth) * 10000000 );
+          let pHeight = Math.trunc( ((vdrData.size.h*100)/shelf.h) * 10000000 );
 
           let pOriginY = 0;
-          let pOriginX = Math.trunc( ( (left*100)/this.planogramWidth) * 100000 );
+          let pOriginX = Math.trunc( ( (left*100)/this.planogramWidth) * 10000000 );
+
+
 
           product.proportionalSize = {
 
@@ -742,6 +750,7 @@ export default {
 
       console.log( "GET PROPORTIONAL:", left, top);
       let shelf = this.shelves[index];
+      if( isNaN(left) ) left = 0;
 
       if (typeof type === "string") {
 
@@ -764,11 +773,11 @@ export default {
 
           let product = this.shelves[index].storedProducts[pos];
 
-          let pWidth = Math.trunc( ((vdrData.size.w*100)/this.planogramWidth) * 100000 );
-          let pHeight = Math.trunc( ((vdrData.size.h*100)/shelf.h) * 100000 );
+          let pWidth = Math.trunc( ((vdrData.size.w*100)/this.planogramWidth) * 10000000 );
+          let pHeight = Math.trunc( ((vdrData.size.h*100)/shelf.h) * 10000000 );
 
           let pOriginY = 0;
-          let pOriginX = Math.trunc( ( (left*100)/this.planogramWidth) * 100000 );
+          let pOriginX = Math.trunc( ( (left*100)/this.planogramWidth) * 10000000 );
 
           product.proportionalSize = {
 
@@ -787,15 +796,43 @@ export default {
 
     tweakOnResize(index, pos, data, x, y, width, height) {
 
+      // width = Math.trunc( width );
+      // height = Math.trunc( height );
+
       let shelf = this.shelves[index];
 
       let product = this.shelves[index].storedProducts[pos];
 
-      let pWidth = Math.trunc( ((width*100)/this.planogramWidth) * 100000 );
-      let pHeight = Math.trunc( ((height*100)/shelf.h) * 100000 );
+      let pWidth = Math.trunc( ((width*100)/this.planogramWidth) * 10000000 );
+      let pHeight = Math.trunc( ((height*100)/shelf.h) * 10000000 );
 
       let pOriginY = 0;
-      let pOriginX = Math.trunc( ( (x*100)/this.planogramWidth) * 100000 );
+      let pOriginX = Math.trunc( ( (x*100)/this.planogramWidth) * 10000000 );
+
+      // 
+      // let product_w = 10;
+      // let product_h = 10;
+      // let product_w_proportion = 0;
+      // let product_h_proportion = 0;
+
+      // if( height > width ) {
+
+      //   product_h = this.planogramHeight * .09;
+      //   product_h_proportion = ((height - product_h)*100)/height;
+      //   product_w = width - (width * (product_h_proportion/100));
+
+      // }else {
+
+      //   product_w = this.planogramHeight * .09;
+      //   product_w_proportion = ((width - product_w)*100)/width;
+      //   product_h = height - (height * (product_w_proportion/100));
+
+      // }
+
+      product.size.w = width;
+      product.size.h = height;
+      // product.size.originY = this.shelves[pos].h - product_h - 7;
+      // 
 
       product.proportionalSize = {
 
@@ -847,7 +884,6 @@ export default {
           });
         this.loading = false;
       }
-      // this.space_y = this.space_y + this.shelves[pos].h;
       this.shelves.splice(pos, 1);
     },
 
@@ -948,13 +984,13 @@ export default {
             {},
             {
               color: color,
-              altura: Math.trunc( +s.proportionalHeight*100000 ),
-              orden: Math.trunc( (+s.h/this.space_y)*100*100000 ),
+              altura: Math.trunc( +s.proportionalHeight*10000000 ),
+              orden: Math.trunc( (+s.h/this.space_y)*100*10000000 ),
               idGondola: planogram,
             }
           );
-          // let (miH/this.space_y)*100 =  this.shelf_h;
-            console.log( shelfData );
+
+          console.log( shelfData );
 
           // update shelf
           if (this.shelves[i].id > -1) {
@@ -1077,6 +1113,7 @@ export default {
         let product_w_proportion = 0;
         let product_h_proportion = 0;
         let originY = 0;
+        let originX = 0;
 
         if( image.height > image.width ) {
 
@@ -1092,15 +1129,18 @@ export default {
 
         }
 
-        originY = this.shelves[pos].h - product_h - 3;
+        originY = this.shelves[pos].h - product_h - 7;
 
         this.productBeingStored.size = {
 
           w: product_w,
           h: product_h,
-          originY
+          originY,
+          originX
 
         };
+
+        console.log( this.productBeingStored );
 
         this.shelves[pos].storedProducts.push(this.productBeingStored);
         console.log("shelves", this.shelves);
@@ -1362,7 +1402,7 @@ export default {
 
               this.shelf_color = rgba;
               // this.shelf_h = s.orden;
-              // this.shelf_h = this.shelf_pHeight/100000;
+              // this.shelf_h = this.shelf_pHeight/10000000;
               this.shelf_pHeight = s.altura;
               // this.shelf_pHeight = 150;
               this.shelf_id = s.id;
@@ -1370,14 +1410,14 @@ export default {
               var productsToStore = [];
 
               console.log( this.shelf_pHeight, this.shelf_h );
-              console.log( this.planogramHeight * ((this.shelf_pHeight/100000)/100) );
+              console.log( this.planogramHeight * ((this.shelf_pHeight/10000000)/100) );
               //  let miH = this.space_y * (this.shelf_h/100);
               // console.log( miH );
               s.storedProducts = [];
               const obj = {
                 color: this.shelf_color,
-                h: this.space_y * (s.orden/100/100000),
-                originY: this.planogramHeight * ((this.shelf_pHeight/100000)/100),
+                h: this.space_y * (s.orden/100/10000000),
+                originY: this.planogramHeight * ((this.shelf_pHeight/10000000)/100),
                 id: this.shelf_id,
                 storedProducts: [],
               };
@@ -1429,11 +1469,11 @@ export default {
 
                       console.log( s.articulos[pr] );
 
-                      product_h = this.shelves[countShelf].h * ((s.articulos[pr].alto/100000)/100);
-                      product_w = this.planogramWidth * ((s.articulos[pr].ancho/100000)/100);
+                      product_h = this.shelves[countShelf].h * ((s.articulos[pr].alto/10000000)/100);
+                      product_w = this.planogramWidth * ((s.articulos[pr].ancho/10000000)/100);
 
-                      originY = this.shelves[countShelf].h - product_h;
-                      originX = this.planogramWidth * ((s.articulos[pr].origenX/100000)/100);
+                      originY = this.shelves[countShelf].h - product_h - 7;
+                      originX = this.planogramWidth * ((s.articulos[pr].origenX/10000000)/100);
 
                       this.productBeingStored.size = {
 

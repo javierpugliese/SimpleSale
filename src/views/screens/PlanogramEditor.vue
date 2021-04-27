@@ -1,3 +1,5 @@
+
+<!-- comentario para cambio -->
 <template>
   <div class="planogram-editor">
     <v-toolbar class="mb-3" color="grey-darken-1" dark>
@@ -60,7 +62,7 @@
             :key="`AvailableShelf-${index}`"
           >
             <v-list-item-content>
-              <v-list-item-title>Estante {{ index }}</v-list-item-title>
+              <v-list-item-title>Estante {{ index+1 }}</v-list-item-title>
             </v-list-item-content>
 
             <v-list-item-action>
@@ -118,7 +120,7 @@
               :resizable="false"
               :z="100"
               :handles="[]"
-              class="ma-0 pa-0"
+              class="ma-0 pa-0 class-planogram-propia"
               id="__PLANOGRAM_VDR"
             >
               <img
@@ -142,9 +144,11 @@
                 v-for="(shelf, index) in shelves"
                 v-bind:key="`shelf-${index}`"
                 class="ma-0 pa-0"
+                :style="`borderColor: ${rgba(shelf.color)}; border: none; backgroundColor: rgba(15,15,15,.1)`"
                 :id="`vdr_shelf-${index}`"
                 :x="0"
-                :w="planogramWidth - 1"
+                :y="Math.trunc(shelf.originY)"
+                :w="planogramWidth"
                 :h="+shelf.h"
                 :resizable="false"
                 :draggable="shelf_active"
@@ -160,7 +164,7 @@
                 :snap="true"
                 :snap-tolerance="4"
                 axis="y"
-                @dragging="(left, top) => xy('Shelf', left, top)"
+                @dragging="(left, top) => xy('Shelf', left, top, top)"
                 @dragstop="
                   (left, top) =>
                     getProportionalHeight(
@@ -182,6 +186,9 @@
                   v-bind:key="`product-${pos}`"
                   v-bind:id="`_SP_VDR-${index}-${pos}`"
                   class="ma-0 pa-0"
+                  :style="'border: none'"
+                  :x="Math.trunc( product.size.originX )"
+                  :y="Math.trunc( product.size.originY )"
                   :w="product.size.w"
                   :h="product.size.h"
                   :min-width="10"
@@ -189,7 +196,6 @@
                   :resizable="true"
                   :draggable="true"
                   :lock-aspect-ratio="true"
-                  :grid="[1, 1]"
                   :parent="true"
                   @activated="shelf_active = false"
                   @deactivated="shelf_active = true"
@@ -200,7 +206,7 @@
                   :snap="true"
                   :snap-tolerance="2"
                   :handles="['tl']"
-                  axis="both"
+                  axis="x"
                   @dragging="(left, top) => xy('Product', left, top)"
                   @dragstop="
                     (left, top) =>
@@ -243,15 +249,16 @@
                   </div>
                 </vdr>
                 <!-- Shelf base -->
-                <div class="d-flex ma-0" :style="{ height: `${shelf.h}px` }">
+                <!-- <div class="d-flex ma-0" :style="{ height: `${shelf.h}px` }"> -->
+                <div class="d-flex ma-0" :style="{ position: 'absolute', bottom: 0 }">
                   <v-sheet
-                    class="align-self-end"
+                    class="align-self-end my-class-base-shelf"
                     :width="planogramWidth"
-                    :height="baseShelfHeight"
+                    :height="6"
                     :color="rgba(shelf.color)"
                   >
                     <div class="shelf-actions-left text-overline text-center">
-                      <div class="text-overline">{{ index }}</div>
+                      <div class="text-overline">{{ index+1 }}</div>
                     </div>
                     <div class="shelf-actions-right">
                       <v-btn
@@ -267,6 +274,7 @@
                   </v-sheet>
                 </div>
               </vdr>
+
             </vdr>
           </v-col>
         </v-row>
@@ -385,7 +393,11 @@
               <v-col cols="6" class="d-flex justify-end">
                 <v-btn
                   @click="addShelf"
+<<<<<<< HEAD
                   :disabled="loading || shelf_h < minShelfHeight"
+=======
+                  :disabled="loading || shelf_h < 10"
+>>>>>>> leonardo
                   :loading="loading"
                   color="#55AA99"
                   dark
@@ -449,7 +461,7 @@
                 <v-text-field
                   v-model.number="shelf_h"
                   label="Altura del estante"
-                  :hint="`Altura mínima: ${minShelfHeight}.`"
+                  :hint="`El porcentaje mínimo: ${minShelfHeight}.`"
                   :rules="[rules.shelfMin, rules.shelfMax]"
                   filled
                   clearable
@@ -542,7 +554,7 @@ export default {
     product_h: 0,
 
     // Planogram
-    space_y: Math.trunc(window.innerHeight * 0.75),
+    space_y: 500,
 
     shelf_active: true,
     loading: false,
@@ -558,14 +570,24 @@ export default {
     rules: {
       required: (value) => !!value || "Campo obligatorio.",
       min: (v) => (v != null ? v.length >= 5 || "Mínimo 5 caracteres." : false),
-      shelfMin: (val) =>
-        +val >= Math.trunc(window.innerHeight * 0.75 * 0.15) ||
-        `La altura mínima es ${Math.trunc(window.innerHeight * 0.75 * 0.15)}.`,
-      shelfMax: (val) =>
-        +val <= Math.trunc(window.innerHeight * 0.75 * 0.15) * 2 ||
-        `La altura máxima es ${
-          Math.trunc(window.innerHeight * 0.75 * 0.15) * 2
-        }.`,
+      shelfMin: (val) => {
+        return val >= 10 || `El porcentaje mínimo es de 10%.`
+        // return val >= 10;
+        // console.log(val);
+        // return true;
+        // val = 12;
+        // val >= Math.trunc(window.innerHeight * 0.75 * 0.1) ||
+        // `Porcentaje mínimo 10%.`,
+      },
+      shelfMax: (val) => {
+        return val <= 100 || `El porcentaje máximo es de 100%.`;
+
+        // +val <= Math.trunc(window.innerHeight * 0.75 * 0.15) * 2 ||
+        // `La altura máxima es ${
+        //   Math.trunc(window.innerHeight * 0.75 * 0.15) * 2
+        // }.`,
+      }
+
     },
     products: [],
     shelves: [],
@@ -606,36 +628,44 @@ export default {
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
+
+    calShelfMaxPor: 0,
+    calShelfOriginY: 0,
+    calShelfHeight: 0
+
   }),
   watch: {},
   computed: {
     planogramHeight() {
-      let val = Math.trunc(window.innerHeight * 0.75);
-      console.log("[Computed] planogramHeight", val);
+      // let val = Math.trunc(window.innerHeight * 0.75);
+      let val = 500;
+      // console.log("[Computed] planogramHeight", val);
       return val;
     },
     planogramWidth() {
-      let val = Math.trunc((this.planogramHeight / 16) * 9);
-      console.log("[Computed] planogramWidth", val);
+      // let val = Math.trunc((this.planogramHeight / 16) * 9);
+      let val = 250;
+      // console.log("[Computed] planogramWidth", val);
       return val;
     },
     baseShelfHeight() {
       let val = Math.trunc((this.planogramHeight / 100) * 0.8);
-      console.log("[Computed] baseShelfHeight", val);
+      // console.log("[Computed] baseShelfHeight", val);
       return val;
     },
     minShelfHeight() {
-      let val = Math.trunc(window.innerHeight * 0.75 * 0.15);
-      console.log("[Computed] minShelfHeight", val);
-      return val;
+      // let val = Math.trunc(window.innerHeight * 0.75 * 0.1);
+      // console.log("[Computed] minShelfHeight", val);
+      return 10;
     },
     maxShelfHeight() {
       let val = Math.trunc(window.innerHeight * 0.75 * 0.15) * 2;
-      console.log("[Computed] maxShelfHeight", val);
+      // console.log("[Computed] maxShelfHeight", val);
       return val;
     },
   },
   methods: {
+
     async deletePlanogram() {
       let endpoint = `Gondolas/${this.editedId}`;
       this.loading = true;
@@ -658,8 +688,10 @@ export default {
           this.loading = false;
         });
     },
+
     xy(type, left, top) {
       if (typeof type === "string") {
+        // console.log( left, top );
         if (type == "Shelf") {
           this.shelf_x = left;
           this.shelf_y = top;
@@ -669,201 +701,105 @@ export default {
         }
       }
     },
+
     // Calculate margins and offsets
     setInitialOffsets(left, top, vdrData, type, index, pos) {
+
       if (typeof type === "string") {
+
+        if( isNaN(left) ) left = 0;
+
+        console.log( "SET PROPORTIONAL:", left, top);
+        let shelf = this.shelves[index];
+
         // Calculate for shelves
-        if (type === "Shelf") {
-          this.shelf_x = left;
-          this.shelf_y = top;
+        if (type === "Shelf" ) {
 
-          var total = this.shelves.length,
-            x = 0,
-            offsetFactor = total + 1,
-            factorY;
-
-          let exp = Math.trunc(this.planogramHeight / offsetFactor);
           let domElement = document.querySelector(`#vdr_shelf-${index}`);
+          domElement.style.transform = `translate(0px, ${shelf.originY}px)`;
 
-          var shelf = this.shelves[index];
+          let pHeight = (top*100)/this.planogramHeight;
 
-          if (this.editedId > -1) {
-            factorY =
-              Math.trunc((shelf.originH * this.planogramHeight) / 100) -
-              shelf.h; /* +
-              (x === 0 ? this.baseShelfHeight : 0); */
-            console.log("factorY", factorY);
-          } else {
-            factorY = this.planogramHeight - (index + 1) * exp - shelf.h;
-          }
-          domElement.style.transform = `translate(0px, ${factorY}px)`;
+          shelf.originY = top;
+          shelf.proportionalHeight = pHeight;
 
-          if (!shelf["originY"]) {
-            shelf["originY"] = shelf.h;
-          } else shelf.originY = shelf.h;
-
-          this.shelf_y = factorY;
-
-          console.log("Positioned y at:", factorY);
-
-          if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
-          if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
-
-          let pHeight = parseInt(
-            ((this.shelf_y + +vdrData.h) / this.planogramHeight) * 100
-          );
-
-          if (!shelf["proportionalHeight"]) {
-            shelf["proportionalHeight"] = pHeight;
-          } else shelf.proportionalHeight = pHeight;
-
-          console.log("proportionalHeight (h)", pHeight);
-
-          /*  for (x; x < total; x++) {
-            let domElement = document.querySelector(`#vdr_shelf-${x}`);
-
-            if (this.editedId > -1) {
-              let factorY =
-                Math.trunc(
-                  (this.shelves[x].originH * this.planogramHeight) / 100
-                ) -
-                this.shelves[x].h +
-                (x === 0 ? this.baseShelfHeight : 0);
-              console.log("factorY", factorY);
-              domElement.style.transform = `translate(0px, ${factorY}px)`;
-            } else {
-              totalFactor =
-                this.planogramHeight - (x + 1) * exp - this.shelves[x].h;
-
-              domElement.style.transform = `translate(0px, ${totalFactor}px)`;
-            }
-
-            if (!this.shelves[x]["originY"]) {
-              this.shelves[x]["originY"] = this.shelves[x].h;
-            } else this.shelves[x].originY = this.shelves[x].h;
-
-            this.shelf_y = totalFactor;
-
-            console.log("Positioned y at:", totalFactor);
-            
-            if (this.shelf_x <= 0) this.shelf_x = left + Math.abs(left);
-            if (this.shelf_y <= 0) this.shelf_y = top + Math.abs(top);
-
-            let pHeight = parseInt(
-              ((this.shelf_y + +vdrData.h) / this.planogramHeight) * 100
-            );
-
-            if (!this.shelves[x]["proportionalHeight"]) {
-              this.shelves[x]["proportionalHeight"] = pHeight;
-            } else this.shelves[x].proportionalHeight = pHeight;
-
-            console.log("proportionalHeight (h)", pHeight);
-          } */
         }
         // Calculate for products
-        else if (type === "Product") {
-          this.product_x = left;
-          this.product_y = top;
-
-          if (typeof vdrData === "object") {
-            if (vdrData["size"]) {
-              this.product_w = vdrData.size.w;
-              this.product_h = vdrData.size.h;
-            }
-          }
+        else if (type === "Product" ) {
 
           let product = this.shelves[index].storedProducts[pos];
-          //let total = products.length;
-          let sHeight = this.shelves[index].h;
 
-          /* let x = 0,
-            offsetFactor = total + 1,
-            y; */
+          let pWidth = Math.trunc( ((vdrData.size.w*100)/this.planogramWidth) * 10000000 );
+          let pHeight = Math.trunc( ((vdrData.size.h*100)/shelf.h) * 10000000 );
 
-          //let exp = Math.trunc(this.planogramWidth / offsetFactor);
-          var domElement = document.querySelector(`#_SP_VDR-${index}-${pos}`);
-          var totalFactor = Math.trunc(
-            (product.origin.wPercentage * this.planogramWidth) / 100
-          );
-          var y = Math.trunc((product.origin.hPercentage * sHeight) / 100);
-          console.log("PRODUCTS POSITIONS: (x,y)", totalFactor, y);
-          domElement.style.transform = `translate(${totalFactor}px, ${y}px)`;
+          let pOriginY = 0;
+          let pOriginX = Math.trunc( ( (left*100)/this.planogramWidth) * 10000000 );
 
-          this.product_x = totalFactor;
-          this.product_y = y;
 
-          if (this.product_x <= 0) this.product_x = left + Math.abs(left);
-          if (this.product_y <= 0) this.product_y = top + Math.abs(top);
 
-          let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
-          let pHeight = parseInt(
-            (this.product_y / this.shelves[index].h) * 100
-          );
+          product.proportionalSize = {
 
-          const size = {
-            pWidth: pWidth,
-            pHeight: pHeight,
+            pWidth,
+            pHeight,
+            pOriginY,
+            pOriginX
+
           };
 
-          if (!product["proportionalSize"]) {
-            product["proportionalSize"] = size;
-          } else product.proportionalSize = size;
+          // console.log( product.proportionalSize );
 
-          console.log("proportionalSize (w, h)", pWidth, pHeight);
-
-          console.log("Positioned x at:", totalFactor);
-          console.log("Positioned y at:", y);
-
-          /* for (x; x < total; x++) {
-            let domElement = document.querySelector(`#_SP_VDR-${index}-${x}`);
-            if (this.editedId > -1) {
-              var totalFactor = Math.trunc(
-                (products[x].origin.wPercentage * this.planogramWidth) / 100
-              );
-              y = Math.trunc((products[x].origin.hPercentage * sHeight) / 100);
-              console.log("PRODUCTS POSITIONS: (x,y)", totalFactor, y);
-              domElement.style.transform = `translate(${totalFactor}px, ${y}px)`;
-            } else {
-              let sizeExp = Math.trunc(products[x].size.w / 2);
-              totalFactor = this.planogramWidth - (x + 1) * exp - sizeExp;
-
-              y = Math.trunc(
-                sHeight -
-                  products[x].size.h -
-                  Math.trunc(this.baseShelfHeight / 2)
-              );
-            }
-
-            this.product_x = totalFactor;
-            this.product_y = y;
-
-            if (this.product_x <= 0) this.product_x = left + Math.abs(left);
-            if (this.product_y <= 0) this.product_y = top + Math.abs(top);
-
-            let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
-            let pHeight = parseInt(
-              (this.product_y / this.shelves[index].h) * 100
-            );
-
-            const size = {
-              pWidth: pWidth,
-              pHeight: pHeight,
-            };
-
-            let storedProduct = this.shelves[index].storedProducts[x];
-
-            if (!storedProduct["proportionalSize"]) {
-              storedProduct["proportionalSize"] = size;
-            } else storedProduct.proportionalSize = size;
-
-            console.log("proportionalSize (w, h)", pWidth, pHeight);
-
-            console.log("Positioned x at:", totalFactor);
-            console.log("Positioned y at:", y);
-          } */
         }
       }
     },
+
+    getProportionalHeight(left, top, vdrData, type, index, pos) {
+
+      console.log( "GET PROPORTIONAL:", left, top);
+      let shelf = this.shelves[index];
+      if( isNaN(left) ) left = 0;
+
+      if (typeof type === "string") {
+
+        // Shelves
+        if (type === "Shelf") {
+
+          let pHeight = (top*100)/this.planogramHeight;
+
+          shelf.originY = top;
+          shelf.proportionalHeight = pHeight;
+
+          // if (!shelf["proportionalHeight"]) {
+          //   shelf["proportionalHeight"] = pHeight;
+          // } else shelf.proportionalHeight = pHeight;
+
+        }
+
+        // Products
+        else if (type === "Product") {
+
+          let product = this.shelves[index].storedProducts[pos];
+
+          let pWidth = Math.trunc( ((vdrData.size.w*100)/this.planogramWidth) * 10000000 );
+          let pHeight = Math.trunc( ((vdrData.size.h*100)/shelf.h) * 10000000 );
+
+          let pOriginY = 0;
+          let pOriginX = Math.trunc( ( (left*100)/this.planogramWidth) * 10000000 );
+
+          product.proportionalSize = {
+
+            pWidth,
+            pHeight,
+            pOriginY,
+            pOriginX
+
+          };
+
+          // console.log( product.proportionalSize );
+
+        }
+      }
+    },
+<<<<<<< HEAD
     getProportionalHeight(left, top, vdrData, type, index, pos) {
       if (typeof type === "string") {
         // Shelves
@@ -871,15 +807,17 @@ export default {
           // Fixes negative values in weird cases
           this.shelf_x = left <= 0 ? left + Math.abs(left) : left;
           this.shelf_y = top <= 0 ? top + Math.abs(top) : top;
+=======
 
-          let pHeight = parseInt(
-            ((this.shelf_y + +vdrData.h) / this.planogramHeight) * 100
-          );
+    tweakOnResize(index, pos, data, x, y, width, height) {
+>>>>>>> leonardo
 
-          if (!this.shelves[index]["proportionalHeight"]) {
-            this.shelves[index]["proportionalHeight"] = pHeight;
-          } else this.shelves[index].proportionalHeight = pHeight;
+      // width = Math.trunc( width );
+      // height = Math.trunc( height );
 
+      let shelf = this.shelves[index];
+
+<<<<<<< HEAD
           console.log("proportionalHeight (h)", pHeight);
         }
         // Products
@@ -887,44 +825,67 @@ export default {
           // Fixes negative values in weird cases
           this.product_x = left <= 0 ? left + Math.abs(left) : left;
           this.product_y = top <= 0 ? top + Math.abs(top) : top;
-
-          let pWidth = parseInt((this.product_x / this.planogramWidth) * 100);
-          let pHeight = parseInt(
-            (this.product_y / this.shelves[index].h) * 100
-          );
-
-          const size = {
-            pWidth: pWidth,
-            pHeight: pHeight,
-          };
-          console.log("vdrData", vdrData);
-
-          let storedProduct = this.shelves[index].storedProducts[pos];
-
-          if (!storedProduct["proportionalSize"]) {
-            storedProduct["proportionalSize"] = size;
-          } else storedProduct.proportionalSize = size;
-
-          console.log("proportionalSize (w, h)", pWidth, pHeight);
-        }
-      }
-    },
-    tweakOnResize(index, pos, data, x, y, width, height) {
-      // Fixes negative values in weird cases
-      this.product_x = x <= 0 ? x + Math.abs(x) : x;
-      this.product_y = y <= 0 ? y + Math.abs(y) : y;
-      this.product_w = width <= 0 ? width + Math.abs(width) : width;
-      this.product_h = height <= 0 ? height + Math.abs(height) : height;
-
-      // Sync product
+=======
       let product = this.shelves[index].storedProducts[pos];
+>>>>>>> leonardo
+
+      let pWidth = Math.trunc( ((width*100)/this.planogramWidth) * 10000000 );
+      let pHeight = Math.trunc( ((height*100)/shelf.h) * 10000000 );
+
+      let pOriginY = 0;
+      let pOriginX = Math.trunc( ( (x*100)/this.planogramWidth) * 10000000 );
+
+      // 
+      // let product_w = 10;
+      // let product_h = 10;
+      // let product_w_proportion = 0;
+      // let product_h_proportion = 0;
+
+      // if( height > width ) {
+
+      //   product_h = this.planogramHeight * .09;
+      //   product_h_proportion = ((height - product_h)*100)/height;
+      //   product_w = width - (width * (product_h_proportion/100));
+
+      // }else {
+
+      //   product_w = this.planogramHeight * .09;
+      //   product_w_proportion = ((width - product_w)*100)/width;
+      //   product_h = height - (height * (product_w_proportion/100));
+
+      // }
+
       product.size.w = width;
       product.size.h = height;
+      // product.size.originY = this.shelves[pos].h - product_h - 7;
+      // 
 
-      let productData = Object.assign({}, data);
+      product.proportionalSize = {
+
+        pWidth,
+        pHeight,
+        pOriginY,
+        pOriginX
+
+      };
+
+      // Fixes negative values in weird cases
+      // this.product_x = x <= 0 ? x + Math.abs(x) : x;
+      // this.product_y = y <= 0 ? y + Math.abs(y) : y;
+      // this.product_w = width <= 0 ? width + Math.abs(width) : width;
+      // this.product_h = height <= 0 ? height + Math.abs(height) : height;
+
+      // // Sync product
+      // let product = this.shelves[index].storedProducts[pos];
+      // product.size.w = width;
+      // product.size.h = height;
+
+      // let productData = Object.assign({}, data);
 
       console.log("Resize result (w, h):", width, height);
+
     },
+
     async removeShelf(index) {
       let pos = this.shelves.indexOf(this.shelves[index]);
       if (this.shelves[pos].id > -1) {
@@ -949,13 +910,14 @@ export default {
           });
         this.loading = false;
       }
-      this.space_y = this.space_y + this.shelves[pos].h;
       this.shelves.splice(pos, 1);
     },
+
     handleProduct(obj) {
       console.log("handleProduct", obj);
       this.showMenu(window.event, obj);
     },
+
     getChildData(object) {
       console.log("Received data:", object);
       if (typeof object === "object") {
@@ -966,6 +928,7 @@ export default {
         this.dialogGallery = false;
       }
     },
+
     async save() {
       this.loading = true;
       var planogram;
@@ -1011,6 +974,7 @@ export default {
             )
           )
           .then((res) => {
+            console.log( res );
             if (res) {
               this.snackbar = true;
               this.snackbarColor = "success";
@@ -1026,6 +990,7 @@ export default {
             return null;
           });
       }
+
       console.log("planogram id", planogram);
       if (this.editedId > -1) planogram = this.editedId;
 
@@ -1045,17 +1010,20 @@ export default {
             {},
             {
               color: color,
-              altura: +s.proportionalHeight,
-              orden: +s.originY,
+              altura: Math.trunc( +s.proportionalHeight*10000000 ),
+              orden: Math.trunc( (+s.h/this.space_y)*100*10000000 ),
               idGondola: planogram,
             }
           );
+
+          console.log( shelfData );
 
           // update shelf
           if (this.shelves[i].id > -1) {
             await this.$http
               .put(`Estantes/${this.shelves[i].id}`, shelfData)
               .then((response) => {
+                console.log( response );
                 if (response && response.data) {
                   const obj = { id: +this.shelves[i].id, index: i };
                   console.log("shelf obj then", obj);
@@ -1074,6 +1042,7 @@ export default {
             await this.$http
               .post("Estantes", shelfData)
               .then((response) => {
+                console.log( response );
                 if (response && response.data) {
                   const obj = { id: +response.data.idObjeto, index: i };
                   ids.push(obj);
@@ -1099,20 +1068,38 @@ export default {
             if (products.length) {
               for (let a = 0; a < products.length; a++) {
                 let p = products[a];
-                let data = Object.assign(
-                  {},
-                  {
-                    idEstante: +_id.id,
-                    idArticulo: p.id,
-                    nombre: "",
-                    origenX: p.proportionalSize.pWidth,
-                    origenY: p.proportionalSize.pHeight,
-                    cantidadX: 1,
-                    cantidadY: 1,
-                    alto: Math.trunc((p.size.h / this.planogramHeight) * 1000),
-                    ancho: Math.trunc((p.size.w / this.planogramWidth) * 1000),
-                  }
-                );
+
+                // let data = Object.assign(
+                //   {},
+                //   {
+                //     idEstante: +_id.id,
+                //     idArticulo: p.id,
+                //     nombre: "",
+                //     origenX: p.proportionalSize.pWidth,
+                //     origenY: p.proportionalSize.pHeight,
+                //     cantidadX: 1,
+                //     cantidadY: 1,
+                //     alto: Math.trunc((p.size.h / this.planogramHeight) * 1000),
+                //     ancho: Math.trunc((p.size.w / this.planogramWidth) * 1000),
+                //   }
+                // );
+
+                let data = {
+
+                  idEstante: +_id.id,
+                  idArticulo: p.id,
+                  nombre: "",
+                  origenX: p.proportionalSize.pOriginX,
+                  origenY: p.proportionalSize.pOriginY,
+                  cantidadX: 1,
+                  cantidadY: 1,
+                  alto: p.proportionalSize.pHeight,
+                  ancho: p.proportionalSize.pWidth
+
+                };
+
+                // console.log( data );
+                
                 payloadProducts.push(data);
               }
 
@@ -1133,29 +1120,70 @@ export default {
       //this.$router.replace({ name: "PlanogramList" });
       this.loading = false;
     },
+
     sendToShelf(pos) {
-      const image = new Image();
-      image.src = this.productBeingStored.archivos[0].url;
-      image.onload = () => {
-        return image.src;
-      };
-      let max_w = Math.trunc(this.planogramWidth / 5);
-      let max_h = Math.trunc(this.shelves[pos].h / 1.5);
-      let estimated_height = Math.trunc((max_w / image.width) * image.height);
-      let size = Object.assign({}, { w: max_w, h: estimated_height });
-      if (estimated_height > max_h) {
-        let estimated_width = Math.trunc((max_h / image.height) * image.width);
-        size = Object.assign({}, { w: estimated_width, h: max_h });
+
+      if( this.productBeingStored.archivos !== undefined &&
+          this.productBeingStored.archivos !== null &&
+          this.productBeingStored.archivos.length > 0 ) {
+
+        const image = new Image();
+        image.src = this.productBeingStored.archivos[0].url;
+        image.onload = () => {
+          return image.src;
+        };
+
+        let product_w = 10;
+        let product_h = 10;
+        let product_w_proportion = 0;
+        let product_h_proportion = 0;
+        let originY = 0;
+        let originX = 0;
+
+        if( image.height > image.width ) {
+
+          product_h = this.planogramHeight * .09;
+          product_h_proportion = ((image.height - product_h)*100)/image.height;
+          product_w = image.width - (image.width * (product_h_proportion/100));
+
+        }else {
+
+          product_w = this.planogramHeight * .09;
+          product_w_proportion = ((image.width - product_w)*100)/image.width;
+          product_h = image.height - (image.height * (product_w_proportion/100));
+
+        }
+
+        originY = this.shelves[pos].h - product_h - 7;
+
+        this.productBeingStored.size = {
+
+          w: product_w,
+          h: product_h,
+          originY,
+          originX
+
+        };
+
+        console.log( this.productBeingStored );
+
+        this.shelves[pos].storedProducts.push(this.productBeingStored);
+        console.log("shelves", this.shelves);
+
+        this.$nextTick(() => {
+          this.menu = false;
+        });
+
+      }else {
+
+        this.snackbar = true;
+        this.snackbarColor = "danger";
+        this.snackbarText = "Este producto no tiene ninguna imagen.";
+
       }
-      if (!this.productBeingStored["size"]) {
-        this.productBeingStored["size"] = size;
-      }
-      this.shelves[pos].storedProducts.push(this.productBeingStored);
-      console.log("shelves", this.shelves);
-      this.$nextTick(() => {
-        this.menu = false;
-      });
+
     },
+
     showMenu(e, obj) {
       this.menu = false;
       this.menu_x = e.clientX;
@@ -1165,6 +1193,7 @@ export default {
         this.menu = true;
       });
     },
+
     rgba(object) {
       if (typeof object === "object") {
         const c = object;
@@ -1172,31 +1201,145 @@ export default {
       }
       return `rgba(0,0,0,1.00)`;
     },
-    addShelf(items) {
-      if (this.shelf_h >= this.minShelfHeight) {
-        if (this.space_y > this.minShelfHeight) {
-          this.space_y = this.space_y - this.shelf_h;
-          const obj = {
-            color: this.shelf_color,
-            h: this.shelf_h,
-            originH: this.shelf_pHeight,
-            id: this.shelf_id,
-            storedProducts: this.editedId > -1 && items.length ? items : [],
-          };
-          // Change
-          if (this.editedId > -1) this.shelves.push(obj);
-          else this.shelves.push(obj);
-        } else {
-          this.snackbar = true;
-          this.snackbarColor = "danger";
-          this.snackbarText = "No hay más espacio disponible.";
+
+    cloneArray( obj ) {
+
+      if ( obj === null || typeof obj !== 'object' ) return obj;
+
+      let temp = obj.constructor();
+      for ( var key in obj ) temp[ key ] = this.cloneArray( obj[ key ] );
+  
+      return temp;
+
+    },
+
+    calculateShelfSpace() {
+
+      let maxPor = 100;
+      let minPor = 10;
+      let originY = 0;
+      let get_height = this.space_y * (this.shelf_h/100);
+      // let insert = false;
+
+      console.log( "CALCULATE SHELF SPACE: ", get_height );
+
+      let shelves_ordered = this.cloneArray(this.shelves);
+
+      shelves_ordered = this.cloneArray( shelves_ordered.sort(({originY:a}, {originY:b}) => a-b) );
+
+      let insert = shelves_ordered.some(( shelve, index, array ) => {
+
+        console.log( this.planogramHeight, shelve.h, shelve.originY );
+
+        if( array.length == 1 ) {
+
+          if( shelve.originY >= get_height ) {
+
+            originY = 0;
+            return true;
+
+          }else if( get_height <= (this.planogramHeight - (shelve.originY+shelve.h) ) ) {
+
+            originY = Math.trunc( shelve.originY+shelve.h );
+            return true;
+
+          }
+        
+        }else if( index == 0 ) {
+
+          if( shelve.originY >= get_height ) {
+
+            originY = 0;
+            return true;
+
+          }
+          
+        }else if( array[index-1] !== undefined ) {
+
+          if( shelve.originY - (array[index-1].originY+array[index-1].h) >= get_height ) {
+
+            originY = Math.trunc( (array[index-1].originY+array[index-1].h) );
+            return true;
+
+          }else if( array.length == index+1 ) {
+
+              if( (this.planogramHeight - (array[index].originY+array[index].h) ) >= get_height ) {
+
+                originY = Math.trunc( shelve.originY+shelve.h );
+                return true;
+
+              }
+
+          }
+
         }
-      } else {
+
+      });
+
+      if( this.shelves.length == 0 ) insert = true;
+
+      console.log( "insert:", insert );
+
+      this.calShelfHeight = get_height;
+      this.calShelfMaxPor = maxPor;
+      this.calShelfOriginY = originY;
+
+      return insert;
+
+    },
+
+    addShelf(items) {
+
+      // console.log( this.shelf_h, this.minShelfHeight );
+      // console.log( this.space_y, this.minShelfHeight );
+
+      if (this.shelf_h >= this.minShelfHeight) {
+
+          // console.log( this.shelves );
+        // if (this.space_y > this.minShelfHeight) {
+          // this.space_y = this.space_y - this.shelf_h;
+
+          if( this.calculateShelfSpace() ) {
+
+            const obj = {
+
+              color          : this.shelf_color,
+              h              : this.calShelfHeight,
+              originY        : this.calShelfOriginY,
+              id             : this.shelf_id,
+              storedProducts : this.editedId > -1 && items.length ? items : [],
+
+            };
+            // Change
+            this.shelves.push( obj );
+
+            console.log( "INSERTEDING SHELF" );
+
+          // const obj = {
+          //   color: this.shelf_color,
+          //   h: miH,
+          //   originY: 0,
+          //   id: this.shelf_id,
+          //   storedProducts: this.editedId > -1 && items.length ? items : [],
+          // };
+          // // Change
+          // if (this.editedId > -1) this.shelves.push(obj);
+          // else this.shelves.push(obj);
+
+
+          }else {
+            this.snackbar = true;
+            this.snackbarColor = "danger";
+            this.snackbarText = "No hay espacio disponible.";
+          }
+
+      }else {
         this.snackbar = true;
         this.snackbarColor = "danger";
         this.snackbarText = `El mínimo de altura del estante debe ser de ${this.minShelfHeight}px`;
       }
     },
+
     async initialize() {
       this.loading = true;
       this.products = [];
@@ -1206,6 +1349,7 @@ export default {
       this.shelf_h = this.minShelfHeight;
 
       console.log("route params", this.$route.params);
+
       if (this.$route.params) {
         this.editedId = +this.$route.params.id || -1;
         this.editedIndex = +this.$route.params.id || -1;
@@ -1250,8 +1394,12 @@ export default {
                 "¡ERROR! No se pudo obtener el fondo del planograma.";
             });
 
+          console.log( this.editedItem.estantes.length );
+
           if (this.editedItem.estantes.length) {
+
             for (let s of this.editedItem.estantes) {
+
               console.log("altura", s.altura);
 
               // handle color
@@ -1278,16 +1426,46 @@ export default {
               }
 
               this.shelf_color = rgba;
-              this.shelf_h = s.orden;
+              // this.shelf_h = s.orden;
+              // this.shelf_h = this.shelf_pHeight/10000000;
               this.shelf_pHeight = s.altura;
+              // this.shelf_pHeight = 150;
               this.shelf_id = s.id;
 
               var productsToStore = [];
 
-              let pr = 0;
-              let arr = s.articulos.length;
+              console.log( this.shelf_pHeight, this.shelf_h );
+              console.log( this.planogramHeight * ((this.shelf_pHeight/10000000)/100) );
+              //  let miH = this.space_y * (this.shelf_h/100);
+              // console.log( miH );
+              s.storedProducts = [];
+              const obj = {
+                color: this.shelf_color,
+                h: this.space_y * (s.orden/100/10000000),
+                originY: this.planogramHeight * ((this.shelf_pHeight/10000000)/100),
+                id: this.shelf_id,
+                storedProducts: [],
+              };
+              // Change
+              // if (this.editedId > -1) this.shelves.push(obj);
+              // else this.shelves.push(obj);
+              this.shelves.push(obj);
 
-              for (pr; pr < arr; pr++) {
+              // this.addShelf(productsToStore);
+
+            }
+
+            console.log( this.editedItem );
+            console.log( "MI SHELVESSSS", this.shelves );
+
+            let countShelf = 0;
+            for( let s of this.editedItem.estantes ) {
+
+              console.log( s );
+              console.log( this.shelves[countShelf] );
+
+              for( let pr = 0; pr < s.articulos.length; pr++ ) {
+
                 console.log("PRODUCTO A PUNTO DE ROMPERSE:", s.articulos[pr]);
                 let endpoint = `Articulos/${s.articulos[pr].idArticulo}`;
                 this.loading = true;
@@ -1295,14 +1473,59 @@ export default {
                   .get(endpoint)
                   .then((res) => {
                     if (res && res.data) {
+
                       this.productBeingStored = Object.assign({}, res.data);
+<<<<<<< HEAD
                     }
+=======
+
+                      console.log( this.productBeingStored );
+
+                      const image = new Image();
+                      image.src = this.productBeingStored.archivos[0].url;
+                      image.onload = () => {
+                        return image.src;
+                      };
+
+                      let product_w = 10;
+                      let product_h = 10;
+                      let product_w_proportion = 0;
+                      let product_h_proportion = 0;
+                      let originY = 0;
+                      let originX = 0;
+                      // let originX = 0;
+
+                      console.log( s.articulos[pr] );
+
+                      product_h = this.shelves[countShelf].h * ((s.articulos[pr].alto/10000000)/100);
+                      product_w = this.planogramWidth * ((s.articulos[pr].ancho/10000000)/100);
+
+                      originY = this.shelves[countShelf].h - product_h - 7;
+                      originX = this.planogramWidth * ((s.articulos[pr].origenX/10000000)/100);
+
+                      this.productBeingStored.size = {
+
+                        w: product_w,
+                        h: product_h,
+                        originY,
+                        originX
+
+                      };
+
+                      // console.log( this.productBeingStored );
+
+                      this.shelves[countShelf].storedProducts.push(this.productBeingStored);
+
+
+                    } else console.log("ACA NO ESTUVO OKEY :(");
+>>>>>>> leonardo
                     this.loading = false;
                   })
                   .catch((err) => {
                     console.log("error", err);
                     this.loading = false;
                   });
+<<<<<<< HEAD
 
                 let size = Object.assign(
                   {},
@@ -1329,20 +1552,29 @@ export default {
                   this.productBeingStored["origin"] = origin;
                 }
                 productsToStore.push(this.productBeingStored);
+=======
+                
+>>>>>>> leonardo
               }
 
-              this.addShelf(productsToStore);
+              countShelf ++;
+
             }
+
             this.shelf_id = -1;
+
           }
         }
       }
       this.loading = false;
     },
+
   },
+
   mounted: function () {
     this.initialize();
   },
+
 };
 </script>
 <style>
@@ -1489,4 +1721,10 @@ export default {
   border: 1px solid yellow;
   width: 30px;
 }
+
+.class-planogram-propia {
+  border: none;
+  background: rgba(51, 51, 51, .25);
+}
+
 </style>

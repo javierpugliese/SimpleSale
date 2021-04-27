@@ -1,2 +1,8 @@
 - El planograma debe ser de una altura especifica par.
 - Las imagenes tambien deben tener unos pixeles par.
+
+ERRORES
+- Al insertar estante -> prop 'h'
+- En algunas ocaciones se duplica un estante.
+- Al elimiar un estante, se deforman las imagenes, algunos estantes cambian de posicion
+- Al crear nuevo planograma, la primera vez que se guardan, se guardan bien, al volver a guardar otra vez, se dublican los estantes

@@ -393,11 +393,7 @@
               <v-col cols="6" class="d-flex justify-end">
                 <v-btn
                   @click="addShelf"
-<<<<<<< HEAD
-                  :disabled="loading || shelf_h < minShelfHeight"
-=======
                   :disabled="loading || shelf_h < 10"
->>>>>>> leonardo
                   :loading="loading"
                   color="#55AA99"
                   dark
@@ -799,35 +795,15 @@ export default {
         }
       }
     },
-<<<<<<< HEAD
-    getProportionalHeight(left, top, vdrData, type, index, pos) {
-      if (typeof type === "string") {
-        // Shelves
-        if (type === "Shelf") {
-          // Fixes negative values in weird cases
-          this.shelf_x = left <= 0 ? left + Math.abs(left) : left;
-          this.shelf_y = top <= 0 ? top + Math.abs(top) : top;
-=======
 
     tweakOnResize(index, pos, data, x, y, width, height) {
->>>>>>> leonardo
 
       // width = Math.trunc( width );
       // height = Math.trunc( height );
 
       let shelf = this.shelves[index];
 
-<<<<<<< HEAD
-          console.log("proportionalHeight (h)", pHeight);
-        }
-        // Products
-        else if (type === "Product") {
-          // Fixes negative values in weird cases
-          this.product_x = left <= 0 ? left + Math.abs(left) : left;
-          this.product_y = top <= 0 ? top + Math.abs(top) : top;
-=======
       let product = this.shelves[index].storedProducts[pos];
->>>>>>> leonardo
 
       let pWidth = Math.trunc( ((width*100)/this.planogramWidth) * 10000000 );
       let pHeight = Math.trunc( ((height*100)/shelf.h) * 10000000 );
@@ -1475,9 +1451,6 @@ export default {
                     if (res && res.data) {
 
                       this.productBeingStored = Object.assign({}, res.data);
-<<<<<<< HEAD
-                    }
-=======
 
                       console.log( this.productBeingStored );
 
@@ -1518,43 +1491,13 @@ export default {
 
 
                     } else console.log("ACA NO ESTUVO OKEY :(");
->>>>>>> leonardo
                     this.loading = false;
                   })
                   .catch((err) => {
                     console.log("error", err);
                     this.loading = false;
                   });
-<<<<<<< HEAD
-
-                let size = Object.assign(
-                  {},
-                  {
-                    w: Math.trunc(
-                      this.planogramWidth * (s.articulos[pr].ancho / 1000)
-                    ),
-                    h: Math.trunc(
-                      this.planogramHeight * (s.articulos[pr].alto / 1000)
-                    ),
-                  }
-                );
-                if (!this.productBeingStored["size"]) {
-                  this.productBeingStored["size"] = size;
-                }
-                var origin = Object.assign(
-                  {},
-                  {
-                    wPercentage: s.articulos[pr].origenX,
-                    hPercentage: s.articulos[pr].origenY,
-                  }
-                );
-                if (!this.productBeingStored["origin"]) {
-                  this.productBeingStored["origin"] = origin;
-                }
-                productsToStore.push(this.productBeingStored);
-=======
                 
->>>>>>> leonardo
               }
 
               countShelf ++;

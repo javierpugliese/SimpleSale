@@ -1,2 +1,2 @@
 - El planograma debe ser de una altura especifica par.
-- Las imagenes tambien deben tener unos pixeles par
+- Las imagenes tambien deben tener unos pixeles par.

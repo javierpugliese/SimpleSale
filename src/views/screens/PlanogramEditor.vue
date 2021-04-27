@@ -1,3 +1,5 @@
+
+<!-- comentario para cambio -->
 <template>
   <div class="planogram-editor">
     <v-toolbar class="mb-3" color="grey-darken-1" dark>

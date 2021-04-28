@@ -170,10 +170,7 @@
       <v-scale-transition v-if="!selectTool">
         <v-btn
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
-          @click="
-            dialog = true;
-            showFileInput = true;
-          "
+          @click="showDialog"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
           :disabled="loading"
@@ -620,7 +617,6 @@
                           color="info"
                         ></v-progress-circular>
                       </v-row>
-                      <div class="text-overline text-center">Vista previa</div>
                     </template>
                   </v-img>
                   <a
@@ -830,6 +826,10 @@ export default {
   },
 
   methods: {
+    showDialog() {
+      this.dialog = true;
+      this.showFileInput = true;
+    },
     async showOriginal() {
       let endpoint = `Archivos/${this.editedId}`;
       this.loading = true;
@@ -1109,14 +1109,20 @@ export default {
 
     close() {
       this.dialog = false;
-      this.$nextTick(() => {
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.editedIndex = -1;
+      this.editedId = -1;
+      this.file = null;
+      this.fileURL = "";
+      this.fileAlerts = [];
+      /* this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
         this.file = null;
-        this.fileURL = "";
+        this.fileURL = " ";
         this.fileAlerts = [];
-      });
+      }); */
     },
 
     closeDelete() {

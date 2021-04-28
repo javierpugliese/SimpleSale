@@ -386,7 +386,7 @@
               v-if="selectTool"
               v-model="selection"
               color="whitesmoke"
-              :value="file.idArchivoOriginal"
+              :value="file.idArchivoOriginal || file.id"
               background-color="rgba(0, 0, 0, 0.5)"
             >
             </v-checkbox>

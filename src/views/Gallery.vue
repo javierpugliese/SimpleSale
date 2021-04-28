@@ -545,6 +545,7 @@
                   clearable
                   single-line
                   dense
+                  :disabled="!file"
                 >
                 </v-text-field>
                 <v-file-input
@@ -624,8 +625,7 @@
                   </v-img>
                   <a
                     v-if="editedIndex > -1"
-                    v-bind:href="editedItem.url"
-                    target="_blank"
+                    @click="showOriginal"
                     style="
                       background: rgba(0, 0, 0, 0.5);
                       text-decoration: none !important;
@@ -664,7 +664,7 @@
             color="success"
             @click="save"
             :loading="loading"
-            :disabled="loading"
+            :disabled="loading || !file"
           >
             <v-icon class="mr-2"> fas fa-save </v-icon>
             Guardar
@@ -731,6 +731,7 @@ export default {
     searchDates: [],
     editedIndex: -1,
     editedId: -1,
+    originalURL: "",
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
@@ -829,6 +830,21 @@ export default {
   },
 
   methods: {
+    async showOriginal() {
+      let endpoint = `Archivos/${this.editedId}`;
+      this.loading = true;
+      await this.$http
+        .get(endpoint)
+        .then((res) => {
+          if (res && res.data && res.status === 200) {
+            window.open(res.data.url, "_blank");
+          } else return Promise.reject("");
+        })
+        .catch((err) => {
+          console.log("error", err);
+        });
+      this.loading = false;
+    },
     saveInitDate() {
       this.$refs.dialogInitDate.save(this.searchItem.fechaAltaInicio);
       this.modalInitDateClose();
@@ -935,6 +951,7 @@ export default {
       this.fileTotalProgress = 0;
       this.fileUploadDetailsAlert = true;
       this.page = 1;
+      this.originalURL = "";
       if (!this.searchMode) this.fileTypes = [];
 
       // Get filetypes

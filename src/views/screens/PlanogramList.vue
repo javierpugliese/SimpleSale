@@ -116,7 +116,7 @@
                   v-bind="attrs"
                   v-on="on"
                   :loading="loading"
-                  to="/pantallas/planogramas/editor"
+                  to="/planogramas/nuevo"
                 >
                   <v-icon class="mr-2">fas fa-plus</v-icon>
                   Nuevo Planograma

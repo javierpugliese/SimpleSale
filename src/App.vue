@@ -157,12 +157,12 @@ export default {
           {
             title: "Publicaciones",
             icon: "",
-            link: "/pantallas/publicaciones",
+            link: "/publicaciones",
           },
           {
             title: "Planogramas",
             icon: "",
-            link: "/pantallas/planogramas",
+            link: "/planogramas",
           },
         ],
       },

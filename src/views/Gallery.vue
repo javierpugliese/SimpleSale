@@ -381,14 +381,16 @@
             </v-row>
           </template>
 
-          <v-checkbox
-            v-if="selectTool"
-            v-model="selection"
-            color="whitesmoke"
-            label=""
-            :value="file.idArchivoOriginal"
-            style="position: absolute; z-index: 1; top: 0; right: 0"
-          ></v-checkbox>
+          <div class="background__checkbox">
+            <v-checkbox
+              v-if="selectTool"
+              v-model="selection"
+              color="whitesmoke"
+              :value="file.idArchivoOriginal"
+              background-color="rgba(0, 0, 0, 0.5)"
+            >
+            </v-checkbox>
+          </div>
 
           <v-tooltip color="#000" top>
             <template v-slot:activator="{ on, attrs }">
@@ -1192,6 +1194,16 @@ export default {
 };
 </script>
 <style scoped>
+.background__checkbox {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+}
+.background__checkbox {
+  margin-right: 0px !important; /* TODO: FIX LITTLE GAP */
+}
+
 .background-title {
   position: absolute;
   bottom: 0;

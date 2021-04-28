@@ -662,7 +662,7 @@
             color="success"
             @click="save"
             :loading="loading"
-            :disabled="loading || (editedIndex > -1 && !file)"
+            :disabled="loading"
           >
             <v-icon class="mr-2"> fas fa-save </v-icon>
             Guardar
@@ -1119,17 +1119,23 @@ export default {
         let putFd = new FormData();
         putFd.append("idTipo", +this.fileType);
         putFd.append("nombre", this.editedItem.nombre);
-        putFd.append("file", this.file);
-        let filename = this.file.name;
-        this.uploading = true;
+        var filename;
+        if (this.file) {
+          putFd.append("file", this.file);
+          filename = this.file.name;
+          this.uploading = true;
+        }
+
         this.dialog = false;
         await this.$http
           .put(`Archivos/${this.editedId}`, putFd, {
             onUploadProgress: (progressEvent) => {
-              this.fileName = filename;
-              this.fileTotalProgress = parseInt(
-                Math.round((progressEvent.loaded / progressEvent.total) * 100)
-              );
+              if (filename) {
+                this.fileName = filename;
+                this.fileTotalProgress = parseInt(
+                  Math.round((progressEvent.loaded / progressEvent.total) * 100)
+                );
+              }
             },
           })
           .then((res) => {

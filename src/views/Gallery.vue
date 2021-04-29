@@ -170,10 +170,7 @@
       <v-scale-transition v-if="!selectTool">
         <v-btn
           :color="$vuetify.breakpoint.xsOnly ? 'none' : '#55AA99'"
-          @click="
-            dialog = true;
-            showFileInput = true;
-          "
+          @click="showDialog"
           :icon="$vuetify.breakpoint.xsOnly ? true : false"
           class="mx-1"
           :disabled="loading"
@@ -381,14 +378,16 @@
             </v-row>
           </template>
 
-          <v-checkbox
-            v-if="selectTool"
-            v-model="selection"
-            color="whitesmoke"
-            label=""
-            :value="file.idArchivoOriginal"
-            style="position: absolute; z-index: 1; top: 0; right: 0"
-          ></v-checkbox>
+          <div class="background__checkbox">
+            <v-checkbox
+              v-if="selectTool"
+              v-model="selection"
+              color="whitesmoke"
+              :value="file.idArchivoOriginal || file.id"
+              background-color="rgba(0, 0, 0, 0.5)"
+            >
+            </v-checkbox>
+          </div>
 
           <v-tooltip color="#000" top>
             <template v-slot:activator="{ on, attrs }">
@@ -543,6 +542,7 @@
                   clearable
                   single-line
                   dense
+                  :disabled="!file"
                 >
                 </v-text-field>
                 <v-file-input
@@ -617,13 +617,11 @@
                           color="info"
                         ></v-progress-circular>
                       </v-row>
-                      <div class="text-overline text-center">Vista previa</div>
                     </template>
                   </v-img>
                   <a
                     v-if="editedIndex > -1"
-                    v-bind:href="editedItem.url"
-                    target="_blank"
+                    @click="showOriginal"
                     style="
                       background: rgba(0, 0, 0, 0.5);
                       text-decoration: none !important;
@@ -662,7 +660,7 @@
             color="success"
             @click="save"
             :loading="loading"
-            :disabled="loading || (editedIndex > -1 && !file)"
+            :disabled="loading || !file"
           >
             <v-icon class="mr-2"> fas fa-save </v-icon>
             Guardar
@@ -729,6 +727,7 @@ export default {
     searchDates: [],
     editedIndex: -1,
     editedId: -1,
+    originalURL: "",
     snackbar: false,
     snackbarText: "",
     snackbarColor: "black",
@@ -827,6 +826,25 @@ export default {
   },
 
   methods: {
+    showDialog() {
+      this.dialog = true;
+      this.showFileInput = true;
+    },
+    async showOriginal() {
+      let endpoint = `Archivos/${this.editedId}`;
+      this.loading = true;
+      await this.$http
+        .get(endpoint)
+        .then((res) => {
+          if (res && res.data && res.status === 200) {
+            window.open(res.data.url, "_blank");
+          } else return Promise.reject("");
+        })
+        .catch((err) => {
+          console.log("error", err);
+        });
+      this.loading = false;
+    },
     saveInitDate() {
       this.$refs.dialogInitDate.save(this.searchItem.fechaAltaInicio);
       this.modalInitDateClose();
@@ -933,6 +951,7 @@ export default {
       this.fileTotalProgress = 0;
       this.fileUploadDetailsAlert = true;
       this.page = 1;
+      this.originalURL = "";
       if (!this.searchMode) this.fileTypes = [];
 
       // Get filetypes
@@ -1090,14 +1109,20 @@ export default {
 
     close() {
       this.dialog = false;
-      this.$nextTick(() => {
+      this.editedItem = Object.assign({}, this.defaultItem);
+      this.editedIndex = -1;
+      this.editedId = -1;
+      this.file = null;
+      this.fileURL = "";
+      this.fileAlerts = [];
+      /* this.$nextTick(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
         this.editedId = -1;
         this.file = null;
-        this.fileURL = "";
+        this.fileURL = " ";
         this.fileAlerts = [];
-      });
+      }); */
     },
 
     closeDelete() {
@@ -1119,17 +1144,23 @@ export default {
         let putFd = new FormData();
         putFd.append("idTipo", +this.fileType);
         putFd.append("nombre", this.editedItem.nombre);
-        putFd.append("file", this.file);
-        let filename = this.file.name;
-        this.uploading = true;
+        var filename;
+        if (this.file) {
+          putFd.append("file", this.file);
+          filename = this.file.name;
+          this.uploading = true;
+        }
+
         this.dialog = false;
         await this.$http
           .put(`Archivos/${this.editedId}`, putFd, {
             onUploadProgress: (progressEvent) => {
-              this.fileName = filename;
-              this.fileTotalProgress = parseInt(
-                Math.round((progressEvent.loaded / progressEvent.total) * 100)
-              );
+              if (filename) {
+                this.fileName = filename;
+                this.fileTotalProgress = parseInt(
+                  Math.round((progressEvent.loaded / progressEvent.total) * 100)
+                );
+              }
             },
           })
           .then((res) => {
@@ -1186,6 +1217,16 @@ export default {
 };
 </script>
 <style scoped>
+.background__checkbox {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  right: 0;
+}
+.background__checkbox {
+  margin-right: 0px !important; /* TODO: FIX LITTLE GAP */
+}
+
 .background-title {
   position: absolute;
   bottom: 0;

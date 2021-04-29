@@ -29,7 +29,6 @@ const encodedToken = Buffer.from(token).toString('base64');
 const authorization = 'Basic ' + encodedToken;
 //axios.defaults.headers.common['Authorization'] = authorization;
 
-//axios.defaults.headers.common['Authorization'] = authorization;
 //axios.defaults.headers.common['Access-Control-Allow-Origin'] = "*";
 
 axios.interceptors.request.use(

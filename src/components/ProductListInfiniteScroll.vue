@@ -28,7 +28,7 @@
       "
     >
     </v-text-field>
-    <div id="__results" class="mx-3">
+    <div id="__results">
       <div v-for="(product, index) in products" :key="index">
         <v-list-item style="background-color: #424242" class="my-1 py-2">
           <v-img
@@ -173,17 +173,27 @@ export default {
   },
   mounted: function () {
     const listElm = document.querySelector("#__results-box");
-    listElm.style.height = `${Math.ceil(window.innerHeight * 0.75)}px`;
-    listElm.style.maxHeight = listElm.style.height;
+    // listElm.style.height = `${Math.ceil(window.innerHeight * 0.75)}px`;
+    // listElm.style.maxHeight = listElm.style.height;
+    /*
+    listElm.addEventListener("scroll", () => {
+      if (listElm.scrollTop + listElm.clientHeight >= listElm.scrollHeight) {
+        this.nextPage();
+      }
+    }); */
   },
 };
 </script>
+
 <style scoped>
 .__result-box {
   overflow: auto;
-  width: 100%;
+  width: auto;
+  height: 480px;
+  /* width: 100%; */
   background-color: #272727;
-  padding-bottom: 16px;
+  padding: 0;
+  /* padding-bottom: 16px; */
 }
 
 .__result-item {

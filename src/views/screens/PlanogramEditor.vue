@@ -1,7 +1,9 @@
 
 <!-- comentario para cambio -->
 <template>
+
   <div class="planogram-editor">
+
     <v-toolbar class="mb-3" color="grey-darken-1" dark>
       <v-scale-transition>
         <v-app-bar-nav-icon>
@@ -43,13 +45,16 @@
     </v-scale-transition>
 
     <!-- Planogram management -->
-    <v-row v-bind:style="{ position: `sticky`, top: `80px` }">
+    <!-- <v-row v-bind:style="{ position: `sticky`, top: `80px` }"> -->
+    <v-row class="main-management">
+
       <v-menu
         v-model="menu"
         :close-on-content-click="false"
         :close-on-click="true"
         :position-x="menu_x"
         :position-y="menu_y"
+        class="main-menu"
       >
         <v-list v-if="shelves.length">
           <v-list-item disabled>
@@ -82,30 +87,30 @@
         </v-alert>
       </v-menu>
 
-      <v-col cols="12" sm="4">
-        <v-row dense>
+      <v-col cols="12" sm="4" class="main-products">
+        <!-- <v-row dense>
           <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+            <v-sheet color="secondary" class="main-title">
               Productos
             </v-sheet>
           </v-col>
-        </v-row>
-        <v-row dense>
-          <v-col cols="12">
+        </v-row> -->
+        <!-- <v-row dense> -->
+          <v-col cols="12" class="main-products-col">
             <ProductListInfiniteScroll @itemSelected="handleProduct" />
           </v-col>
-        </v-row>
+        <!-- </v-row> -->
       </v-col>
 
       <!-- Planogram preview -->
-      <v-col cols="12" sm="3">
-        <v-row class="d-flex flex-column" dense>
-          <v-col cols="12">
-            <v-sheet color="secondary" class="text-h6 text-center pa-3">
+      <v-col cols="12" sm="3" class="main-planogram">
+        <!-- <v-row class="d-flex flex-column" dense> -->
+          <!-- <v-col cols="12">
+            <v-sheet color="secondary" class="main-title">
               Planograma
             </v-sheet>
-          </v-col>
-          <v-col cols="12" class="d-flex justify-center">
+          </v-col> -->
+          <!-- <v-col cols="12" class="d-flex justify-center"> -->
             <!-- Planogram -->
             <vdr
               :w="planogramWidth"
@@ -276,25 +281,26 @@
               </vdr>
 
             </vdr>
-          </v-col>
-        </v-row>
+          <!-- </v-col> -->
+        <!-- </v-row> -->
       </v-col>
 
       <!-- Planogram settings -->
-      <v-col cols="12" md="5">
+      <v-col cols="12" md="5" class="main-settings">
         <v-form v-model="isFormValid">
           <v-row class="d-flex flex-column justify-center" dense>
-            <v-col cols="12">
-              <v-sheet color="secondary" class="text-h6 text-center pa-3">
+            <!-- <v-col cols="12">
+              <v-sheet color="secondary" class="main-title">
                 Configuración del planograma
               </v-sheet>
-            </v-col>
+            </v-col> -->
             <v-row dense>
               <v-col cols="12" class="d-flex flex-column">
                 <div class="text-h6 text-left">Parámetros</div>
                 <v-divider class="my-1"></v-divider>
               </v-col>
             </v-row>
+            
             <v-row dense>
               <v-col cols="12" sm="6">
                 <v-text-field
@@ -342,7 +348,7 @@
                       small
                       v-bind="attrs"
                       v-on="on"
-                      width="50%"
+                      width="148px"
                       :disabled="loading"
                       :loading="loading"
                     >
@@ -398,7 +404,7 @@
                   color="#55AA99"
                   dark
                   small
-                  width="50%"
+                  width="148px"
                 >
                   Agregar estante
                 </v-btn>
@@ -467,7 +473,8 @@
             </v-row>
 
             <v-row dense>
-              <v-col cols="12" sm="6" v-if="editedId > -1">
+
+              <v-col class="btn-delete" cols="12" sm="6" v-if="editedId > -1">
                 <v-btn
                   large
                   block
@@ -477,7 +484,7 @@
                   @click.stop="dialogDelete = true"
                 >
                   <v-icon class="mr-2">fas fa-trash-alt</v-icon>
-                  Eliminar planograma
+                  <div class="btn-delete-text">Eliminar</div>
                 </v-btn>
                 <v-dialog
                   v-model="dialogDelete"
@@ -506,7 +513,8 @@
                   </v-card>
                 </v-dialog>
               </v-col>
-              <v-col cols="12" sm="6">
+
+              <v-col class="btn-save" cols="12" sm="6">
                 <v-btn
                   large
                   block
@@ -516,20 +524,26 @@
                   @click="save"
                 >
                   <v-icon class="mr-2">fas fa-save</v-icon>
-                  Guardar planograma
+                  <div class="btn-save-text">Guardar</div>
                 </v-btn>
               </v-col>
+
             </v-row>
+
           </v-row>
         </v-form>
       </v-col>
+
     </v-row>
+
   </div>
+
 </template>
 
 <script>
 import SimpleGallery from "../../components/SimpleGallery";
 import ProductListInfiniteScroll from "../../components/ProductListInfiniteScroll.vue";
+
 export default {
   name: "PlanogramEditor",
   components: { SimpleGallery, ProductListInfiniteScroll },
@@ -550,7 +564,7 @@ export default {
     product_h: 0,
 
     // Planogram
-    space_y: 500,
+    space_y: 480,
 
     shelf_active: true,
     loading: false,
@@ -634,13 +648,13 @@ export default {
   computed: {
     planogramHeight() {
       // let val = Math.trunc(window.innerHeight * 0.75);
-      let val = 500;
+      let val = 480;
       // console.log("[Computed] planogramHeight", val);
       return val;
     },
     planogramWidth() {
       // let val = Math.trunc((this.planogramHeight / 16) * 9);
-      let val = 250;
+      let val = 270;
       // console.log("[Computed] planogramWidth", val);
       return val;
     },
@@ -923,17 +937,25 @@ export default {
           )
           .then((res) => {
             if (res) {
-              this.snackbar = true;
-              this.snackbarColor = "success";
-              this.snackbarText = "Planograma actualizado.";
+
+              this.$store.commit( 'addNotification', {
+                type: 'success',
+                title: 'Editor Planograma '+this.editedId,
+                content: 'Planograma actualizado'
+              })
+
               return +res.data.idObjeto;
             }
           })
           .catch((err) => {
             console.log("error", err);
-            this.snackbar = true;
-            this.snackbarColor = "black";
-            this.snackbarText = "Operación cancelada.";
+
+            this.$store.commit( 'addNotification', {
+              type: 'error',
+              title: 'Editor Planograma '+this.editedId,
+              content: 'Operación cancelada'
+            })
+
             return null;
           });
       } else {
@@ -952,17 +974,25 @@ export default {
           .then((res) => {
             console.log( res );
             if (res) {
-              this.snackbar = true;
-              this.snackbarColor = "success";
-              this.snackbarText = "Planograma creado.";
+
+              this.$store.commit( 'addNotification', {
+                type: 'success',
+                title: 'Editor Planograma '+this.editedId,
+                content: 'Planograma creado'
+              })
+
               return +res.data.idObjeto;
             }
           })
           .catch((err) => {
             console.log("error", err);
-            this.snackbar = true;
-            this.snackbarColor = "black";
-            this.snackbarText = "Operación cancelada.";
+
+            this.$store.commit( 'addNotification', {
+              type: 'error',
+              title: 'Editor Planograma '+this.editedId,
+              content: 'Operación cancelada'
+            })
+
             return null;
           });
       }
@@ -1004,9 +1034,13 @@ export default {
                   const obj = { id: +this.shelves[i].id, index: i };
                   console.log("shelf obj then", obj);
                   ids.push(obj);
-                  this.snackbar = true;
-                  this.snackbarColor = "success";
-                  this.snackbarText = "Estante actualizado.";
+
+                  this.$store.commit( 'addNotification', {
+                    type: 'success',
+                    title: 'Editor Planograma '+this.editedId,
+                    content: 'Estante actualizado'
+                  })
+
                 }
               })
               .catch((err) => {
@@ -1022,9 +1056,13 @@ export default {
                 if (response && response.data) {
                   const obj = { id: +response.data.idObjeto, index: i };
                   ids.push(obj);
-                  this.snackbar = true;
-                  this.snackbarColor = "success";
-                  this.snackbarText = "Estante insertado.";
+
+                  this.$store.commit( 'addNotification', {
+                    type: 'success',
+                    title: 'Editor Planograma '+this.editedId,
+                    content: 'Estante insertado'
+                  })
+
                 }
               })
               .catch((err) => {
@@ -1337,37 +1375,47 @@ export default {
             .then((res) => {
               if (res && res.data) {
                 Object.assign(this.editedItem, res.data);
-                this.snackbar = true;
-                this.snackbarColor = "success";
-                this.snackbarText = "Datos obtenidos del planograma.";
+
+                this.$store.commit( 'addNotification', {
+                  type: 'success',
+                  title: 'Editor Planograma '+this.editedItem.idFondo,
+                  content: 'Datos del planograma obtenidos correctamente'
+                })
+
               }
             })
             .catch((err) => {
+
               console.log("error", err);
-              this.snackbar = true;
-              this.snackbarColor = "danger";
-              this.snackbarText =
-                "¡ERROR! No se pudieron obtener datos del planograma.";
+
               this.loading = false;
               this.$route.replace({ name: "PlanogramList" });
+
+              this.$store.commit( 'addNotification', {
+                type: 'error',
+                title: 'Editor Planograma '+this.editedItem.idFondo,
+                content: 'No se pudieron obtener datos del planograma'
+              })
+
             });
           // Load background
           await this.$http
             .get(`Archivos/${this.editedItem.idFondo}`)
             .then((res) => {
               if (res && res.data) {
+
                 this.getChildData(Object.assign({}, res.data));
-                this.snackbar = true;
-                this.snackbarColor = "success";
-                this.snackbarText = "Fondo del planograma cargado.";
+
               }
             })
             .catch((err) => {
               console.log("error", err);
-              this.snackbar = true;
-              this.snackbarColor = "danger";
-              this.snackbarText =
-                "¡ERROR! No se pudo obtener el fondo del planograma.";
+
+                this.$store.commit( 'addNotification', {
+                  type: 'error',
+                  title: 'Editor Planograma '+this.editedItem.idFondo,
+                  content: 'No se pudo obtener el fondo del planograma'
+                })
             });
 
           console.log( this.editedItem.estantes.length );
@@ -1520,7 +1568,10 @@ export default {
 
 };
 </script>
+
+
 <style>
+
 .planogram__background {
   position: absolute;
   z-index: 100 !important;
@@ -1653,14 +1704,14 @@ export default {
 .shelf-actions-left {
   position: absolute;
   bottom: 0;
-  right: 102%;
+  right: 101%;
   border: 1px solid yellow;
   width: 30px;
 }
 .shelf-actions-right {
   position: absolute;
   bottom: 0;
-  left: 102%;
+  left: 101%;
   border: 1px solid yellow;
   width: 30px;
 }
@@ -1669,5 +1720,54 @@ export default {
   border: none;
   background: rgba(51, 51, 51, .25);
 }
+
+
+
+/* Mis propias clases */
+.planogram-editor {
+  padding: 0;
+  /* position: relative; */
+}
+
+.main-title {
+  padding: 0;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 400;
+  padding: 4px 0;
+}
+
+.main-management {
+  padding: 12px 16px 12px 16px;
+}
+
+.main-products {
+  padding: 0;
+  max-height: 480px;
+  padding-right: 40px;
+}
+
+.main-products-col {
+  padding: 0;
+  max-height: 480px;
+}
+
+.main-planogram {
+  padding: 0;
+  max-width: 270px;
+  height: 480px;
+}
+
+.main-settings {
+  padding: 0;
+  padding-left: 44px;
+}
+
+.main-menu {
+  z-index: 1000;
+}
+
+/* Mis propias clases */
+
 
 </style>

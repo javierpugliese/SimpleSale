@@ -235,7 +235,7 @@
                             <v-sheet
                                 class="align-self-end my-class-base-shelf"
                                 :width="planogramWidth"
-                                :height="6"
+                                :height="planogramHeight*(heightBaseShelf/100)"
                                 :color="rgba(shelf.color)"
                             >
                                 <div class="shelf-actions-left text-overline text-center">
@@ -646,6 +646,8 @@
             calShelfMaxPor: 0,
             calShelfOriginY: 0,
             calShelfHeight: 0,
+
+            heightBaseShelf: 1.25
 
         }),
 

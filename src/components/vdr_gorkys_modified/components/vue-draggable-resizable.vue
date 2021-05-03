@@ -327,8 +327,11 @@ export default {
       );
 
     this.resetBoundsAndMouseState();
+    
   },
+
   mounted: function () {
+
     if (!this.enableNativeDrag) {
       this.$el.ondragstart = () => false;
     }
@@ -346,6 +349,8 @@ export default {
     this.right = this.parentWidth - this.width - this.left;
     this.bottom = this.parentHeight - this.height - this.top;
 
+    // console.log( this.width, this.height, this.right, this.bottom);
+
     this.settingAttribute();
 
     addEvent(document.documentElement, "mousedown", this.deselect);
@@ -355,9 +360,15 @@ export default {
 
     // Added by Javier
     this.$emit("created", this.left, this.top);
+
+    // console.log( this.width, this.height, this.right, this.bottom);
+
     //this.conflictCheck()
   },
+  
   beforeDestroy: function () {
+
+
     removeEvent(document.documentElement, "mousedown", this.deselect);
     removeEvent(document.documentElement, "touchstart", this.handleUp);
     removeEvent(document.documentElement, "mousemove", this.move);
@@ -373,9 +384,34 @@ export default {
 
     // Added by Javier
     this.$emit("destroying", this.left, this.top);
+
+  },
+
+  destroyed() {
+
+    // console.log( 'destroyed' );
+
+  },
+
+  updated() {
+
+    this.$emit( 'updated', this.width, this.height, this.left, this.top );
+
+  },
+
+  beforeUpdate() {
+
+    this.$emit( 'beforeUpdate', this.width, this.height, this.left, this.top );
+
   },
 
   methods: {
+
+    forceRerender() {
+
+      this.componentKey ++;
+
+    },
     // 重置边界和鼠标状态
     // Reset border and mouse state
     resetBoundsAndMouseState() {

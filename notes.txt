@@ -1,16 +1,17 @@
 - El planograma debe ser de una altura especifica par.
 - Las imagenes tambien deben tener unos pixeles par.
 
-ERRORES
-- Al insertar estante -> prop 'h'
-- En algunas ocaciones se duplica un estante.
-- Al elimiar un estante, se deforman las imagenes, algunos estantes cambian de posicion
-- Al crear nuevo planograma, la primera vez que se guardan, se guardan bien, al volver a guardar otra vez, se dublican los estantes
 
+ERRORES
+- [1] En algunas ocaciones se duplica un estante. (corregido, cada vez que se actualiza, se redirecciona a PlanogramList)
+- Al crear nuevo planograma, la primera vez que se guardan, se guardan bien, al volver a guardar otra vez, se dublican los estantes (error relacionado a [1], corregido)
+- Al insertar estante -> prop 'h'
+- Al elimiar un estante, se deforman las imagenes, algunos estantes cambian de posicion
+- Cuando a la base se le da un color con opacidad < 1, guardas, y cuando volves a editar, no se carga bien ese color
 
 
 270 * 480
-redimensionar las imagenes a valores optimos (ej. 83px -> 80px/85px)
+redimensionar las imagenes a valores optimos (ej. 83px -> 80px/85px) por soft
 mostrar bien los errores
 crear cuadro de dialogo, para poder eliminar producto
 resize de estante
@@ -19,3 +20,19 @@ resize de estante
 NOTIFICACIONES
 fecha y hora.
 copiar info + depuracion en el portapapeles
+
+
+
+
+PATRON 1
+Se crea un estante con articulos
+guardas
+abris el editor
+agregas otro estante con articulos
+elimina el primer estante y se deforma el resto
+
+PATRON 2
+Si se elimina el primer estante se deforma todo igualmente
+
+PATRON 3
+la posicion de los elementos de la posicion 0 de los shelves, se queda en el 2 shelve

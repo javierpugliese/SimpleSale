@@ -79,10 +79,10 @@ export default {
     snackbar: false,
     snackbarColor: "#424242",
     snackbarText: "",
-    username: "simplisales",
-    password: "vt4gdm¡n-",
+    username: "",
+    password: "",
     staticUsr: "simplisales",
-    staticPwd: "vt4gdm¡n-",
+    staticPwd: "simplisales",
   }),
   methods: {
     login() {

@@ -6,21 +6,25 @@
 
         <div class="ntf-md" v-if="this.$store.state.notifications.content.length > 0">
 
-            <div class="ntf-md-it" v-bind:class="['ntf-md-it-'+notification.type]"
-            v-for="(notification, index) in this.$store.state.notifications.content"
-            v-bind:key="`notification-${index}`">
+            <div class="ntf-md-box">
 
-                <div class="ntf-md-it-tp">
+                <div class="ntf-md-box-it" v-bind:class="['ntf-md-box-it-'+notification.type]"
+                v-for="(notification, index) in this.$store.state.notifications.content"
+                v-bind:key="`notification-${index}`">
 
-                    <div class="ntf-md-it-tp-tx">{{notification.title}}</div>
+                    <div class="ntf-md-box-it-tp">
 
-                    <div class="ntf-md-it-tp-btn" @click="deleteNotification(index)">
-                        <i class="ntf-md-it-tp-btn-i fas fa-times"></i>
+                        <div class="ntf-md-box-it-tp-tx">{{notification.title}}</div>
+
+                        <div class="ntf-md-box-it-tp-btn" @click="deleteNotification(index)">
+                            <i class="ntf-md-box-it-tp-btn-i fas fa-times"></i>
+                        </div>
+
                     </div>
 
-                </div>
+                    <div class="ntf-md-box-it-ct">{{notification.content}}</div>
 
-                <div class="ntf-md-it-ct">{{notification.content}}</div>
+                </div>
 
             </div>
 
@@ -122,10 +126,11 @@
         }
 
         &-md {
+            // display: grid;
             display: flex;
             flex-direction: column-reverse;
-            // align-content: flex-end;
             overflow-y: auto;
+            // overflow-x: auto;
             height: 100%;
 
             /* width */
@@ -150,51 +155,59 @@
                 background: hsl(0, 0%, 60%);
             }
 
-            &-it {
-                border-top: 1px solid hsl(0, 0%, 25%);
-                padding: 12px 8px;
+            &-box {
 
-                &-tp {
-                    display: grid;
-                    grid-template-columns: auto 32px;
-                    align-items: center;
-                    padding-bottom: 4px;
+                &-it {
+                    border-top: 1px solid hsl(0, 0%, 25%);
+                    padding: 12px 8px;
 
-                    &-tx {
-                        font-size: 15px;
-                        font-weight: 400;
-                    }
-
-                    &-btn {
-                        display: flex;
+                    &-tp {
+                        display: grid;
+                        grid-template-columns: auto 32px;
                         align-items: center;
-                        justify-content: center;
-                        width: 32px;
-                        height: 32px;
-                        cursor: pointer;
-                        border-radius: 50%;
-                        transition: .1s;
+                        padding-bottom: 4px;
 
-                        &:hover {
-                            background: hsl(0, 0%, 30%);
+                        &-tx {
+                            font-size: 15px;
+                            font-weight: 400;
                         }
 
-                        &-i {
-                            font-size: 12px;
-                            font-weight: 100;
+                        &-btn {
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            width: 32px;
+                            height: 32px;
+                            cursor: pointer;
+                            border-radius: 50%;
+                            transition: .1s;
+
+                            &:hover {
+                                background: hsl(0, 0%, 30%);
+                            }
+
+                            &-i {
+                                font-size: 12px;
+                                font-weight: 100;
+                            }
+
                         }
 
                     }
 
-                }
+                    &-ct {
+                        font-size: 15px;
+                        font-weight: 100;
+                    }
 
-                &-ct {
-                    font-size: 15px;
-                    font-weight: 100;
-                }
+                    &-success {
+                        // background: hsla( 160, 100%, 45%, .15 );
+                    }
 
-                &-error {
-                    background: hsla(350, 100%, 50%, .15);
+                    &-error {
+                        background: hsla(350, 100%, 50%, .15);
+                    }
+
                 }
 
             }

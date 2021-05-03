@@ -47,7 +47,16 @@ export default new Vuex.Store({
     }
 
   },
-  actions: {},
+  actions: {
+
+    scrollTopNotificatins() {
+
+
+
+    }
+
+  },
+
   modules: {},
   // strict mode in the dev environment.
   strict: process.env.NODE_ENV !== "production"

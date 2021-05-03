@@ -15,8 +15,11 @@ Vue.config.productionTip = false;
 axios.defaults.baseURL = "http://200.10.96.221:8080/";
 //axios.defaults.withCredentials = true;
 
-const USERNAME = "simplisale";
-const PASSWORD = "vt4gdm¡n-";
+// const USERNAME = "simplisale";
+// const PASSWORD = "vt4gdm¡n-";
+
+const USERNAME = "simplisales";
+const PASSWORD = "simplisales";
 
 /* axios.defaults.auth = {
   username: USERNAME,
@@ -34,10 +37,10 @@ const authorization = 'Basic ' + encodedToken;
 
 axios.interceptors.request.use(
   config => {
-    console.log(
-      `${config.method.toUpperCase()} request sent to ${config.baseURL}${config.url} at ${new Date()}`
-    );
-    console.log('Authorization', authorization)
+    // console.log(
+    //   `${config.method.toUpperCase()} request sent to ${config.baseURL}${config.url} at ${new Date()}`
+    // );
+    // console.log('Authorization', authorization)
     return config;
   },
   error => {

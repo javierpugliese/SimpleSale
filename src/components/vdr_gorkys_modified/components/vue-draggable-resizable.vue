@@ -11,6 +11,7 @@
       },
       className,
     ]"
+    @mouseup="miMouseUp"
     @mousedown="elementMouseDown"
     @touchstart="elementTouchDown"
   >
@@ -326,6 +327,7 @@ export default {
         "[Vdr warn]: Invalid prop: minHeight cannot be greater than maxHeight"
       );
 
+
     this.resetBoundsAndMouseState();
     
   },
@@ -359,6 +361,7 @@ export default {
     addEvent(window, "resize", this.checkParentSize);
 
     // Added by Javier
+    
     this.$emit("created", this.left, this.top);
 
     // console.log( this.width, this.height, this.right, this.bottom);
@@ -368,12 +371,12 @@ export default {
   
   beforeDestroy: function () {
 
-
     removeEvent(document.documentElement, "mousedown", this.deselect);
     removeEvent(document.documentElement, "touchstart", this.handleUp);
     removeEvent(document.documentElement, "mousemove", this.move);
     removeEvent(document.documentElement, "touchmove", this.move);
     removeEvent(document.documentElement, "mouseup", this.handleUp);
+
     removeEvent(
       document.documentElement,
       "touchend touchcancel",
@@ -406,6 +409,12 @@ export default {
   },
 
   methods: {
+
+    miMouseUp( e ) {
+
+      this.$emit( 'mouseUp', e );
+
+    },
 
     forceRerender() {
 
@@ -488,9 +497,18 @@ export default {
     // 元素按下
     // Element press
     elementDown(e) {
+
       if (e instanceof MouseEvent && e.which !== 1) {
         return;
       }
+
+      // if( e.button == 2 ) {
+
+      //   console.log( 'jajajaj' );
+      //   e.preventDefault();
+      //   return;
+
+      // }
 
       const target = e.target || e.srcElement;
 
@@ -545,6 +563,7 @@ export default {
 
         addEvent(document.documentElement, eventsFor.move, this.move);
         addEvent(document.documentElement, eventsFor.stop, this.handleUp);
+
       }
     },
     // 计算移动范围
@@ -978,6 +997,7 @@ export default {
     // 从控制柄松开
     // Release from the control handle
     async handleUp(e) {
+
       this.handle = null;
 
       // 初始化辅助线数据

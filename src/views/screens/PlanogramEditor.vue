@@ -46,6 +46,17 @@
 
         </v-scale-transition>
 
+
+        <!--==== MENU OPTIONS ====-->
+        <div class="menu-options" :class=" menuOptions.show ? 'menu-options-act' : '' " :style="`left: ${menuOptions.originX}px; top: ${menuOptions.originY}px`">
+
+            <div class="menu-options-item">Quitar producto</div>
+            <!-- <div class="menu-options-item">Eliminar</div> -->
+
+        </div>
+        <!--==== MENU OPTIONS ====-->
+
+
         <!--==== PLANOGRAM MANAGEMENT ====-->
         <v-row class="main-management">
 
@@ -203,8 +214,8 @@
                             :draggable="true"
                             :lock-aspect-ratio="true"
                             :parent="true"
-                            @activated="shelf_active = false"
-                            @deactivated="shelf_active = true"
+                            @activated="shelf_active = false; product.activated = true;"
+                            @deactivated="shelf_active = true; product.activated = false;"
                             class-name-dragging="shelf__dragging"
                             :isConflictCheck="true"
                             :debug="false"
@@ -213,6 +224,7 @@
                             :snap-tolerance="2"
                             :handles="['tl']"
                             axis="x"
+                            @mouseUp="( e ) => mouseUp( e )"
                             @updated="( ...args ) => updatedProduct( index, pos, args )"
                             @beforeUpdate="( ...args ) => beforeUpdateProduct( index, pos, args )"
                             @dragging="( left, top ) => xy( 'Product', left, top, product, index, pos )"
@@ -223,6 +235,10 @@
                             <div class="d-flex justify-content-center ma-0" :style="{ height: `100%`, 'max-width': `100%` }">
                                 <img class="shelf_img" v-bind:src="product.archivos[0].url || require('@/assets/no-disponible.jpg')"/>
                             </div>
+
+                            <!-- <div class='vdr-product-remove' :class="product.activated ? 'vdr-product-remove-act' : ''" @click="clickRemove">
+                                <i class="fas fa-trash-alt vdr-product-remove-i"></i>
+                            </div> -->
 
                         </vdr>
                         
@@ -243,6 +259,7 @@
                                 </div>
 
                                 <div class="shelf-actions-right">
+
                                     <v-btn
                                         color="red"
                                         @click="removeShelf( index )"
@@ -250,7 +267,8 @@
                                         text
                                         icon
                                     >
-                                        <v-icon>fas fa-trash-alt</v-icon>
+                                        <!-- <v-icon>fas fa-trash-alt</v-icon> -->
+                                        <i class="fas fa-trash-alt shelf-actions-right-i"></i>
                                     </v-btn>
 
                                 </div>
@@ -549,7 +567,13 @@
 
         data: () => ({
 
-            componentKey: 10,
+            menuOptions: {
+              
+              show: false,
+              originX: 0,
+              originY: 0
+              
+            },
 
             width: 40,
             height: 40,
@@ -700,10 +724,38 @@
 
         methods: {
 
-            forceRerender() {
+            mouseUp( e ) {
 
-                this.componentKey += 10;
+                // console.dir( e );
 
+                if( e.button == 2 ) {
+
+                    console.log( 'emmit mouse clicked rigth' );
+                    console.log( e.clientX, e.clientY );
+
+                    // this.$nextTick(() => {
+
+                    //     console.log( 'next tick' );
+                    //     this.menuOptions.show = false;
+
+                    // });
+
+                }
+
+                // e.preventDefault();
+                
+
+                // this.menuOptions.originX = e.clientX;
+                // this.menuOptions.originY = e.clientY-64;
+                // this.menuOptions.show = true;
+                
+
+            },
+
+            clickRemove() {
+
+                console.log( 'hello' );
+                
             },
 
             updatedProduct( index, pos, args ) {
@@ -1019,6 +1071,7 @@
                         this.menu_x = window.event.clientX;
                         this.menu_y = window.event.clientY;
                         this.productBeingStored = obj;
+                        
                         this.$nextTick(() => {
                             this.menu = true;
                         })
@@ -1348,6 +1401,7 @@
                 this.menu_x = e.clientX;
                 this.menu_y = e.clientY;
                 this.productBeingStored = Object.assign({}, obj);
+
                 this.$nextTick(() => {
                     this.menu = true;
                 });
@@ -1851,22 +1905,6 @@
         transform: scale(1.4);
     }
 
-    .shelf-actions-left {
-        position: absolute;
-        bottom: 0;
-        right: 101%;
-        border: 1px solid yellow;
-        width: 30px;
-    }
-
-    .shelf-actions-right {
-        position: absolute;
-        bottom: 0;
-        left: 101%;
-        border: 1px solid yellow;
-        width: 30px;
-    }
-
     .class-planogram-propia {
         border: none;
         background: rgba(51, 51, 51, 0.25);
@@ -1921,4 +1959,97 @@
     }
 
     /* Mis propias clases */
+</style>
+
+
+<style lang="scss">
+
+    .shelf-actions-left {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        bottom: 0;
+        right: 100%;
+        // border: 1px solid hsl(0, 0, 30);
+        width: 28px;
+        height: 28px;
+        background: hsla(0, 0, 20, .25);
+        user-select: none;
+    }
+
+    .shelf-actions-right {
+         position: absolute;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        bottom: 0;
+        left: 100%;
+        // border: 1px solid hsl(0, 0, 30);
+        background: hsla(0, 0, 20, .25);
+        width: 28px;
+        height: 28px;
+        user-select: none;
+
+        &-i {
+            color: red;
+            font-size: 14px;
+        }
+
+    }
+
+    .vdr-product-remove {
+        position: absolute;
+        display: flex;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        bottom: -12px;
+        right: -12px;
+        background: hsla(0, 0, 100, .5);
+        border-radius: 50%;
+        cursor: pointer;
+
+        &-i {
+            font-size: 14px;
+            color: hsl(0, 100, 50);
+        }
+
+        &-act {
+            display: flex;
+        }
+
+    }
+
+    .menu-options {
+        position: absolute;
+        display: none;
+        background: hsl(0, 0, 20);
+        border-radius: 4px;
+        padding: 8px 0;
+        z-index: 1000;
+        width: 200px;
+        top: 0;
+        left: 0;
+
+        &-item {
+            color: hsl(0, 0, 100);
+            padding: 8px 16px;
+            cursor: pointer;
+            user-select: none;
+
+            &:hover {
+                background: hsl(0, 0, 40);
+            }
+
+        }
+
+        &-act {
+            display: initial;
+        }
+
+    }
+
 </style>

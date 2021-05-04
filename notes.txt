@@ -23,6 +23,8 @@ copiar info + depuracion en el portapapeles
 
 
 
+68cm * 121cm
+
 
 PATRON 1
 Se crea un estante con articulos
